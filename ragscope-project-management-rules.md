@@ -12,670 +12,352 @@ status: stable
 # RAGScope — Obsidianプロジェクト管理規約
 
 > [!abstract] このノートの役割
-> RAGScopeの開発作業を、Obsidian上で**Milestone → Epic → Ticket**の3層に分解し、実装・調査・検証・設計判断を一貫した方法で管理する。  
-> 本規約は作業管理の方法を定義し、プロダクトの仕様やバージョンごとの成功条件は[[ragscope-design|RAGScope設計書]]に従う。
+> RAGScopeの開発作業を、Obsidian上で**Milestone → Epic → Ticket**の3層に分けて管理する。  
+> 個人開発の負担を増やさず、AIが独断で作業・構造・メタデータを増やさないための最小限のルールを定める。
 
-## 1. 適用範囲と参照順序
+> [!tip] 日常運用
+> 迷ったときは[[#6. 操作別チェックリスト]]を見る。  
+> Ticketは原則として、**作る → `active` → 実装・検証 → 結果を書く → `stable`**だけで運用する。
 
-RAGScope関連の作業管理ノートを作成・更新するときは、次の順序で参照する。
+## 1. 参照順序
 
 1. [[ragscope-design|RAGScope設計書]]
-   - プロジェクトの目的、対象・対象外、バージョン計画、成功条件を定義する。
+   - バージョンの範囲、対象外、成功条件を定義する。
 2. [[obsidian-metadata-rules|Obsidianメタデータ規約]]
-   - Frontmatter、`note_type`、`status`、`tags`などの使用方法を定義する。
+   - Frontmatter、`note_type`、`status`、`tags`を定義する。
 3. 本規約
-   - Milestone、Epic、Ticketへの分解方法と、日々の運用方法を定義する。
+   - Milestone、Epic、Ticketの配置と運用を定義する。
 
 > [!important] 優先順位
-> 本規約と設計書が矛盾する場合は設計書を優先する。  
-> 本規約とメタデータ規約が矛盾する場合はメタデータ規約を優先し、独断で新しいプロパティを追加しない。
+> 矛盾した場合は、設計書、メタデータ規約、本規約の順に優先する。  
+> AIは矛盾を独断で解消せず、ユーザーへ報告する。
 
 ## 2. 基本原則
 
-### 2.1 小さな完成を積み上げる
+### 2.1 現在のMilestoneだけを具体化する
 
-- 現在のバージョンの成功条件を満たすことを優先する。
-- 将来のバージョンで必要な機能を、先回りして現在のTicketへ混ぜない。
-- v1.0までの全作業を最初から詳細化しない。
-- 現在のMilestoneは具体的に、次のMilestoneは粗く、それ以降は[[ragscope-design#10.2 バージョン別計画|設計書のロードマップ]]だけで管理する。
+- 現在取り組むMilestoneだけをEpicとTicketへ分解する。
+- 次のMilestoneは、必要ならMilestoneノートだけ作る。
+- それ以降は[[ragscope-design#10.2 バージョン別計画|設計書のロードマップ]]だけで管理する。
+- 将来のMilestoneやTicketを一括生成しない。
+- 将来バージョンの機能を現在のTicketへ混ぜない。
 
 ### 2.2 1 Ticket、1つの確認可能な結果
 
-Ticketは、完了時に次の形式で結果を確認できる単位にする。
+Ticketは、完了したかを確認できる単位にする。
 
-- コマンドを実行できる
-- APIが期待したレスポンスを返す
-- データが保存・取得できる
-- テストが通る
-- 調査結果から設計判断を下せる
-- 文書が更新され、第三者が手順を再現できる
+- 適切：固定Markdown文書を読み込める、Embeddingを1件生成できる、候補モデルの採否を決められる
+- 大きすぎる：RAGを作る、Python AI Serviceを完成させる
+- 細かすぎる：ファイルを1つ作る、importを追加する
 
-「Aを実装し、Bを設計し、Cも調査する」のように複数の独立した結果を含む場合は分割する。
+細かな実装手順はTicket内のチェックリストや作業メモに置く。
 
-### 2.3 Ticket管理を仕事にしない
+### 2.3 同じ情報を複数箇所で管理しない
 
-- 関数1個、ファイル1個の作成だけを原則としてTicketにしない。
-- Ticketを完了するための細かな手順は、そのTicket内のチェックリストにする。
-- 実装中に新しい作業が見つかった場合、現在の目的に必要ならチェックリストへ追加し、独立した成果なら新しいTicket候補として記録する。
+- MilestoneとEpicの所属はフォルダ階層で表す。
+- Ticketの状態は、そのTicketの`status`を正本とする。
+- 現在の作業は`status: active`で判断する。
+- Ticket一覧はObsidian Basesまたはフォルダ表示から取得する。
+- Epic、Milestone、ダッシュボードへTicket一覧を手作業で複製しない。
 
-### 2.4 実装だけでなく判断過程を残す
+### 2.4 管理より実装を優先する
 
-RAGScopeでは、実装結果だけでなく、次の流れを追跡できるようにする。
+- 小さなTicketでは不要な見出しを省略してよい。
+- 形式を整えるためだけのTicketを原則として作らない。
+- 管理が負担になった場合は、自動化より先に記録項目を減らす。
+- 記録は、後から目的・結果・判断を追える程度で十分とする。
 
-```mermaid
-flowchart LR
-    Hypothesis["仮説"] --> Ticket["Ticket<br>実装・調査・検証"]
-    Ticket --> Result["結果・生データ"]
-    Result --> Insight["考察"]
-    Insight --> Decision["設計判断"]
-    Decision --> ADR["ADR・設計書更新"]
-    Decision --> Next["次のTicket"]
-```
-
-## 3. 3層構造
+## 3. 3層構造と配置
 
 ```mermaid
 flowchart TD
     Milestone["Milestone<br>バージョンの到達点"]
-    Epic["Epic<br>まとまりのある能力・作業領域"]
+    Epic["Epic<br>まとまりのある能力"]
     Ticket["Ticket<br>1つの確認可能な結果"]
-    Steps["チェックリスト<br>実装上の細かな手順"]
-
-    Milestone --> Epic --> Ticket --> Steps
+    Milestone --> Epic --> Ticket
 ```
 
-### 3.1 Milestone
+| 層 | 役割 | 例 |
+|---|---|---|
+| Milestone | RAGScopeのバージョン単位 | `v0.0`、`v0.1`、`v1.0` |
+| Epic | Milestoneを構成する能力・作業領域 | 文書取り込み、Embedding、Haskell CLI |
+| Ticket | 日々取り組む最小の管理単位 | 固定Markdown文書を読み込める |
 
-Milestoneは、RAGScopeのバージョン単位とする。
+Milestoneの範囲と成功条件は、必ず設計書を起点にする。
 
-例：
-
-- `v0.0` — 固定文書のchunk化、Embedding生成・保存、exact search
-- `v0.1` — 検索評価・比較基盤
-- `v0.1.5` — AWSデプロイスパイク
-- `v0.2` — 回答生成と引用
-- `v0.3` — hybrid検索とreranking
-- `v0.4` — 回答・引用・回答可能性評価
-- `v0.5` — 堅牢化と運用性
-- `v1.0` — 第三者が再現できるローカル公開版
-
-Milestoneの範囲と成功条件は、必ず[[ragscope-design#10.2 バージョン別計画|設計書のバージョン別計画]]を起点にする。
-
-> [!note] `v0.1.5`の扱い
-> `v0.1.5`はRAG本体の直列的な機能追加ではなく、v0.1後に行う独立したAWS学習スパイクとして管理する。
-
-### 3.2 Epic
-
-Epicは、Milestoneを構成する**まとまりのある能力または作業領域**とする。
-
-v0.0の例：
-
-- 文書読み込み・正規化
-- chunk分割
-- Python AI Service
-- Embedding生成
-- PostgreSQL / pgvector
-- Haskell CLI
-- end-to-end検索
-- テスト・ドキュメント
-
-Epicの完了条件は、「関連Ticketがすべて終わった」だけでなく、利用者から見て何が可能になるかで記述する。
-
-### 3.3 Ticket
-
-Ticketは、Epicを進めるための最小の管理単位とする。
-
-良い例：
-
-- Pythonで1件のテキストからEmbeddingを生成できる
-- Haskellから`POST /embeddings`を呼び出せる
-- pgvectorへ固定vectorを保存し、exact searchできる
-- Haskell CLIの質問に対して上位3件のchunkを表示できる
-- M2 16GBで候補Embedding modelが動作するか検証し、採否を決める
-
-大きすぎる例：
-
-- Python AI Serviceを完成させる
-- データベースを実装する
-- RAGを作る
-
-細かすぎる例：
-
-- `Main.hs`を作成する
-- 関数名を決める
-- importを追加する
-
-## 4. Obsidian上の配置
-
-次のように、フォルダ階層自体でMilestoneとEpicを表現することを推奨する。
+### 3.1 フォルダ構成
 
 ```text
 project-management/
 ├── ragscope-project-dashboard.md
 └── milestones/
-    ├── v0.0/
-    │   ├── v0.0.md
-    │   ├── document-ingestion/
-    │   │   ├── v0.0-document-ingestion.md
-    │   │   ├── RS-0001-read-fixed-markdown.md
-    │   │   └── RS-0002-normalize-document.md
-    │   ├── embedding-service/
-    │   │   ├── v0.0-embedding-service.md
-    │   │   └── RS-0003-generate-single-embedding.md
-    │   └── end-to-end-search/
-    │       ├── v0.0-end-to-end-search.md
-    │       └── RS-0010-show-top-chunks.md
-    └── v0.1/
-        └── v0.1.md
+    └── v0.0/
+        ├── v0.0.md
+        └── document-ingestion/
+            ├── v0.0-document-ingestion.md
+            └── RS-0001-read-fixed-markdown.md
 ```
 
-> [!tip] フォルダ名は固定ではない
-> Vault全体の構成に合わせてルートパスは変更してよい。  
-> ただし、Milestone → Epic → Ticketの親子関係がファイルパスから読み取れる構造を維持する。
+- Milestoneは`milestones/<version>/`へ置く。
+- Epicは対象Milestoneフォルダの直下へ置く。
+- Ticketは対象Epicフォルダの直下へ置く。
+- `project-management`には管理ノートだけを置き、ソースコードは置かない。
 
-## 5. 命名規則
+## 4. 命名・Frontmatter・状態
 
-### 5.1 Ticket ID
+### 4.1 Ticket IDと種別
 
-- Ticketにはプロジェクト全体で一意な連番を付ける。
-- 形式は`RS-0001`とする。
-- 完了・中止・移動後もIDを変更しない。
-- 削除したIDを再利用しない。
-- IDにMilestoneやEpicの情報を埋め込まない。
-
-### 5.2 ファイル名
+- Ticket IDは`RS-0001`形式の一意な連番とする。
+- 作成前に既存の最大IDを確認する。
+- 完了・中止・移動後も変更せず、削除したIDも再利用しない。
 
 ```text
 RS-0001-read-fixed-markdown.md
-RS-0002-normalize-document.md
-RS-0003-generate-single-embedding.md
 ```
-
-- IDの後ろは短い英語のkebab-caseとする。
-- 日本語の説明は見出しまたは`aliases`に記載する。
-- Ticket種別はファイル名へ含めず、見出しに記載する。
-
-### 5.3 見出し
 
 ```markdown
-# RS-0003 — [Feature] Pythonで1件のEmbeddingを生成する
+# RS-0001 — [Feature] 固定Markdown文書を読み込む
 ```
-
-Ticket種別は次から選ぶ。
 
 | 種別 | 用途 |
 |---|---|
-| `[Feature]` | 新しい動作や能力を追加する |
-| `[Fix]` | 不具合や設計との不整合を修正する |
-| `[Spike]` | 不確実な技術・方式を小さく検証する |
-| `[Design]` | API、データ構造、責務分担などを決定する |
-| `[Test]` | 正常系・異常系・再現性を検証する |
-| `[Docs]` | README、設計書、手順、既知の制約を整備する |
+| `[Feature]` | 新しい動作や能力 |
+| `[Fix]` | 不具合や不整合の修正 |
+| `[Spike]` | 不確実な技術の小規模検証 |
+| `[Design]` | APIやデータ構造などの決定 |
+| `[Test]` | 独立した検証 |
+| `[Docs]` | README、設計書、手順の更新 |
 
-## 6. Frontmatterと状態管理
+### 4.2 Frontmatter
 
-Frontmatterは[[obsidian-metadata-rules|Obsidianメタデータ規約]]に従い、未登録プロパティを追加しない。
-
-### 6.1 使用するプロパティ
-
-- `aliases`
-- `tags`
-- `note_type`
-- `status`
-- 必要な場合のみ`cssclasses`
-
-次のようなプロジェクト管理用プロパティは、現時点では追加しない。
+[[obsidian-metadata-rules]]に登録されたプロパティだけを使用する。
 
 ```yaml
-milestone:
-epic:
-ticket_type:
-priority:
-blocked:
-due_date:
+aliases:
+tags:
+note_type:
+status:
+cssclasses:
 ```
 
-MilestoneとEpicはファイルパスおよびWikiリンク、Ticket種別は見出し、作業順はMilestone / Epicノート内の並び順で表す。
+`milestone`、`epic`、`ticket_type`、`priority`、`blocked`、`due_date`などは追加しない。  
+所属はフォルダ、Ticket種別は見出し、状態は`status`で表す。
 
-> [!warning] 新しいプロパティが必要になった場合
-> Basesや自動処理で明確な利用目的が生じた場合は、先に[[obsidian-metadata-rules#8. 新しいプロパティを追加する手順|メタデータ規約の追加手順]]に従って規約変更案を作る。個別Ticketだけに追加してはならない。
-
-### 6.2 `status`の運用
-
-Ticketノートでは、既存の`status`を次のように解釈する。
-
-| `status` | Ticketの状態 | 運用 |
-|---|---|---|
-| `draft` | Backlog / 未着手 | 目的や完了条件を整理中、または着手待ち |
-| `active` | In Progress | 現在作業中 |
-| `stable` | Done | 完了条件を満たし、結果と検証内容を記録済み |
-| `deprecated` | Superseded | 別Ticketや別判断によって置き換えられた |
-| `archived` | Canceled | 実施しないと判断し、理由を記録した |
-
-これはTicketノート自体の文書状態として、メタデータ規約の意味を保ったまま使用する。
-
-> [!important] 完了判定
-> `status: stable`へ変更できるのは、完了条件のチェックだけでなく、**検証結果と実施結果が本文へ記録された後**とする。
-
-### 6.3 `note_type`の選択
-
-Ticketだから一律に特別な`note_type`を追加するのではなく、ノートの内容に応じて既存値を使用する。
-
-| Ticketの内容 | 推奨`note_type` |
+| `status` | Ticketでの意味 |
 |---|---|
-| 実装・修正・テスト・ドキュメント作業 | `implementation` |
-| 技術検証・比較実験 | `experiment` |
+| `draft` | 未着手 |
+| `active` | 作業中 |
+| `stable` | 完了 |
+| `deprecated` | 後継Ticketや別方針に置き換えられた |
+| `archived` | 実施しないと判断した |
+
+原則として、同時に`active`にする主要Ticketは1件とする。
+
+| ノート | 推奨`note_type` |
+|---|---|
+| ダッシュボード、Milestone、Epic | `moc` |
+| 実装・修正・Test・Docs Ticket | `implementation` |
+| Spike・比較検証 | `experiment` |
 | 設計書 | `design` |
-| 重要な設計判断 | `adr` |
-| 規約・参照一覧 | `reference` |
-| Milestone / Epicの入口 | `moc` |
+| ADR | `adr` |
+| 規約 | `reference` |
 
-## 7. Ticketの作成基準
+## 5. 各ノートに最低限書くこと
 
-### 7.1 Ticketとして独立させる条件
+### 5.1 Milestoneノート
 
-次のいずれかを満たす作業は、独立したTicketにする。
+- 設計書へのリンク
+- 到達点と成功条件
+- EpicへのWikiリンク
+- 完了時の結果・制約・持ち越し
 
-- 単独で完了確認できる成果がある
-- 独立した調査結果や設計判断が必要である
-- 失敗した場合に原因と結果を個別に追跡したい
-- 別Ticketから依存される
-- 後から実施時期やMilestoneを変更する可能性がある
+Ticket一覧や現在の作業は記載しない。
 
-### 7.2 チェックリストに留める条件
+### 5.2 Epicノート
 
-次の作業は、原則としてTicket内のチェックリストにする。
+- Epicの完了状態
+- 対象となる設計書の節
+- Epicの完了条件
 
-- 1つの成果を作るための実装手順
-- 小さなリファクタリング
-- import、ファイル作成、関数追加などの内部作業
-- 同じ検証結果へ収束する複数の操作
+Ticket一覧は記載せず、EpicフォルダまたはBasesから確認する。
 
-### 7.3 分割の目安
+### 5.3 Ticketノート
 
-次の場合はTicketを分割する。
-
-- 完了条件が5〜7個を大きく超える
-- 異なるコンポーネントの独立した成果を含む
-- 調査と本実装を同時に扱っている
-- 正常系実装と大規模な異常系対応が混在する
-- Ticket名に「および」「さらに」「一式」が頻繁に現れる
-
-## 8. Ticketテンプレート
-
-```markdown
+```yaml
 ---
 aliases:
-  - 日本語でのTicket名
+  - 日本語のTicket名
 tags:
   - ragscope
 note_type: implementation
 status: draft
 ---
-# RS-0001 — [Feature] Ticketの目的を動詞で記述する
+```
 
-> [!summary] このTicketで可能にすること
-> 完了後に、利用者またはシステムが何をできるようになるかを1〜3文で記述する。
-
-## コンテキスト
-
-- Milestone: [[v0.0]]
-- Epic: [[v0.0-document-ingestion]]
-- 設計書: [[ragscope-design#12. v0.0 実装内容]]
-- 対象コンポーネント: [[Haskell API・CLI]] / [[Python AI Service]] / [[PostgreSQL]]
+```markdown
+# RS-0001 — [Feature] Ticket名
 
 ## 目的
 
-このTicketを実施する理由と、解消したい不確実性・不足している能力を記述する。
-
 ## 完了条件
 
-- [ ] 外部から確認できる条件
-- [ ] 正常系の実行例またはテストがある
-- [ ] 必要な異常系を確認した
-- [ ] 実施結果を本ノートへ記録した
-- [ ] 必要な場合は設計書・ADR・READMEを更新した
+- [ ] 確認可能な結果
 
 ## 対象外
 
-- このTicketでは扱わない機能
-- 後続バージョンへ回す内容
-
-## 実装・調査メモ
-
-作業中の観察、コマンド、設計上の論点を記録する。
-
-## 検証
-
-### 手順
-
-1. 実行手順を記述する。
-2. 入力条件を記述する。
-
-### 期待結果
-
-期待する動作を記述する。
-
-### 実際の結果
-
-実測した結果、出力、エラー、性能値などを記録する。
+## 作業メモ
 
 ## 結果
-
-> [!success] 完了時の要約
-> 何が可能になったか、完了条件をどのように確認したかを記述する。
-
-## 判断・後続作業
-
-- 設計判断がある場合は[[ADR]]へ分離してリンクする。
-- 独立した後続作業は新しいTicket候補として記録する。
-- 今回実施しなかった理由も必要に応じて残す。
-
-## 関連ノート
-
-- [[関連するTicket]]
-- [[関連する実験ノート]]
-- [[関連するADR]]
 ```
 
-> [!tip] テンプレートは削ってよい
-> 小さなTicketでは不要な節を省略してよい。ただし、`目的`、`完了条件`、`対象外`、`検証または結果`は原則として残す。
+`目的`、`完了条件`、`対象外`、`結果`は原則として残す。  
+`作業メモ`は不要なら省略してよい。Spikeでは`結果`に採用・不採用・保留の結論を書く。
 
-## 9. 種別ごとの追加ルール
+## 6. 操作別チェックリスト
 
-### 9.1 `[Feature]` / `[Fix]`
+> [!important] 日常運用の正本
+> Milestone、Epic、Ticket、その他ノートを追加・変更するときは、この章に従う。
 
-- 利用者または他コンポーネントから観察できる動作を書く。
-- 実装方法ではなく、振る舞いを完了条件にする。
-- 最低1つの実行例または自動テストを残す。
+### 6.1 早見表
 
-### 9.2 `[Spike]`
+| 操作 | 必須作業 | 他ノートの更新 |
+|---|---|---|
+| Milestone作成 | フォルダとMilestoneノートを作る | ダッシュボードへリンク追加 |
+| Epic作成 | フォルダとEpicノートを作る | 親Milestoneへリンク追加 |
+| Ticket作成 | EpicフォルダへTicketを作る | 不要 |
+| Ticket着手 | `status: active` | 不要 |
+| Ticket完了 | 結果を書き`status: stable` | 原則不要 |
+| Ticket置換 | 理由を書き`status: deprecated` | 必要なら後継Ticket作成 |
+| Ticket中止 | 理由を書き`status: archived` | 不要 |
+| ADR・実験作成 | 対応するノートを作る | 関連Ticketからリンク |
+| 設計変更 | 設計書またはADRを更新 | 関連Ticketへリンク |
 
-Spikeはコード完成ではなく、**不確実性を減らし判断できる状態**を完了とする。
+Basesを使う場合、Ticket追加と`status`変更は一覧へ自動反映される。  
+Ticketリンクをダッシュボード、Milestone、Epicへ手作業で並べない。
 
-必ず記載する項目：
+### 6.2 Milestoneを作る
 
-- 調査したい問い
-- 候補または仮説
-- 検証条件
-- 観察結果
-- 採用・不採用・保留の結論
-- 結論の適用範囲と制約
+1. 設計書で対象バージョンの範囲と成功条件を確認する。
+2. `milestones/<version>/`とMilestoneノートを作る。
+3. ダッシュボードのMilestone一覧へリンクを追加する。
+4. 現在取り組む場合だけ、必要なEpicを作る。
 
-Spikeで作ったコードは、そのまま本実装へ採用する前に品質と責務を見直す。
+将来のEpicやTicketまで作らない。
 
-### 9.3 `[Design]`
+### 6.3 Epicを作る
 
-- 解決したい設計上の問題を明確にする。
-- 選択肢を複数示す。
-- 採用理由と不採用理由を残す。
-- 長期的に重要な判断はADRとして分離する。
+1. Milestoneの成功条件から、まとまりのある能力を1つ切り出す。
+2. EpicフォルダとEpicノートを作る。
+3. 親MilestoneノートのEpic一覧へリンクを追加する。
 
-### 9.4 `[Test]`
+ダッシュボードとTicket一覧は更新しない。
 
-- 対象、前提条件、入力、期待結果を明記する。
-- 正常系と異常系を区別する。
-- 再現できなかった場合も、その事実と条件を結果として残す。
+### 6.4 Ticketを作る・着手する・完了する
 
-### 9.5 `[Docs]`
+作成：
 
-- 読者を明確にする。
-- 更新対象のノートをWikiリンクで示す。
-- 記載した手順を実際に再実行して確認する。
+1. 1つの確認可能な結果になっているか確認する。
+2. 最大Ticket IDを確認して採番する。
+3. 対象EpicフォルダへTicketを作る。
+4. `目的`、`完了条件`、`対象外`を書き、`status: draft`にする。
 
-## 10. Milestoneノート
+着手：
 
-Milestoneノートは、そのバージョンの作業入口となるMOCとして作成する。
+1. Ticketの内容を確認する。
+2. `status: active`へ変更する。
+3. 実装・調査・検証を行う。
 
-```markdown
----
-aliases:
-  - RAGScope v0.0 Milestone
-tags:
-  - ragscope
-note_type: moc
-status: active
----
-# RAGScope v0.0
+完了：
 
-> [!goal] 到達点
-> [[ragscope-design#12. v0.0 実装内容|設計書のv0.0実装内容]]を、利用者が確認できる形で実現する。
+1. 完了条件を確認する。
+2. `結果`へ、何を確認できたかを書く。
+3. 重要な設計変更がある場合だけ、設計書またはADRを更新する。
+4. `status: stable`へ変更する。
 
-## 成功条件
+いずれも、通常は他のノートを更新しない。  
+結果未記録、完了条件未確認、設計上の矛盾放置の状態では`stable`にしない。
 
-- [ ] 固定文書を固定ルールでchunk化できる
-- [ ] PythonでEmbeddingを生成できる
-- [ ] pgvectorへ保存できる
-- [ ] Haskell CLIからexact searchできる
-- [ ] 上位chunkを表示できる
+### 6.5 Ticketを置換・中止する
 
-## Epic
+- 置換：理由と後継Ticketを書き、`status: deprecated`にする。
+- 中止：実施しない理由を書き、`status: archived`にする。
+- Ticket IDは再利用しない。
 
-1. [[v0.0-document-ingestion]]
-2. [[v0.0-embedding-service]]
-3. [[v0.0-pgvector-search]]
-4. [[v0.0-haskell-cli]]
-5. [[v0.0-end-to-end-search]]
+### 6.6 Milestoneを完了する
 
-## 現在の作業
+1. 設計書の成功条件を実行結果で確認する。
+2. 必須Epicの完了を確認する。
+3. Milestoneノートへ結果、制約、持ち越しを記録する。
+4. `status: stable`へ変更する。
+5. 次へ進む場合だけ、次のMilestoneを作る。
 
-- [[RS-0001-read-fixed-markdown]]
+Ticket数ではなく、設計書の成功条件で完了を判定する。
 
-## 完了したTicket
+### 6.7 その他ノートの記載先
 
-- 完了後に主要Ticketへのリンクを残す。
+| 内容 | 記載先 |
+|---|---|
+| バージョンの範囲・成功条件 | [[ragscope-design]] |
+| 作業の目的・完了条件・結果 | Ticket |
+| 長期的に残す重要な設計判断 | ADR |
+| モデルや方式の比較・検証 | `note_type: experiment`のノート |
+| 一般的なAI・LLM・RAG知識 | [[ai-llm-rag-notes]] |
+| メタデータの規則 | [[obsidian-metadata-rules]] |
 
-## 未解決事項
+Ticketを長期的な仕様書にしない。完了後も有効な設計情報だけを設計書またはADRへ移す。
 
-- 現在のMilestoneを妨げる論点だけを記載する。
+## 7. ダッシュボードとBases
 
-## 完了レビュー
+`ragscope-project-dashboard.md`はプロジェクト管理全体の入口とし、次だけを持つ。
 
-- 成功条件をどの実行結果で確認したか
-- 設計書との差分
-- 次のMilestoneへ持ち越す事項
-- 新しく作成・更新したADR、実験、README
+- 設計書・規約など主要ノートへのリンク
+- Milestone一覧
+- BasesによるActive・Draft・Stable Ticket一覧
+
+手動更新は、新しいMilestoneまたは主要ノートへのリンク追加だけとする。  
+Ticket一覧、状態、現在作業中のTicketはBasesから自動表示し、Ticket追加や状態変更のたびにBase定義を変えない。
+
+Basesは派生表示であり、正本は各MarkdownノートとFrontmatterである。
+
+## 8. AI向け必須ルール
+
+AIは次を必ず守る。
+
+1. 作業前に[[ragscope-design]]、[[obsidian-metadata-rules]]、本規約を読む。
+2. ユーザーが指定した範囲だけを作成・更新する。
+3. 依頼されていない将来のMilestone、Epic、Ticketを作らない。
+4. 現在のMilestoneを超える機能をTicketへ混ぜない。
+5. 未登録のプロパティ、`note_type`、`status`を追加しない。
+6. Ticket IDを重複・再利用・変更しない。
+7. Ticket一覧や現在の作業を複数ノートへ重複記載しない。
+8. 設計書と矛盾した場合は勝手に直さず報告する。
+9. 必要な最小限のファイルだけを変更し、変更ファイルをユーザーへ示す。
+10. Mermaid図内の改行には`<br>`を使用する。
+
+> [!danger] 禁止
+> 「将来便利そう」「一般的には必要」という理由だけで、プロパティ、フォルダ、ノート、Ticket、手順を増やしてはならない。
+
+## 9. 最小運用
+
+```text
+project-management/
+├── ragscope-project-dashboard.md
+└── milestones/
+    └── v0.0/
+        ├── v0.0.md
+        └── <最初のEpic>/
+            ├── <Epicノート>.md
+            └── RS-0001-<最初のTicket>.md
 ```
 
-## 11. Epicノート
-
-Epicノートは、関連Ticketと能力の完成条件をまとめるMOCとして作成する。
-
-```markdown
----
-aliases:
-  - v0.0 文書取り込みEpic
-tags:
-  - ragscope
-note_type: moc
-status: active
----
-# v0.0 — 文書取り込み
-
-> [!goal] Epicの完了状態
-> 少量の固定Markdown文書を読み込み、後続のchunk分割へ渡せる正規化済み本文を得られる。
-
-## 対象
-
-- [[ragscope-design#5.1 文書・評価データ・質問処理の流れ]]
-
-## Ticket
-
-### Draft
-
-- [[RS-0002-normalize-document]]
-
-### Active
-
-- [[RS-0001-read-fixed-markdown]]
-
-### Stable
-
-- 完了したTicketを移動する。
-
-## Epic完了条件
-
-- [ ] Epicとして利用可能な能力を確認した
-- [ ] 必要なTicketが`stable`である
-- [ ] 設計書との差分を反映した
-- [ ] 未完了作業の移動先を明確にした
+```text
+Ticketを作る
+→ statusをactiveにする
+→ 実装・検証する
+→ 結果を書く
+→ statusをstableにする
 ```
-
-Epicノート内のTicket一覧は、作業順と見通しを表す。Ticketの正式な状態は各Ticketノートの`status`とし、一覧との不整合を見つけた場合は修正する。
-
-## 12. 作業フロー
-
-### 12.1 Milestone開始時
-
-1. 設計書の対象範囲と成功条件を確認する。
-2. Milestoneノートを作成する。
-3. 成功条件を能力単位のEpicへ分解する。
-4. 最初に必要なTicketだけを作成する。
-5. 未決定事項は、実装に必要になった時点で`[Spike]`または`[Design]`として作成する。
-
-### 12.2 Ticket着手時
-
-1. `目的`、`完了条件`、`対象外`を確認する。
-2. 依存Ticketが満たされているか確認する。
-3. `status`を`draft`から`active`へ変更する。
-4. Milestoneノートの`現在の作業`へリンクする。
-
-> [!important] WIP制限
-> 原則として、同時に`active`にする主要Ticketは1件とする。  
-> 外部要因で進められない場合に限り、理由をTicket本文へ記録したうえで別Ticketへ着手する。
-
-### 12.3 作業中
-
-- 実装上の発見、失敗、コマンド、検証結果をTicketへ追記する。
-- スコープ外の改善を現在のTicketへ混ぜない。
-- 独立した成果が必要なら後続Ticket候補として記録する。
-- 設計書と矛盾を発見した場合、実装で隠さず、設計書更新またはADRの必要性を記録する。
-
-作業が中断している場合は、`status: active`のまま次のようなcalloutを置く。
-
-```markdown
-> [!warning] Blocked
-> ブロックしている理由、解除条件、関連Ticketを記載する。
-```
-
-`blocked`プロパティは追加しない。
-
-### 12.4 Ticket完了時
-
-1. 完了条件をすべて確認する。
-2. 検証手順と実際の結果を記録する。
-3. 必要なテスト、設計書、ADR、READMEを更新する。
-4. 後続Ticketを作成または候補として記録する。
-5. `status`を`stable`へ変更する。
-6. Epic / Milestoneノートの一覧を更新する。
-
-### 12.5 Milestone完了時
-
-Milestoneは、Ticket数ではなく設計書の成功条件で判定する。
-
-- 設計書の成功条件を実行結果で確認した
-- 必須Epicが完了した
-- 失敗例と既知の制約を記録した
-- 設計書と実装の差分を解消した
-- 重要な設計判断をADRへ残した
-- 次のMilestoneへ持ち越す作業を明示した
-
-すべて満たした後、Milestoneノートの`status`を`stable`へ変更する。
-
-## 13. 設計書・ADR・実験ノートとの境界
-
-| 情報                     | 記載先                           |
-| ---------------------- | ----------------------------- |
-| バージョンの対象・対象外・成功条件      | [[ragscope-design]]           |
-| 作業の目的、完了条件、実施メモ、検証結果   | Ticket                        |
-| 複数案から選んだ重要な設計判断        | ADR                           |
-| モデルや方式の比較条件、生データ、結果、考察 | `note_type: experiment`の実験ノート |
-| 一般的なAI・LLM・RAG知識       | [[ai-llm-rag-notes]]          |
-| Frontmatterとタグの規則      | [[obsidian-metadata-rules]]   |
-
-> [!important] Ticketを仕様書にしない
-> Ticketは作業と結果の記録であり、長期的な仕様の唯一の保存先にしない。  
-> 完了後も有効な設計情報は、設計書またはADRへ反映する。
-
-## 14. Basesによるダッシュボード
-
-Obsidianのコアプラグイン`Bases`を使う場合、TicketノートのデータはMarkdownと既存プロパティのまま管理する。
-
-次は例であり、`file.inFolder`のパスはVault構成に合わせて変更する。
-
-````markdown
-```base
-filters:
-  and:
-    - file.inFolder("project-management/milestones")
-    - 'note_type != "moc"'
-properties:
-  file.name:
-    displayName: Ticket
-  status:
-    displayName: Status
-  note_type:
-    displayName: Note Type
-views:
-  - type: table
-    name: All Tickets
-    groupBy:
-      property: status
-      direction: ASC
-    order:
-      - file.name
-      - status
-      - note_type
-  - type: table
-    name: Active
-    filters:
-      and:
-        - 'status == "active"'
-    order:
-      - file.name
-      - note_type
-  - type: table
-    name: Draft
-    filters:
-      and:
-        - 'status == "draft"'
-    order:
-      - file.name
-      - note_type
-```
-````
-
-Basesのビューは一覧・絞り込みのための派生表示であり、Ticketノートが正本である。
-
-## 15. AI向け作成・更新ルール
-
-AIがRAGScopeのMilestone、Epic、Ticketを作成・更新する場合は、次を守る。
-
-- 作業前に[[ragscope-design]]、[[obsidian-metadata-rules]]、本規約を読む。
-- 現在のMilestoneの範囲を超えるTicketを無断で作成しない。
-- v1.0までの全Ticketを一括で詳細化しない。
-- Ticket IDを重複・再利用・変更しない。
-- 未登録プロパティを追加しない。
-- MilestoneとEpicの関係はフォルダとWikiリンクで表す。
-- 完了条件を実装手順ではなく確認可能な結果で記述する。
-- 実装結果、失敗、検証方法を残さず`stable`へ変更しない。
-- 重要な設計判断をTicketだけに閉じ込めない。
-- 設計書と実装の矛盾を発見した場合、勝手に整合したことにせず報告する。
-- RAGScope固有の用語は設計書の表記に合わせる。
-- Mermaid図内の改行には`<br>`を使用する。
-
-## 16. 運用開始時の最小構成
-
-最初から高度な自動化を導入せず、次だけで開始する。
-
-1. `v0.0` Milestoneノートを作る。
-2. v0.0を4〜8個程度のEpicへ分ける。
-3. 最初に着手する数件だけTicket化する。
-4. `status`を`draft`、`active`、`stable`で更新する。
-5. Milestone / EpicノートからTicketへWikiリンクする。
-6. 必要になった時点でBasesのダッシュボードを追加する。
-7. 運用上の不便が具体化してから、メタデータやプラグインの追加を検討する。
 
 > [!success] この運用の狙い
-> 設計書を巨大なToDoリストへ変換するのではなく、実装で得た知識を使って、次に必要なTicketを段階的に育てる。  
-> RAGScopeの開発プロセス自体を、**仮説 → 実装・検証 → 結果 → 判断 → 改善**の形で説明できる状態にする。
+> 人間の管理作業は軽く保ち、AIに対してだけ、範囲・命名・メタデータ・変更対象を明確に制限する。  
+> RAGScopeの価値は管理の厳密さではなく、実装・検証・設計判断の過程を説明できることに置く。
