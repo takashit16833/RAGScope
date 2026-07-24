@@ -97,7 +97,7 @@ milestone: "[[v0.0]]"
 Ticketが所属するEpicへのObsidian内部リンクを、Text型の値として1件指定する。
 
 ```yaml
-epic: "[[v0.0 固定Markdown文書の取り込み]]"
+epic: "[[v0.0 固定Markdown文書の取り込みとチャンク化]]"
 ```
 
 - 1つのTicketを複数のEpicへ所属させない。
@@ -161,7 +161,7 @@ milestone: "[[v0.0]]"
 note_type: ticket
 status: planned
 milestone: "[[v0.0]]"
-epic: "[[v0.0 固定Markdown文書の取り込み]]"
+epic: "[[v0.0 固定Markdown文書の取り込みとチャンク化]]"
 ---
 ```
 
