@@ -169,7 +169,7 @@ project-management/
     └── v0.0/
         ├── v0.0.md
         └── document-ingestion/
-            ├── v0.0 固定Markdown文書の取り込み.md
+            ├── v0.0 固定Markdown文書の取り込みとチャンク化.md
             └── RS-0001 固定Markdownファイルを読み込む.md
 
 docs/
