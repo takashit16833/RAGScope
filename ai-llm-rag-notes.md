@@ -8,7 +8,6 @@ tags:
   - rag
   - information-retrieval
 note_type: moc
-status: active
 ---
 # AI・LLM・RAG基礎ノート
 

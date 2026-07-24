@@ -4,7 +4,6 @@ aliases:
 tags:
   - rag
 note_type: design
-status: active
 ---
 # RAGScope — RAG検索・評価アプリ 設計書
 
