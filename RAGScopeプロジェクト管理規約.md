@@ -13,6 +13,7 @@ note_type: reference
 
 - 文書の配置・責務・参照関係は[RAGScope文書管理規約](./RAGScope文書管理規約.md)に従う。
 - Frontmatterは[Obsidianメタデータ規約](./Obsidianメタデータ規約.md)に従う。
+- Milestone・Epic・Ticketの作成、Ticketへの着手、Pull Request、リリースなどの具体的な操作は[RAGScope開発運用ガイド](./docs/RAGScope開発運用ガイド.md)に従う。
 - 規約間または規約と実装の矛盾を発見した場合は、影響範囲を確認し、解消または明示してから作業を進める。
 
 ## 2. 基本原則
@@ -171,6 +172,9 @@ project-management/
             ├── v0.0 固定Markdown文書の取り込み.md
             └── RS-0001 固定Markdownファイルを読み込む.md
 
+docs/
+└── RAGScope開発運用ガイド.md
+
 templates/
 ├── Milestoneテンプレート.md
 ├── Epicテンプレート.md
@@ -263,7 +267,7 @@ stateDiagram-v2
 
 ## 7. ノートの最小構成とテンプレート
 
-見出しの説明文は日本語を基本とし、コード上の識別子や技術用語は必要に応じて原表記を使用する。
+見出しの説明文は日本語を基本とし、コード上の識別子や技術用語は必要に応じて原表記を使用する。具体的な作成操作は[RAGScope開発運用ガイド](./docs/RAGScope開発運用ガイド.md)を参照する。
 
 ### 7.1 Roadmap
 
@@ -296,9 +300,6 @@ Roadmapには、`RAGScopeロードマップ`をH1として置き、バージョ�
 - `実装メモ`は不要なら省略してよい。
 - 長期的に有効な仕様はTicketだけに残さず、要求、設計書、ADRの適切な正本へ反映する。
 
-### 7.5 Obsidianでの利用
-
-Vaultを利用する環境では、Obsidianのコアプラグイン`Templates`を有効にし、テンプレートフォルダを`templates`へ設定する。新規ノートを正しい配置とファイル名で作成した後、対応するテンプレートを挿入し、Frontmatter内の所属リンクと本文を記入する。
 
 ## 8. 完了条件
 

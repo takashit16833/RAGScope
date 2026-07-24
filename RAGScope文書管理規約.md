@@ -13,7 +13,7 @@ note_type: reference
 
 - `README.md`
 - リポジトリ直下で管理する各種規約文書
-- `docs/`配下の概要、要求、設計、ADR、実験記録
+- `docs/`配下の概要、要求、設計、ADR、実験記録、開発運用ガイド
 - `project-management/`配下のRoadmap、Milestone、Epic、Ticket
 - `templates/`配下のObsidianテンプレート
 - `.github/pull_request_template.md`
@@ -82,6 +82,7 @@ README.md
 docs/
 ├── RAGScope概要.md
 ├── RAGScope要求定義.md
+├── RAGScope開発運用ガイド.md
 ├── design/
 │   ├── システムアーキテクチャ.md
 │   └── <必要になった機能設計>.md
@@ -107,7 +108,8 @@ reports/
 ```
 
 - `docs/design/`、`docs/adr/`、`docs/experiments/`、`reports/`は、最初の内容が生じた時点で作成する。
-- `templates/`と`.github/pull_request_template.md`は、プロジェクト管理規約で定めるノート作成・PR作成に使用する。
+- `docs/RAGScope開発運用ガイド.md`は、プロジェクト管理規約に基づく具体的な操作の入口として使用する。
+- `templates/`と`.github/pull_request_template.md`は、開発運用ガイドに従ってノート作成・PR作成に使用する。
 - 機能別設計書は、技術要素ではなく設計対象となる機能・責務で分ける。
 - Roadmap、Milestone、Epic、Ticketの詳細な構成は、RAGScopeプロジェクト管理規約を正本とする。
 
@@ -270,13 +272,25 @@ Roadmap、Milestone、Epic、Ticketなど、開発作業の計画と進行記録
 
 要求や設計の現在内容を、プロジェクト管理文書だけに記載しない。具体的な運用は[RAGScopeプロジェクト管理規約](./RAGScopeプロジェクト管理規約.md)に従う。
 
-### 4.10 `templates/`と`.github/`
+### 4.10 `docs/RAGScope開発運用ガイド.md`
+
+RAGScopeのプロジェクト管理に関する具体的な操作手順を一元的に記載する。
+
+- Obsidianテンプレートの初回設定と挿入方法
+- Milestone・Epic・Ticketの作成順序
+- Ticketへの着手、Branch作成、Pull Request、完了確認
+- Epicの完了とMilestoneのリリース
+- Ticketの移動・中止などの例外操作
+
+定義、状態遷移、完了条件、命名規則などのルールは複製せず、各規約の該当箇所へリンクする。ツールや操作方法が変わった場合は本ガイドを更新し、規約には操作手順を追加しない。
+
+### 4.11 `templates/`と`.github/`
 
 `templates/`には、Milestone・Epic・Ticketノートへ挿入するObsidianテンプレートを置く。テンプレートはノートの必須構造とFrontmatterの入力漏れを防ぐための作業支援ファイルであり、実際のMilestone・Epic・Ticketとして扱わない。
 
 `.github/pull_request_template.md`には、Pull Request作成時に記載する項目と完了確認を置く。規約本文の説明を複製せず、実際の作業時に確認する最小限の入力欄とチェック項目だけを記載する。
 
-テンプレートで必須とする構成と使用方法は、[RAGScopeプロジェクト管理規約](./RAGScopeプロジェクト管理規約.md)を正本とする。実際に挿入される雛形は、各テンプレートファイルを正本とする。
+テンプレートで必須とする構成と使用規則は、[RAGScopeプロジェクト管理規約](./RAGScopeプロジェクト管理規約.md)を正本とする。具体的な操作方法は[RAGScope開発運用ガイド](./docs/RAGScope開発運用ガイド.md)、実際に挿入される雛形は各テンプレートファイルを正本とする。
 
 ## 5. 文書間の参照関係
 
@@ -286,6 +300,7 @@ Roadmap、Milestone、Epic、Ticketなど、開発作業の計画と進行記録
 - 設計書は、現在の結論だけで理解できる状態にし、必要に応じて判断理由を記録したADRへリンクする。
 - ADRは、判断根拠となった実験記録へリンクできる。
 - Ticketは、作業に必要な要求、設計書、ADR、実験記録を参照する。
+- 開発運用ガイドは、具体的な操作の順序を示し、規則の詳細は各規約へリンクする。
 - 概要、要求定義、設計書は、TicketやMilestoneを読まなくても現在の内容を理解できる状態にする。
 - TicketやMilestoneへの補助的な関連リンクは記載できるが、一時的な作業記録を現在仕様の正本にしない。
 
