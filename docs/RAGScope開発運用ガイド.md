@@ -44,7 +44,9 @@ flowchart TD
     Roadmap["Roadmapで<br>次の到達点を確認"]
     Milestone["Milestoneを具体化"]
     Epic["Epicを作成"]
-    Ticket["Ticketを作成"]
+    Plan["Ticket構成案を作成"]
+    Review["Epic全体をレビュー"]
+    Ticket["Ticketを詳細化"]
     Start["Ticketへ着手"]
     Branch["Branchを作成"]
     Work["実装・文書更新・確認"]
@@ -53,7 +55,7 @@ flowchart TD
     EpicDone["Epicを完了"]
     Release["Milestoneを完了し<br>Git tagを付与"]
 
-    Roadmap --> Milestone --> Epic --> Ticket --> Start --> Branch --> Work --> PR --> Done
+    Roadmap --> Milestone --> Epic --> Plan --> Review --> Ticket --> Start --> Branch --> Work --> PR --> Done
     Done -->|未完了Ticketあり| Start
     Done -->|Epic完了条件を満たす| EpicDone
     EpicDone -->|未完了Epicあり| Ticket
@@ -87,25 +89,53 @@ flowchart TD
 
 Epic一覧はMilestoneノートのBasesへ反映されるため、手作業の一覧は更新しない。
 
-### 4.3 Ticketノートを作成する
+### 4.3 EpicのTicket構成案を作成する
 
-1. Vault内の既存Ticketを検索し、最大Ticket IDを確認する。
+1. Epicの能力、Milestoneでの役割、完了条件を確認する。
+2. Epicの完了に必要な変更結果を、Ticket候補として列挙する。
+3. 各Ticket候補について、仮のタイトル、主な成果物、前提となる成果、確認方法を整理する。
+4. 作成または更新する要求、機能設計書、ADR、Experiment、OpenAPI、migrationなどを確認する。
+5. Ticket間の依存関係と、自然な実行順序を整理する。
+6. 複数の実装Ticketが共通の機能設計を前提とする場合は、Epicの冒頭に初期設計を作成または更新するTicketを含める。
+
+Ticket構成案は、個別Ticketを詳細化する前の作業用の整理である。新しい管理階層や恒久的な手作業一覧は作成しない。
+
+### 4.4 Epic全体のTicket構成をレビューする
+
+1. Epicのすべての完了条件が、いずれかのTicketとEpic全体の確認によって満たせることを確認する。
+2. 各Ticketが、1つの確認可能な変更結果として大きすぎず、実装手順だけの細かすぎる単位にもなっていないことを確認する。
+3. 後続Ticketで初めて作成する成果物を、先行Ticketが暗黙に必要としていないことを確認する。
+4. 最初の実装Ticketへ着手するために必要な要求、設計、判断、検証結果が揃っていることを確認する。
+5. 共通する機能設計が必要な場合は、初期設計Ticketが実装Ticketより先に配置されていることを確認する。
+6. Markdownの設計書と、コード、OpenAPI、migration、テストなどの機械可読な正本の責務が重複していないことを確認する。
+7. Epic全体として能力を確認する方法が、いずれかのTicketまたはEpicの完了確認に含まれていることを確認する。
+8. 問題がある場合はTicket構成案を見直し、問題がなければ各Ticketノートを詳細化する。
+
+> [!important] 初期設計の完成度
+> 初期設計Ticketでは、後続Ticketが実装へ着手できる見通しと判断基準を整える。  
+> 実装前にすべての詳細を固定せず、実装で具体化または変更された現在設計は、後続Ticketで同じ設計書へ反映する。
+
+### 4.5 Ticketノートを作成する
+
+1. レビュー済みのTicket構成案に従い、Vault内の既存Ticketを検索して最大Ticket IDを確認する。
 2. 次の連番を`RS-0001`形式で採番する。
 3. 所属Epicフォルダへ`<Ticket ID> <日本語タイトル>.md`を作成する。
 4. `Ticketテンプレート`を挿入する。
 5. `{{title}}`をファイル名に対応する題名へ置き換える。
 6. Frontmatterの`milestone`と`epic`を、実際の所属先への内部リンクへ置き換える。
 7. 目的、完了条件、必要な場合は対象外・関連文書・実装メモを記入する。
+8. 前提となる成果や先行Ticketがある場合は、着手条件と作業範囲が本文から判断できる状態にする。
 
-Ticketの粒度と採番規則は[プロジェクト管理規約の第3.4節](<../RAGScopeプロジェクト管理規約.md#3.4 Ticket>)と[第4.3節](<../RAGScopeプロジェクト管理規約.md#4.3 Ticket ID>)を確認する。
+Ticketの粒度と採番規則は[プロジェクト管理規約の第3.4節](<../RAGScopeプロジェクト管理規約.md#3.4 Ticket>)と[第4.3節](<../RAGScopeプロジェクト管理規約.md#4.3 Ticket ID>)、Epic全体の実行計画は[第2.4節](<../RAGScopeプロジェクト管理規約.md#2.4 Epic全体の実行計画を確認してから着手する>)を確認する。
 
 ## 5. Ticketへ着手する
 
 1. Ticketの目的、完了条件、対象外、関連文書を確認する。
-2. 所属EpicとMilestoneの状態を確認する。
-3. [親子状態の整合](<../RAGScopeプロジェクト管理規約.md#6.1 親子状態の整合>)に従い、必要なノートを`in_progress`へ変更する。
-4. Ticket自身を`in_progress`へ変更する。
-5. Ticket IDを含むBranchを作成する。
+2. Ticketが前提とする先行Ticketの成果、初期設計、要求、ADR、Experimentが反映されていることを確認する。
+3. 所属EpicとMilestoneの状態を確認する。
+4. [親子状態の整合](<../RAGScopeプロジェクト管理規約.md#6.1 親子状態の整合>)に従い、必要なノートを`in_progress`へ変更する。
+5. Ticket自身を`in_progress`へ変更する。
+6. Ticket IDを含むBranchを作成する。
 
 ```bash
 # 例
@@ -134,6 +164,8 @@ Branch名のprefixと形式は[プロジェクト管理規約の第9.2節](<../R
 4. 今回だけの作業内容や実施結果はTicketへ残し、機能設計書には現在有効な設計を記載する。
 5. 重要な判断理由がある場合はADR、実測や比較を伴う場合はExperimentを作成または更新する。
 6. 作業上参照する必要がある場合は、Epic・Ticketの`関連文書`から該当文書へリンクする。
+
+Epic冒頭の初期設計Ticketで作成した設計書も、後続の実装Ticketで具体化した内容に合わせて更新する。初期設計と現在の実装が不一致のまま残らないことを確認する。
 
 すべてのTicketで設計書を作成する必要はない。
 
