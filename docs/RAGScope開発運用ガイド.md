@@ -72,8 +72,11 @@ flowchart TD
 2. `project-management/milestones/<version>/`を作成する。
 3. 同フォルダへ`<version>.md`を作成する。
 4. Obsidianのコマンドパレットから`Templates: Insert template`を実行し、`Milestoneテンプレート`を挿入する。
-5. `{{title}}`をバージョン番号へ置き換え、H1の到達点、目標、対象範囲、対象外、成功条件を記入する。
-6. Roadmapの対象バージョン見出しを、作成したMilestoneノートへの相対リンクへ変更する。
+5. `{{title}}`をバージョン番号へ置き換え、H1の到達点、目標、対象範囲、対象外を記入する。
+6. [RAGScope要求定義](./RAGScope要求定義.md)を確認し、このMilestoneで直接扱う要求だけを選ぶ。
+7. `対象要求`へ、要求IDから要求定義の該当節への相対リンクと、このMilestoneで実現する範囲を記入する。複数のMilestoneにまたがる要求は、要求全体ではなく今回の担当範囲だけを書く。
+8. `成功条件`を記入し、対象要求に記載した範囲を実際に確認できることを確認する。
+9. Roadmapの対象バージョン見出しを、作成したMilestoneノートへの相対リンクへ変更する。
 
 配置、命名、必須項目は[プロジェクト管理規約の第4章](<../RAGScopeプロジェクト管理規約.md#4. フォルダ構成と命名>)と[第7.2節](<../RAGScopeプロジェクト管理規約.md#7.2 Milestone>)を確認する。
 
@@ -200,12 +203,13 @@ Ticketを`done`にできる条件は、[プロジェクト管理規約の第8.1�
 ## 9. Milestoneを完了してリリースする
 
 1. 所属Epicの状態を確認する。
-2. [Milestoneの完了条件](<../RAGScopeプロジェクト管理規約.md#8.3 Milestone>)を満たすことを確認する。
-3. Milestoneの`リリース結果`へ、実現した内容、確認方法、既知の制約を記入する。
-4. Milestoneを`done`へ変更する。
-5. 変更をデフォルトブランチへ反映する。
-6. 反映されたcommitへ、Milestone名と同じGit tagを付ける。
-7. 必要な場合だけGitHub Releaseを作成する。
+2. `対象要求`に記載した、このMilestoneで実現する範囲が実際のリリース内容と一致していることを確認する。
+3. [Milestoneの完了条件](<../RAGScopeプロジェクト管理規約.md#8.3 Milestone>)を満たすことを確認する。
+4. Milestoneの`リリース結果`へ、実現した内容、確認方法、既知の制約を記入する。
+5. Milestoneを`done`へ変更する。
+6. 変更をデフォルトブランチへ反映する。
+7. 反映されたcommitへ、Milestone名と同じGit tagを付ける。
+8. 必要な場合だけGitHub Releaseを作成し、Milestoneノートの対象要求IDとリンクを必要な範囲で再利用する。
 
 ```bash
 # 例
