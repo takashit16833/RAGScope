@@ -319,7 +319,7 @@ RAGScopeのプロジェクト管理に関する具体的な操作手順を一元
 ```markdown
 [RAGScope概要](<./docs/RAGScope概要.md>)
 [文書処理設計](<./docs/design/文書処理設計.md>)
-[親子状態の整合](<../RAGScopeプロジェクト管理規約.md#6.1 親子状態の整合>)
+[親子状態の整合](<./RAGScopeプロジェクト管理規約.md#6.1 親子状態の整合>)
 ```
 
 ### 6.4 Markdown表記
