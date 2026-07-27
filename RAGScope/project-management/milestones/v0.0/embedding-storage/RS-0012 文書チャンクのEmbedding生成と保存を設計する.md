@@ -36,6 +36,9 @@ HaskellからPython AI Serviceへ文書チャンクのEmbeddingを要求するop
 - [ ] HaskellからPython AI Serviceへ文書チャンクのEmbeddingを要求するoperationの開始・終了、1回のHTTP request、Python側のEmbedding計算の概念上の境界が記載されている
 - [ ] 文書Embedding生成APIの入力、出力、入力とEmbeddingの対応方法、主要なエラー分類が設計されている
 - [ ] Python AI Serviceの失敗、HTTPの失敗、不正なresponse、入力・契約違反を、共通エラー契約へ変換する方針が記載されている
+- [ ] `execution_id`をHaskellからPython AI Serviceへ伝播する正確な場所、形式、必須条件、検証方法がOpenAPIに定義され、欠落または不正な値の扱いが設計されている
+- [ ] Haskell側が`execution_id`をHTTP requestへ付与し、Python側のHTTP adapterが受領した値を共通Contextへ引き渡す責務境界が記載されている
+- [ ] request validation、Web framework、model、Tokenizer、AI libraryのうち文書Embedding生成で扱う機能固有例外を、共通エラー境界とAPI error responseへ変換する方針が記載されている
 - [ ] 後続のRS-0016がretry対象と再試行安全性を判断できるよう、operationの副作用と失敗時に成立する条件が記載されている
 - [ ] 文書Embedding生成APIの正確なrequest / responseがOpenAPIなどの機械可読な初期定義として作成されている
 - [ ] 生存確認、推論可能状態、使用中のmodel・revision・出力次元を確認する方法が設計されている
