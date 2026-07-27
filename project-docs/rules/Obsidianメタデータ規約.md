@@ -20,7 +20,7 @@ note_type: reference
 - `project-management/`
 ```
 
-リポジトリルートの`README.md`と`.github/`配下のGitHub用ファイル、`internal/`配下の非公開資料、`templates/`配下のObsidianテンプレート、その他の外部ツールが管理するファイルには適用しない。
+リポジトリルートの`README.md`と`.github/`配下のGitHub用ファイル、Git管理外である`internal/`配下の非公開資料、`templates/`配下のObsidianテンプレート、その他の外部ツールが管理するファイルには適用しない。
 
 `templates/`配下のMarkdownは、ノートへ挿入するFrontmatterと本文の雛形であり、テンプレートファイル自体をMilestone・Epic・Ticketとして管理しない。
 

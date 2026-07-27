@@ -14,7 +14,9 @@ RAGScope関連のMarkdownを作成・更新する場合は、次の実ファイ�
 
 ## 文書の正本
 
-`project-management/`に限らず、`design/`、`adr/`、`experiments/`、`rules/`、`templates/`、`internal/`、Vault直下のMarkdownを含む`project-docs/`全体について、ローカルに存在する実ファイルを現在状態として扱う。
+`project-management/`に限らず、`design/`、`adr/`、`experiments/`、`rules/`、`templates/`、Vault直下のMarkdownを含む`project-docs/`のGit管理対象について、ローカルに存在する実ファイルを現在状態として扱う。
+
+`internal/`は任意のローカル専用領域であり、共有する文書の正本には含めない。配下のファイルが存在する場合は、リポジトリルートの`AGENTS.md`に従って補助的な内部コンテキストとして扱う。
 
 同じ情報を複数の文書で正本として管理せず、別の文書で触れる場合は必要な要約と相対リンクを使用する。
 
