@@ -32,7 +32,7 @@ v0.0でRAGScopeアプリケーションがdense検索の処理全体を制御す
 - [ ] HTTPの失敗status、不正なJSON、必須項目の欠落を、それぞれ正常な応答と区別して扱える
 - [ ] vector次元の不一致または有限値でない要素を検出し、不正なEmbeddingを後続処理へ渡さない
 - [ ] requestの組み立て、responseのdecode、入力検証、vector検証、主要な異常系を自動テストで確認できる
-- [ ] 実際に起動したAI推論サービスをRAGScopeアプリケーションから呼び出し、質問文に対応するEmbeddingを取得できることを統合テストまたは実行によって確認できる
+- [ ] 実際に起動したAI推論サービスをRAGScopeアプリケーションから呼び出し、質問文に対応する質問Embeddingを取得できることを統合テストまたは実行によって確認できる
 - [ ] RAGScopeアプリケーション側の実装とOpenAPIの契約が一致している
 - [ ] 実装で具体化または変更された質問Embedding取得フローが`docs/design/Embedding生成設計.md`へ反映されている
 - [ ] 実装、OpenAPI、Embedding生成設計に解消していない差異がない
@@ -62,15 +62,15 @@ v0.0でRAGScopeアプリケーションがdense検索の処理全体を制御す
 - [システムアーキテクチャ「3.2 AI推論サービスの責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.2 AI推論サービスの責務境界>)
 - [システムアーキテクチャ「5. RAGScopeアプリケーションとAI推論サービスの通信」](<../../../../docs/design/システムアーキテクチャ.md#5. RAGScopeアプリケーションとAI推論サービスの通信>)
 - [システムアーキテクチャ「7. 質問と実験の全体フロー」](<../../../../docs/design/システムアーキテクチャ.md#7. 質問と実験の全体フロー>)
-- [Embedding生成設計](<../../../../docs/design/Embedding生成設計.md>)
-- [検索設計](<../../../../docs/design/検索設計.md>)
+- `docs/design/Embedding生成設計.md`
+- `docs/design/検索設計.md`
 
 ## 実装メモ
 
 - RAGScopeアプリケーションはRAGScopeの処理全体を制御し、AI推論サービスは質問Embeddingの生成だけを担当する。
 - APIの正確なpath、request / response、項目名、型、エラー形式はOpenAPIを正本として使用する。
 - RS-0004で実装したHTTP client、共通のAPI型、エラー型、vector検証処理を自然に再利用できる場合は再利用する。
-- RAGScopeアプリケーション側では、API用の型とRAGScope内部で扱う質問・Embeddingの型を分け、境界で明示的に変換する。
+- RAGScopeアプリケーション側では、API用の型とRAGScope内部で扱う質問・質問Embeddingの型を分け、境界で明示的に変換する。
 - APIから返されたEmbeddingを無条件に受け入れず、後続のpgvector検索へ渡す前に次元と有限値を検証する。
 - 自動テストではtest serverまたはHTTP clientの差し替えを利用し、実モデルへ毎回依存せずに正常応答と異常応答を確認してよい。
 - v0.0では同期的に1件の質問を処理し、複数質問のbatch、並列化、retry戦略は導入しない。
@@ -80,7 +80,7 @@ v0.0でRAGScopeアプリケーションがdense検索の処理全体を制御す
 
 > [!note] 完了時に記入
 > - 実装したRAGScopeアプリケーション側のAPI clientとデータ変換
-> - 質問文とEmbeddingの保持方法
+> - 質問文と質問Embeddingの保持方法
 > - 実行したテストコマンドと結果
 > - AI推論サービスとの実接続確認結果
 > - 確認した主要な異常系
