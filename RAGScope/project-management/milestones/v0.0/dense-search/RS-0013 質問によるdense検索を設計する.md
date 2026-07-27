@@ -63,8 +63,8 @@ v0.0の最後のEpicでは、質問Embeddingの生成、RAGScopeアプリケー�
 - [システムアーキテクチャ「3.3 PostgreSQLの責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.3 PostgreSQLの責務境界>)
 - [システムアーキテクチャ「5. RAGScopeアプリケーションとAI推論サービスの通信」](<../../../../docs/design/システムアーキテクチャ.md#5. RAGScopeアプリケーションとAI推論サービスの通信>)
 - [システムアーキテクチャ「7. 質問と実験の全体フロー」](<../../../../docs/design/システムアーキテクチャ.md#7. 質問と実験の全体フロー>)
-- [Embedding生成設計](<../../../../docs/design/Embedding生成設計.md>)
-- [データモデル設計](<../../../../docs/design/データモデル設計.md>)
+- `docs/design/Embedding生成設計.md`
+- `docs/design/データモデル設計.md`
 
 ## 実装メモ
 

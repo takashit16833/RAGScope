@@ -60,7 +60,7 @@ epic: "[[v0.0 文書チャンクのEmbedding要求をtimeoutと安全なretryで
 - [システムアーキテクチャ「5. RAGScopeアプリケーションとAI推論サービスの通信」](<../../../../docs/design/システムアーキテクチャ.md#5. RAGScopeアプリケーションとAI推論サービスの通信>)
 - [ADR-0002 — 共通実行基盤の契約とコンポーネント実装を分離する](<../../../../docs/adr/ADR-0002 共通実行基盤の契約とコンポーネント実装を分離する.md>)
 - [エラー・ログ設計](../../../../docs/design/エラー・ログ設計.md)
-- [Embedding生成設計](../../../../docs/design/Embedding生成設計.md)
+- `docs/design/Embedding生成設計.md`
 - [RS-0012 文書チャンクのEmbedding生成と保存を設計する](<../embedding-storage/RS-0012 文書チャンクのEmbedding生成と保存を設計する.md>)
 - [RS-0004 RAGScopeアプリケーションで文書チャンクのEmbeddingを取得する](<../embedding-storage/RS-0004 RAGScopeアプリケーションで文書チャンクのEmbeddingを取得する.md>)
 

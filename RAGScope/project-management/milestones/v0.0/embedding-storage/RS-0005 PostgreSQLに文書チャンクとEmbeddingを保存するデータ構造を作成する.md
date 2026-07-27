@@ -61,8 +61,8 @@ RAGScopeアプリケーションが実際の文書チャンクとEmbeddingを保
 - [システムアーキテクチャ「3.3 PostgreSQLの責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.3 PostgreSQLの責務境界>)
 - [システムアーキテクチャ「6. 文書取り込みの全体フロー」](<../../../../docs/design/システムアーキテクチャ.md#6. 文書取り込みの全体フロー>)
 - [文書処理設計](<../../../../docs/design/文書処理設計.md>)
-- [Embedding生成設計](<../../../../docs/design/Embedding生成設計.md>)
-- [データモデル設計](<../../../../docs/design/データモデル設計.md>)
+- `docs/design/Embedding生成設計.md`
+- `docs/design/データモデル設計.md`
 
 ## 実装メモ
 

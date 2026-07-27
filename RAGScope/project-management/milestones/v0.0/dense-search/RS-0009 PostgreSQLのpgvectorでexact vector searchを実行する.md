@@ -44,7 +44,7 @@ v0.0で質問に近い文書チャンクを取得するためには、RS-0008で
 
 - 距離尺度、上位取得件数、補助順序を新たに比較・選定する作業
 - AI推論サービスで質問Embeddingを生成する処理
-- RAGScopeアプリケーションからAI推論サービスへ質問文を渡してEmbeddingを取得する処理
+- RAGScopeアプリケーションからAI推論サービスへ質問文を渡して質問Embeddingを取得する処理
 - PostgreSQL / pgvectorの導入、DB schema、migrationの新規作成
 - 文書チャンクとEmbeddingの保存処理
 - RAGScope CLIの検索コマンドと質問入力UI
@@ -65,9 +65,9 @@ v0.0で質問に近い文書チャンクを取得するためには、RS-0008で
 - [システムアーキテクチャ「3.1 RAGScopeアプリケーションの責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.1 RAGScopeアプリケーションの責務境界>)
 - [システムアーキテクチャ「3.3 PostgreSQLの責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.3 PostgreSQLの責務境界>)
 - [システムアーキテクチャ「7. 質問と実験の全体フロー」](<../../../../docs/design/システムアーキテクチャ.md#7. 質問と実験の全体フロー>)
-- [Embedding生成設計](<../../../../docs/design/Embedding生成設計.md>)
-- [データモデル設計](<../../../../docs/design/データモデル設計.md>)
-- [検索設計](<../../../../docs/design/検索設計.md>)
+- `docs/design/Embedding生成設計.md`
+- `docs/design/データモデル設計.md`
+- `docs/design/検索設計.md`
 
 ## 実装メモ
 

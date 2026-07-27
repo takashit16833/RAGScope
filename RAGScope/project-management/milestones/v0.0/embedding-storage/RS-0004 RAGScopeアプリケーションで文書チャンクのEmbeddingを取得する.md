@@ -76,10 +76,10 @@ v0.0で文書チャンクとEmbeddingをPostgreSQLへ保存するためには、
 - [システムアーキテクチャ「6. 文書取り込みの全体フロー」](<../../../../docs/design/システムアーキテクチャ.md#6. 文書取り込みの全体フロー>)
 - [ADR-0002 — 共通実行基盤の契約とコンポーネント実装を分離する](<../../../../docs/adr/ADR-0002 共通実行基盤の契約とコンポーネント実装を分離する.md>)
 - [エラー・ログ設計](../../../../docs/design/エラー・ログ設計.md)
-- [リトライ・タイムアウト設計](../../../../docs/design/リトライ・タイムアウト設計.md)
+- `docs/design/リトライ・タイムアウト設計.md`
 - [文書処理設計](<../../../../docs/design/文書処理設計.md>)
-- [Embedding生成設計](<../../../../docs/design/Embedding生成設計.md>)
-- [データモデル設計](<../../../../docs/design/データモデル設計.md>)
+- `docs/design/Embedding生成設計.md`
+- `docs/design/データモデル設計.md`
 - [RS-0016 文書チャンクのEmbedding要求に必要なretryとtimeoutを設計する](<../embedding-request-reliability/RS-0016 文書チャンクのEmbedding要求に必要なretryとtimeoutを設計する.md>)
 - [RS-0017 文書チャンクのEmbedding要求に必要なretry executorとtimeout制御を実装する](<../embedding-request-reliability/RS-0017 文書チャンクのEmbedding要求に必要なretry executorとtimeout制御を実装する.md>)
 
