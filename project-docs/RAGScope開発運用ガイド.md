@@ -11,12 +11,12 @@ note_type: reference
 
 | 確認する内容 | 正本 |
 |---|---|
-| Milestone・Epic・Ticketの定義、状態遷移、完了条件 | [RAGScopeプロジェクト管理規約](../RAGScopeプロジェクト管理規約.md) |
-| 文書の配置、責務、参照関係 | [RAGScope文書管理規約](../RAGScope文書管理規約.md) |
-| Frontmatterのプロパティ、型、許容値 | [Obsidianメタデータ規約](../Obsidianメタデータ規約.md) |
-| バージョン全体の計画 | [RAGScopeロードマップ](../project-management/ロードマップ.md) |
-| ノートへ挿入する実際の雛形 | [Milestoneテンプレート](../templates/Milestoneテンプレート.md)・[Epicテンプレート](../templates/Epicテンプレート.md)・[Ticketテンプレート](../templates/Ticketテンプレート.md) |
-| Pull Requestへ挿入する実際の雛形 | [Pull Requestテンプレート](../../.github/pull_request_template.md) |
+| Milestone・Epic・Ticketの定義、状態遷移、完了条件 | [RAGScopeプロジェクト管理規約](./rules/RAGScopeプロジェクト管理規約.md) |
+| 文書の配置、責務、参照関係 | [RAGScope文書管理規約](./rules/RAGScope文書管理規約.md) |
+| Frontmatterのプロパティ、型、許容値 | [Obsidianメタデータ規約](./rules/Obsidianメタデータ規約.md) |
+| バージョン全体の計画 | [RAGScopeロードマップ](./project-management/ロードマップ.md) |
+| ノートへ挿入する実際の雛形 | [Milestoneテンプレート](./templates/Milestoneテンプレート.md)・[Epicテンプレート](./templates/Epicテンプレート.md)・[Ticketテンプレート](./templates/Ticketテンプレート.md) |
+| Pull Requestへ挿入する実際の雛形 | [Pull Requestテンプレート](../.github/pull_request_template.md) |
 
 > [!important] 正本との分離
 > このガイドでは、各規約にある定義や完了条件を全文で再掲しない。  
@@ -64,7 +64,7 @@ flowchart TD
 
 ## 4. Milestoneを具体化する
 
-次に着手すると決定したMilestoneだけを具体化する。具体化の対象は、[プロジェクト管理規約の「着手するMilestoneだけを具体化する」](<../RAGScopeプロジェクト管理規約.md#2.2 着手するMilestoneだけを具体化する>)に従う。
+次に着手すると決定したMilestoneだけを具体化する。具体化の対象は、[プロジェクト管理規約の「着手するMilestoneだけを具体化する」](<./rules/RAGScopeプロジェクト管理規約.md#2.2 着手するMilestoneだけを具体化する>)に従う。
 
 ### 4.1 Milestoneノートを作成する
 
@@ -78,7 +78,7 @@ flowchart TD
 8. `成功条件`を記入し、対象要求に記載した範囲を実際に確認できることを確認する。
 9. Roadmapの対象バージョン見出しを、作成したMilestoneノートへの相対リンクへ変更する。
 
-配置、命名、必須項目は[プロジェクト管理規約の第4章](<../RAGScopeプロジェクト管理規約.md#4. フォルダ構成と命名>)と[第7.2節](<../RAGScopeプロジェクト管理規約.md#7.2 Milestone>)を確認する。
+配置、命名、必須項目は[プロジェクト管理規約の第4章](<./rules/RAGScopeプロジェクト管理規約.md#4. フォルダ構成と命名>)と[第7.2節](<./rules/RAGScopeプロジェクト管理規約.md#7.2 Milestone>)を確認する。
 
 ### 4.2 Epicノートを作成する
 
@@ -129,14 +129,14 @@ Ticket構成案は、個別Ticketを詳細化する前の作業用の整理で�
 7. 目的、完了条件、必要な場合は対象外・関連文書・実装メモを記入する。
 8. 前提となる成果や先行Ticketがある場合は、着手条件と作業範囲が本文から判断できる状態にする。
 
-Ticketの粒度と採番規則は[プロジェクト管理規約の第3.4節](<../RAGScopeプロジェクト管理規約.md#3.4 Ticket>)と[第4.3節](<../RAGScopeプロジェクト管理規約.md#4.3 Ticket ID>)、Epic全体の実行計画は[第2.4節](<../RAGScopeプロジェクト管理規約.md#2.4 Epic全体の実行計画を確認してから着手する>)を確認する。
+Ticketの粒度と採番規則は[プロジェクト管理規約の第3.4節](<./rules/RAGScopeプロジェクト管理規約.md#3.4 Ticket>)と[第4.3節](<./rules/RAGScopeプロジェクト管理規約.md#4.3 Ticket ID>)、Epic全体の実行計画は[第2.4節](<./rules/RAGScopeプロジェクト管理規約.md#2.4 Epic全体の実行計画を確認してから着手する>)を確認する。
 
 ## 5. Ticketへ着手する
 
 1. Ticketの目的、完了条件、対象外、関連文書を確認する。
 2. Ticketが前提とする先行Ticketの成果、初期設計、要求、ADR、Experimentが反映されていることを確認する。
 3. 所属EpicとMilestoneの状態を確認する。
-4. [親子状態の整合](<../RAGScopeプロジェクト管理規約.md#6.1 親子状態の整合>)に従い、必要なノートを`in_progress`へ変更する。
+4. [親子状態の整合](<./rules/RAGScopeプロジェクト管理規約.md#6.1 親子状態の整合>)に従い、必要なノートを`in_progress`へ変更する。
 5. Ticket自身を`in_progress`へ変更する。
 6. Ticket IDを含むBranchを作成する。
 
@@ -145,7 +145,7 @@ Ticketの粒度と採番規則は[プロジェクト管理規約の第3.4節](<.
 git switch -c feat/RS-0001-read-fixed-markdown
 ```
 
-Branch名のprefixと形式は[プロジェクト管理規約の第9.2節](<../RAGScopeプロジェクト管理規約.md#9.2 ブランチ名>)を確認する。
+Branch名のprefixと形式は[プロジェクト管理規約の第9.2節](<./rules/RAGScopeプロジェクト管理規約.md#9.2 ブランチ名>)を確認する。
 
 ## 6. 実装・文書更新・確認を行う
 
@@ -155,11 +155,11 @@ Branch名のprefixと形式は[プロジェクト管理規約の第9.2節](<../R
 4. 対応する正本がある場合は更新し、必要な正本がまだない場合だけ新しく作成する。
 5. Ticketの`結果`へ、実装内容、確認方法、既知の制約、関連PRを記入する。
 
-文書の記載先は[RAGScope文書管理規約](../RAGScope文書管理規約.md)に従う。
+文書の記載先は[RAGScope文書管理規約](./rules/RAGScope文書管理規約.md)に従う。
 
 ### 6.1 機能設計書を作成・更新する
 
-変更によって完了後も有効な設計情報が生じる場合は、[文書管理規約の`docs/design/`](<../RAGScope文書管理規約.md#4.4 docs/design/>)と[機能設計の粒度と作業記録との分離](<../RAGScope文書管理規約.md#4.5 機能設計の粒度と作業記録との分離>)に従う。
+変更によって完了後も有効な設計情報が生じる場合は、[文書管理規約の`design/`](<./rules/RAGScope文書管理規約.md#4.4 design/>)と[機能設計の粒度と作業記録との分離](<./rules/RAGScope文書管理規約.md#4.5 機能設計の粒度と作業記録との分離>)に従う。
 
 1. 変更が、機能の責務、入出力、処理フロー、コンポーネント間の関係、データ構造、不変条件、エラー処理、境界条件などへ影響するか確認する。
 2. 既存の機能設計書で現在設計を自然に説明できる場合は、その設計書を更新する。
@@ -174,8 +174,8 @@ Epic冒頭の初期設計Ticketで作成した設計書も、後続の実装Tick
 
 ### 6.2 文書を作成・更新する
 
-1. [RAGScope文書管理規約](../RAGScope文書管理規約.md)で、その情報の正本、配置先、文書の責務を確認する。
-2. [Obsidianメタデータ規約](../Obsidianメタデータ規約.md)に従ってFrontmatterを設定する。
+1. [RAGScope文書管理規約](./rules/RAGScope文書管理規約.md)で、その情報の正本、配置先、文書の責務を確認する。
+2. [Obsidianメタデータ規約](./rules/Obsidianメタデータ規約.md)に従ってFrontmatterを設定する。
 3. 既存文書または機械可読な正本と重複しないことを確認し、既存の正本で扱える場合は新しい文書を作らず更新する。
 4. 関連する要求、設計、ADR、Experiment、Ticketを必要な範囲で更新し、リンク、Frontmatter、配置の整合を確認する。
 5. 解消できない矛盾がある場合は、その内容と影響を明示してから作業を進める。
@@ -190,12 +190,12 @@ Epic冒頭の初期設計Ticketで作成した設計書も、後続の実装Tick
 6. レビューと必要な修正を完了し、デフォルトブランチへマージする。
 7. マージ後、Ticketに記録した結果と実際の結果に差異がないこと、および`done`の完了条件が成立したことを確認する。
 
-Ticketを`done`にできる条件は、[プロジェクト管理規約の第8.1節](<../RAGScopeプロジェクト管理規約.md#8.1 Ticket>)を正本とする。
+Ticketを`done`にできる条件は、[プロジェクト管理規約の第8.1節](<./rules/RAGScopeプロジェクト管理規約.md#8.1 Ticket>)を正本とする。
 
 ## 8. Epicを完了する
 
 1. 所属Ticketの状態を確認する。
-2. [Epicの完了条件](<../RAGScopeプロジェクト管理規約.md#8.2 Epic>)を満たすことを確認する。
+2. [Epicの完了条件](<./rules/RAGScopeプロジェクト管理規約.md#8.2 Epic>)を満たすことを確認する。
 3. Epicの`結果`へ、実現した能力、確認方法、残った制約を記入する。
 4. Epicを`done`へ変更する。
 5. 変更をデフォルトブランチへ反映する。
@@ -204,7 +204,7 @@ Ticketを`done`にできる条件は、[プロジェクト管理規約の第8.1�
 
 1. 所属Epicの状態を確認する。
 2. `対象要求`に記載した、このMilestoneで実現する範囲が実際のリリース内容と一致していることを確認する。
-3. [Milestoneの完了条件](<../RAGScopeプロジェクト管理規約.md#8.3 Milestone>)を満たすことを確認する。
+3. [Milestoneの完了条件](<./rules/RAGScopeプロジェクト管理規約.md#8.3 Milestone>)を満たすことを確認する。
 4. Milestoneの`リリース結果`へ、実現した内容、確認方法、既知の制約を記入する。
 5. Milestoneを`done`へ変更する。
 6. 変更をデフォルトブランチへ反映する。
@@ -219,7 +219,7 @@ git tag v0.0
 git push origin v0.0
 ```
 
-リリース順序は[プロジェクト管理規約の第9.5節](<../RAGScopeプロジェクト管理規約.md#9.5 Git tag・GitHub Release>)を正本とする。
+リリース順序は[プロジェクト管理規約の第9.5節](<./rules/RAGScopeプロジェクト管理規約.md#9.5 Git tag・GitHub Release>)を正本とする。
 
 ## 10. Ticketを移動・中止する
 
@@ -230,7 +230,7 @@ git push origin v0.0
 3. Frontmatterの`milestone`と`epic`を更新する。
 4. 本文中の関連リンクを確認し、必要なリンクを更新する。
 
-移動条件は[プロジェクト管理規約の第4.4節](<../RAGScopeプロジェクト管理規約.md#4.4 Ticketの移動>)に従う。
+移動条件は[プロジェクト管理規約の第4.4節](<./rules/RAGScopeプロジェクト管理規約.md#4.4 Ticketの移動>)に従う。
 
 ### 10.2 Ticketを中止する
 
@@ -239,7 +239,7 @@ git push origin v0.0
 3. Epicの完了条件への影響を確認する。
 4. Epicの完了条件を損なう場合は、親を完了させず、必要な対応を決定する。
 
-EpicまたはMilestoneを中止する場合も、[親子状態の整合](<../RAGScopeプロジェクト管理規約.md#6.1 親子状態の整合>)に従って子ノートを処理する。
+EpicまたはMilestoneを中止する場合も、[親子状態の整合](<./rules/RAGScopeプロジェクト管理規約.md#6.1 親子状態の整合>)に従って子ノートを処理する。
 
 ## 11. 操作方法を変更するとき
 

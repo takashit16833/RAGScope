@@ -10,19 +10,19 @@ epic: "[[v0.0 質問によるdense検索の実行]]"
 
 v0.0の最後のEpicでは、質問Embeddingの生成、RAGScopeアプリケーションでの取得、PostgreSQL / pgvectorによるexact vector search、RAGScope CLIでの結果表示を複数の実装Ticketで構築する。これらは、質問入力から検索結果表示までの処理フロー、文書チャンクのEmbeddingとの互換性、距離尺度、取得件数、順位付け、エラーの扱いを共有している。
 
-このTicketでは、RS-0007からRS-0010へ着手する前に、質問によるdense検索の初期設計を行い、現在設計の正本となる`docs/design/検索設計.md`を作成する。あわせて、質問Embeddingに関する`docs/design/Embedding生成設計.md`とOpenAPIなどの機械可読なAPI定義を更新する。
+このTicketでは、RS-0007からRS-0010へ着手する前に、質問によるdense検索の初期設計を行い、現在設計の正本となる`design/検索設計.md`を作成する。あわせて、質問Embeddingに関する`design/Embedding生成設計.md`とOpenAPIなどの機械可読なAPI定義を更新する。
 
 初期設計では、後続Ticketが実装へ着手できる判断基準とコンポーネント間の契約を整える。正確なSQL、Haskell・Pythonの型、CLI parserの構成は、それぞれの機械可読な正本で実装時に確定する。
 
 ## 前提
 
 - 「v0.0 文書チャンクのEmbedding生成と保存」Epicが完了し、検索対象となる文書チャンクとEmbeddingをPostgreSQL / pgvectorへ保存できる
-- `docs/design/Embedding生成設計.md`と`docs/design/データモデル設計.md`が現在の実装と一致している
+- `design/Embedding生成設計.md`と`design/データモデル設計.md`が現在の実装と一致している
 - 文書チャンクのEmbeddingのmodel、revision、入力規則、vector正規化、出力次元が確定している
 
 ## 完了条件
 
-- [ ] `docs/design/検索設計.md`が`note_type: design`の機能設計書として作成されている
+- [ ] `design/検索設計.md`が`note_type: design`の機能設計書として作成されている
 - [ ] RAGScope CLIの質問入力から、AI推論サービスによる質問Embedding生成、PostgreSQL / pgvector検索、上位チャンク表示までの全体フローが記載されている
 - [ ] RAGScopeアプリケーション、AI推論サービス、PostgreSQL / pgvector、CLI表示の責務境界が記載されている
 - [ ] 空でない質問を1件扱い、空文字または空白だけの質問を入力エラーとする方針が記載されている
@@ -56,15 +56,15 @@ v0.0の最後のEpicでは、質問Embeddingの生成、RAGScopeアプリケー�
 
 ## 関連文書
 
-- [RAGScope要求定義「2.2 検索」](<../../../../docs/RAGScope要求定義.md#2.2 検索>)
-- [RAGScope要求定義「2.7 実行とレポート」](<../../../../docs/RAGScope要求定義.md#2.7 実行とレポート>)
-- [システムアーキテクチャ「3.1 RAGScopeアプリケーションの責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.1 RAGScopeアプリケーションの責務境界>)
-- [システムアーキテクチャ「3.2 AI推論サービスの責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.2 AI推論サービスの責務境界>)
-- [システムアーキテクチャ「3.3 PostgreSQLの責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.3 PostgreSQLの責務境界>)
-- [システムアーキテクチャ「5. RAGScopeアプリケーションとAI推論サービスの通信」](<../../../../docs/design/システムアーキテクチャ.md#5. RAGScopeアプリケーションとAI推論サービスの通信>)
-- [システムアーキテクチャ「7. 質問と実験の全体フロー」](<../../../../docs/design/システムアーキテクチャ.md#7. 質問と実験の全体フロー>)
-- `docs/design/Embedding生成設計.md`
-- `docs/design/データモデル設計.md`
+- [RAGScope要求定義「2.2 検索」](<../../../../RAGScope要求定義.md#2.2 検索>)
+- [RAGScope要求定義「2.7 実行とレポート」](<../../../../RAGScope要求定義.md#2.7 実行とレポート>)
+- [システムアーキテクチャ「3.1 RAGScopeアプリケーションの責務境界」](<../../../../design/システムアーキテクチャ.md#3.1 RAGScopeアプリケーションの責務境界>)
+- [システムアーキテクチャ「3.2 AI推論サービスの責務境界」](<../../../../design/システムアーキテクチャ.md#3.2 AI推論サービスの責務境界>)
+- [システムアーキテクチャ「3.3 PostgreSQLの責務境界」](<../../../../design/システムアーキテクチャ.md#3.3 PostgreSQLの責務境界>)
+- [システムアーキテクチャ「5. RAGScopeアプリケーションとAI推論サービスの通信」](<../../../../design/システムアーキテクチャ.md#5. RAGScopeアプリケーションとAI推論サービスの通信>)
+- [システムアーキテクチャ「7. 質問と実験の全体フロー」](<../../../../design/システムアーキテクチャ.md#7. 質問と実験の全体フロー>)
+- `design/Embedding生成設計.md`
+- `design/データモデル設計.md`
 
 ## 実装メモ
 

@@ -5,7 +5,7 @@ note_type: requirements
 
 > [!abstract] この文書の役割
 > RAGScopeが満たすべき機能、品質、制約、対象範囲、対象外を定義する。  
-> システムの目的と価値は[RAGScope概要](./RAGScope概要.md)、実現方法は[システムアーキテクチャ](./design/システムアーキテクチャ.md)、段階的な実現計画は[ロードマップ](../project-management/ロードマップ.md)を参照する。
+> システムの目的と価値は[RAGScope概要](./RAGScope概要.md)、実現方法は[システムアーキテクチャ](./design/システムアーキテクチャ.md)、段階的な実現計画は[ロードマップ](./project-management/ロードマップ.md)を参照する。
 
 ## 1. 要求の前提
 
