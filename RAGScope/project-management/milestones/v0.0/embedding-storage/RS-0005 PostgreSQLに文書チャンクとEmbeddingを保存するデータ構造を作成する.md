@@ -17,7 +17,7 @@ Haskellから実際の文書チャンクとEmbeddingを保存する処理はRS-0
 ## 前提
 
 - [RS-0012 文書チャンクのEmbedding生成と保存を設計する](<./RS-0012 文書チャンクのEmbedding生成と保存を設計する.md>)が完了している
-- [RS-0003 Python AI Serviceで文書チャンクのEmbeddingを生成する](<./RS-0003 Python AI Serviceで文書チャンクのEmbeddingを生成する.md>)が完了し、実際のvector次元を確認できる
+- [RS-0003 AI推論サービスで文書チャンクのEmbeddingを生成する](<./RS-0003 AI推論サービスで文書チャンクのEmbeddingを生成する.md>)が完了し、実際のvector次元を確認できる
 - `docs/design/データモデル設計.md`に、保存対象の責務、関係、不変条件が記載されている
 
 ## 完了条件
@@ -41,7 +41,7 @@ Haskellから実際の文書チャンクとEmbeddingを保存する処理はRS-0
 
 ## 対象外
 
-- HaskellからPython AI Serviceを呼び出してEmbeddingを取得する処理
+- HaskellからAI推論サービスを呼び出してEmbeddingを取得する処理
 - Haskellから文書チャンクとEmbeddingを保存するrepository・queryの実装
 - 文書取り込みからEmbedding保存までの一連の処理
 - 質問Embeddingの生成

@@ -362,7 +362,7 @@ reranker・generationを含む各modelの正式な選定と比較方針は、そ
 
 EmbeddingだけをAWSへ載せる候補。reranker、generation model、ALB、ECS、Auto Scaling、GPU、公開Web UIは使わない。
 
-AWSスパイクで使用するPython APIは、`/embeddings`、`/token-count`、`/models`、`/health`、`/ready`に限定し、`/rerank`と`/generate`は使用しない候補。
+AWSスパイクで使用するAI推論サービスのAPIは、`/embeddings`、`/token-count`、`/models`、`/health`、`/ready`に限定し、`/rerank`と`/generate`は使用しない候補。
 
 ```mermaid
 flowchart LR
@@ -371,7 +371,7 @@ flowchart LR
 
     subgraph Runtime["Runtime Stack<br>実験後に削除"]
         subgraph VPC["VPC"]
-            EC2["EC2<br>SSM Agent<br>Haskell API + Python AI Service<br>/embeddings /token-count<br>/models /health /ready"]
+            EC2["EC2<br>SSM Agent<br>Haskell API + AI推論サービス<br>/embeddings /token-count<br>/models /health /ready"]
             RDS[("private RDS<br>PostgreSQL + pgvector")]
             EC2 -- "5432<br>EC2 SGからのみ" --> RDS
         end
