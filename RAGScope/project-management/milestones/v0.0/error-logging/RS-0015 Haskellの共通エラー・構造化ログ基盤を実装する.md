@@ -44,7 +44,7 @@ RS-0014で定義した共通エラー契約と構造化ログを、文書処理�
 ## 対象外
 
 - 文書処理、Embedding生成、DB処理など、各機能固有のエラー分類とイベント実装
-- Python AI Service側のエラー型とloggerの実装
+- AI推論サービス側のエラー型とloggerの実装
 - HTTP APIの正確なエラーresponse
 - retry / timeoutのPolicyとexecutor
 - CloudWatchへの送信、AWS SDK依存、log groupや保持期間の設定

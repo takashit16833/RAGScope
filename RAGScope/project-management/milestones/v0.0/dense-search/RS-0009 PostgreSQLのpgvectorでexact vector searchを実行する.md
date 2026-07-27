@@ -43,8 +43,8 @@ v0.0で質問に近い文書チャンクを取得するためには、RS-0008で
 ## 対象外
 
 - 距離尺度、上位取得件数、補助順序を新たに比較・選定する作業
-- Python AI Serviceで質問Embeddingを生成する処理
-- HaskellからPython AI Serviceへ質問文を渡してEmbeddingを取得する処理
+- AI推論サービスで質問Embeddingを生成する処理
+- HaskellからAI推論サービスへ質問文を渡してEmbeddingを取得する処理
 - PostgreSQL / pgvectorの導入、DB schema、migrationの新規作成
 - 文書チャンクとEmbeddingの保存処理
 - Haskell CLIの検索コマンドと質問入力UI

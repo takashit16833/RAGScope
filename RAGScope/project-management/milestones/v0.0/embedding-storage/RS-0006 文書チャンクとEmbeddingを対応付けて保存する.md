@@ -29,14 +29,14 @@ v0.0のdense検索で文書チャンクを検索対象として利用するた�
 - [ ] 保存したrecordをPostgreSQLから読み出し、元文書を識別する情報、`chunkIndex`、本文、Embeddingが保存前の値と対応していることを確認できる
 - [ ] 保存済みrecordを`chunkIndex`順に取得し、文書内での順序を確認できる
 - [ ] 保存したEmbeddingが、後続のexact vector searchで使用できるpgvectorの値として読み出せる
-- [ ] Python AI Serviceを利用できない場合またはEmbedding生成に失敗した場合に、新しい検索対象データを保存しない
+- [ ] AI推論サービスを利用できない場合またはEmbedding生成に失敗した場合に、新しい検索対象データを保存しない
 - [ ] PostgreSQLへ接続できない場合を、正常な保存と区別して扱える
 - [ ] DB制約違反、SQL実行失敗、transaction失敗を、正常な保存と区別して扱える
 - [ ] 複数件の保存途中で失敗した場合にtransactionをrollbackし、今回の処理による一部のチャンクだけを残さない
-- [ ] Python AI ServiceへのrequestをDB transactionの開始前に完了し、モデル推論中にtransactionを保持しない
+- [ ] AI推論サービスへのrequestをDB transactionの開始前に完了し、モデル推論中にtransactionを保持しない
 - [ ] 同じ固定文書の取り込みを設計で定めた方法により再実行でき、識別不能な重複recordが増えない
 - [ ] 正常系、Embedding取得失敗、DB接続失敗、保存途中の失敗、再実行時の挙動を自動テストまたはDB integration testで確認できる
-- [ ] 実際に起動したPython AI ServiceとPostgreSQLを使用し、文書チャンクの受け渡し、Embedding生成、保存、読み出しまでを一連の処理として実行できる
+- [ ] 実際に起動したAI推論サービスとPostgreSQLを使用し、文書チャンクの受け渡し、Embedding生成、保存、読み出しまでを一連の処理として実行できる
 - [ ] 固定Markdown文書の読み込み、チャンク化、Embedding取得、PostgreSQLへの保存までを、テスト専用ではない明示的な実行入口から起動できる
 - [ ] 実装で具体化または変更された保存フロー、transaction境界、再実行時の扱いが`docs/design/データモデル設計.md`へ反映されている
 - [ ] 実装とデータモデル設計に解消していない差異がない
@@ -44,8 +44,8 @@ v0.0のdense検索で文書チャンクを検索対象として利用するた�
 
 ## 対象外
 
-- Python AI ServiceでのEmbedding model選定とEmbedding生成APIの新規実装
-- HaskellとPython AI Service間のAPI clientの新規実装
+- AI推論サービスでのEmbedding model選定とEmbedding生成APIの新規実装
+- HaskellとAI推論サービス間のAPI clientの新規実装
 - PostgreSQL / pgvectorの導入、DB schema、migrationの新規作成
 - 質問文の入力と質問Embeddingの生成
 - dense検索query、順位付け、上位チャンクの取得
@@ -63,9 +63,9 @@ v0.0のdense検索で文書チャンクを検索対象として利用するた�
 
 - [RAGScope要求定義「2.2 検索」](<../../../../docs/RAGScope要求定義.md#2.2 検索>)
 - [システムアーキテクチャ「3.1 Haskellの責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.1 Haskellの責務境界>)
-- [システムアーキテクチャ「3.2 Pythonの責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.2 Pythonの責務境界>)
+- [システムアーキテクチャ「3.2 AI推論サービスの責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.2 AI推論サービスの責務境界>)
 - [システムアーキテクチャ「3.3 PostgreSQLの責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.3 PostgreSQLの責務境界>)
-- [システムアーキテクチャ「5. HaskellとPythonの通信」](<../../../../docs/design/システムアーキテクチャ.md#5. HaskellとPythonの通信>)
+- [システムアーキテクチャ「5. HaskellとAI推論サービスの通信」](<../../../../docs/design/システムアーキテクチャ.md#5. HaskellとAI推論サービスの通信>)
 - [システムアーキテクチャ「6. 文書取り込みの全体フロー」](<../../../../docs/design/システムアーキテクチャ.md#6. 文書取り込みの全体フロー>)
 - [文書処理設計](<../../../../docs/design/文書処理設計.md>)
 - [Embedding生成設計](<../../../../docs/design/Embedding生成設計.md>)
@@ -74,7 +74,7 @@ v0.0のdense検索で文書チャンクを検索対象として利用するた�
 ## 実装メモ
 
 - Haskellが、文書チャンクのEmbedding取得、対応関係の検証、PostgreSQLへの保存順序を制御する。
-- Python AI ServiceからPostgreSQLへ直接アクセスさせず、AI推論と永続化の責務境界を維持する。
+- AI推論サービスからPostgreSQLへ直接アクセスさせず、AI推論と永続化の責務境界を維持する。
 - 複数件のDB書き込みは1つのtransactionで実行し、すべて成功した場合だけcommitする。
 - 再実行時の既存データの扱いは、データモデル設計で定めた初期方針に従う。通常の実行手順から外れた手作業を必要としないものとする。
 - 保存処理と読み出し処理は、テストおよび後続のdense検索から利用できる関数またはrepositoryとして分離する。
@@ -90,7 +90,7 @@ v0.0のdense検索で文書チャンクを検索対象として利用するた�
 > - transaction境界と再実行時の扱い
 > - 実装した文書取り込みの実行入口
 > - 実行したテストコマンドと結果
-> - Python AI Service・PostgreSQLを使用した一連の確認結果
+> - AI推論サービス・PostgreSQLを使用した一連の確認結果
 > - データモデル設計へ反映した内容
 > - 既知の制約
 > - 関連Pull Request

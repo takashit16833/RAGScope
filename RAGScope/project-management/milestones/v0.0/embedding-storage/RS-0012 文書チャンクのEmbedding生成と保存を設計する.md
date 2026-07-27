@@ -8,11 +8,11 @@ epic: "[[v0.0 文書チャンクのEmbedding生成と保存]]"
 
 ## 目的
 
-このEpicでは、Python AI ServiceによるEmbedding生成、HaskellとのHTTP / JSON通信、PostgreSQL / pgvectorのデータ構造、文書チャンクとEmbeddingの保存を複数の実装Ticketで構築する。これらは、採用するEmbedding model、生成条件、API契約、vector次元、保存するデータの関係を共有している。
+このEpicでは、AI推論サービスによるEmbedding生成、HaskellとのHTTP / JSON通信、PostgreSQL / pgvectorのデータ構造、文書チャンクとEmbeddingの保存を複数の実装Ticketで構築する。これらは、採用するEmbedding model、生成条件、API契約、vector次元、保存するデータの関係を共有している。
 
-このTicketでは、RS-0003からRS-0006へ着手する前に、文書チャンクのEmbedding生成から保存までの初期設計を行う。現在設計の正本として`docs/design/Embedding生成設計.md`と`docs/design/データモデル設計.md`を作成し、Python AI Serviceの文書Embedding生成APIについてOpenAPIなどの機械可読な初期定義を作成する。
+このTicketでは、RS-0003からRS-0006へ着手する前に、文書チャンクのEmbedding生成から保存までの初期設計を行う。現在設計の正本として`docs/design/Embedding生成設計.md`と`docs/design/データモデル設計.md`を作成し、AI推論サービスの文書Embedding生成APIについてOpenAPIなどの機械可読な初期定義を作成する。
 
-HaskellからPython AI Serviceへ文書チャンクのEmbeddingを要求するoperationの具体的なretry / timeout Policyとexecutorは、RS-0016とRS-0017で別に設計・実装する。このTicketでは、後続のretry / timeout設計が判断できるよう、operationの境界、副作用、主要な失敗、HTTP契約を定義するが、具体的な試行回数や待機方式は固定しない。
+HaskellからAI推論サービスへ文書チャンクのEmbeddingを要求するoperationの具体的なretry / timeout Policyとexecutorは、RS-0016とRS-0017で別に設計・実装する。このTicketでは、後続のretry / timeout設計が判断できるよう、operationの境界、副作用、主要な失敗、HTTP契約を定義するが、具体的な試行回数や待機方式は固定しない。
 
 初期設計では、後続Ticketが実装へ着手できる判断基準とコンポーネント間の契約を整える。正確なHaskell・Pythonの型、SQL、migrationの定義は、それぞれの機械可読な正本で実装時に確定する。
 
@@ -27,17 +27,17 @@ HaskellからPython AI Serviceへ文書チャンクのEmbeddingを要求するop
 
 - [ ] `docs/design/Embedding生成設計.md`が`note_type: design`の機能設計書として作成されている
 - [ ] `docs/design/データモデル設計.md`が`note_type: design`の機能設計書として作成されている
-- [ ] Haskell、Python AI Service、PostgreSQL / pgvectorの責務と、文書チャンクの受け渡しから保存までの全体フローが記載されている
+- [ ] Haskell、AI推論サービス、PostgreSQL / pgvectorの責務と、文書チャンクの受け渡しから保存までの全体フローが記載されている
 - [ ] v0.0で使用するEmbedding modelが1つ選定され、model ID、revision、Tokenizer、Tokenizer revisionを固定する方針が記載されている
 - [ ] 採用候補について、ローカル環境での利用可能性とRAGScopeでの利用を妨げるライセンス上の問題がないことを確認できる
 - [ ] 文書用・質問用の入力規則、pooling、最大入力長、truncation、vector正規化の有無、出力次元が固定条件として記載されている
 - [ ] 文書用と質問用のEmbeddingを比較可能に保つ互換条件が記載されている
-- [ ] Python AI ServiceがAI推論を担当し、Haskellが処理全体とデータの対応関係を管理する責務境界が記載されている
-- [ ] HaskellからPython AI Serviceへ文書チャンクのEmbeddingを要求するoperationの開始・終了、1回のHTTP request、Python側のEmbedding計算の概念上の境界が記載されている
+- [ ] AI推論サービスがAI推論を担当し、Haskellが処理全体とデータの対応関係を管理する責務境界が記載されている
+- [ ] HaskellからAI推論サービスへ文書チャンクのEmbeddingを要求するoperationの開始・終了、1回のHTTP request、AI推論サービス側のEmbedding計算の概念上の境界が記載されている
 - [ ] 文書Embedding生成APIの入力、出力、入力とEmbeddingの対応方法、主要なエラー分類が設計されている
-- [ ] Python AI Serviceの失敗、HTTPの失敗、不正なresponse、入力・契約違反を、共通エラー契約へ変換する方針が記載されている
-- [ ] `execution_id`をHaskellからPython AI Serviceへ伝播する正確な場所、形式、必須条件、検証方法がOpenAPIに定義され、欠落または不正な値の扱いが設計されている
-- [ ] Haskell側が`execution_id`をHTTP requestへ付与し、Python側のHTTP adapterが受領した値を共通Contextへ引き渡す責務境界が記載されている
+- [ ] AI推論サービスの失敗、HTTPの失敗、不正なresponse、入力・契約違反を、共通エラー契約へ変換する方針が記載されている
+- [ ] `execution_id`をHaskellからAI推論サービスへ伝播する正確な場所、形式、必須条件、検証方法がOpenAPIに定義され、欠落または不正な値の扱いが設計されている
+- [ ] Haskell側が`execution_id`をHTTP requestへ付与し、AI推論サービス側のHTTP adapterが受領した値を共通Contextへ引き渡す責務境界が記載されている
 - [ ] request validation、Web framework、model、Tokenizer、AI libraryのうち文書Embedding生成で扱う機能固有例外を、共通エラー境界とAPI error responseへ変換する方針が記載されている
 - [ ] 後続のRS-0016がretry対象と再試行安全性を判断できるよう、operationの副作用と失敗時に成立する条件が記載されている
 - [ ] 文書Embedding生成APIの正確なrequest / responseがOpenAPIなどの機械可読な初期定義として作成されている
@@ -55,7 +55,7 @@ HaskellからPython AI Serviceへ文書チャンクのEmbeddingを要求するop
 
 ## 対象外
 
-- Python AI Serviceの実装
+- AI推論サービスの実装
 - HaskellのHTTP clientの実装
 - PostgreSQL / pgvectorのmigration作成
 - 文書チャンクとEmbeddingの保存処理の実装
@@ -71,10 +71,10 @@ HaskellからPython AI Serviceへ文書チャンクのEmbeddingを要求するop
 - [RAGScope要求定義「2.2 検索」](<../../../../docs/RAGScope要求定義.md#2.2 検索>)
 - [RAGScope要求定義「3.3 信頼性と保守性」](<../../../../docs/RAGScope要求定義.md#3.3 信頼性と保守性>)
 - [システムアーキテクチャ「3.1 Haskellの責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.1 Haskellの責務境界>)
-- [システムアーキテクチャ「3.2 Pythonの責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.2 Pythonの責務境界>)
+- [システムアーキテクチャ「3.2 AI推論サービスの責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.2 AI推論サービスの責務境界>)
 - [システムアーキテクチャ「3.3 PostgreSQLの責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.3 PostgreSQLの責務境界>)
 - [システムアーキテクチャ「3.4 共通実行基盤の責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.4 共通実行基盤の責務境界>)
-- [システムアーキテクチャ「5. HaskellとPythonの通信」](<../../../../docs/design/システムアーキテクチャ.md#5. HaskellとPythonの通信>)
+- [システムアーキテクチャ「5. HaskellとAI推論サービスの通信」](<../../../../docs/design/システムアーキテクチャ.md#5. HaskellとAI推論サービスの通信>)
 - [システムアーキテクチャ「6. 文書取り込みの全体フロー」](<../../../../docs/design/システムアーキテクチャ.md#6. 文書取り込みの全体フロー>)
 - [ADR-0002 — 共通実行基盤の契約とコンポーネント実装を分離する](<../../../../docs/adr/ADR-0002 共通実行基盤の契約とコンポーネント実装を分離する.md>)
 - [エラー・ログ設計](../../../../docs/design/エラー・ログ設計.md)

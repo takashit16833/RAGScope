@@ -10,7 +10,7 @@ epic: "[[v0.0 文書チャンクのEmbedding要求をtimeoutと安全なretryで
 
 [ADR-0002](<../../../../docs/adr/ADR-0002 共通実行基盤の契約とコンポーネント実装を分離する.md>)では、retryを一時的失敗かつ再試行安全な場合だけ適用し、operation固有のPolicyと実装を具体的な利用箇所へ着手する段階で決定する方針を採用している。
 
-このTicketでは、HaskellからPython AI Serviceへ文書チャンクのEmbeddingを要求するoperationを最初の対象として、必要なretry / timeoutの現在設計を`docs/design/リトライ・タイムアウト設計.md`に定義する。RS-0012で設計したAPI契約と主要な失敗を基に、どの失敗を何の根拠で再試行するか、再実行しても安全な条件は何か、どの時間範囲を制限するかを明確にし、RS-0017とRS-0004が実装へ着手できる判断基準を整える。
+このTicketでは、HaskellからAI推論サービスへ文書チャンクのEmbeddingを要求するoperationを最初の対象として、必要なretry / timeoutの現在設計を`docs/design/リトライ・タイムアウト設計.md`に定義する。RS-0012で設計したAPI契約と主要な失敗を基に、どの失敗を何の根拠で再試行するか、再実行しても安全な条件は何か、どの時間範囲を制限するかを明確にし、RS-0017とRS-0004が実装へ着手できる判断基準を整える。
 
 ## 前提
 
@@ -21,11 +21,11 @@ epic: "[[v0.0 文書チャンクのEmbedding要求をtimeoutと安全なretryで
 ## 完了条件
 
 - [ ] `docs/design/リトライ・タイムアウト設計.md`が`note_type: design`の機能設計書として作成されている
-- [ ] 対象operationが「HaskellからPython AI Serviceへ文書チャンクのEmbeddingを要求し、応答を受け取る処理」として明確に定義されている
-- [ ] 1回の論理operation、1回の試行、HTTP request、Python側のEmbedding計算の境界が区別されている
+- [ ] 対象operationが「HaskellからAI推論サービスへ文書チャンクのEmbeddingを要求し、応答を受け取る処理」として明確に定義されている
+- [ ] 1回の論理operation、1回の試行、HTTP request、AI推論サービス側のEmbedding計算の境界が区別されている
 - [ ] このoperationが永続的な外部副作用を生成しないこと、またはretryを安全に行うために必要な条件が記載されている
 - [ ] retryの判断を共通エラー全体へ固定せず、このoperationのエラー分類と実行Contextから決定する方針が記載されている
-- [ ] 接続失敗、通信中断、timeout、HTTP status、Python AI Serviceの明示的な失敗、不正なJSON、契約違反、入力不正、vector検証失敗などを、retry対象と非対象へ分類する判断基準が記載されている
+- [ ] 接続失敗、通信中断、timeout、HTTP status、AI推論サービスの明示的な失敗、不正なJSON、契約違反、入力不正、vector検証失敗などを、retry対象と非対象へ分類する判断基準が記載されている
 - [ ] 判断不能な失敗を安易にretry対象へ含めない方針と、最終的に返すエラーの扱いが記載されている
 - [ ] timeoutを適用する範囲と種類、時間の起算点、timeout発生時の中断・後処理・エラー変換が定義されている
 - [ ] 最大試行回数が初回試行を含むかどうか、試行上限へ達した場合の挙動が曖昧なく定義されている
@@ -45,7 +45,7 @@ epic: "[[v0.0 文書チャンクのEmbedding要求をtimeoutと安全なretryで
 ## 対象外
 
 - 文書読み込み、チャンク化、DB保存、質問Embedding、検索など、ほかのoperationへ適用するretry / timeout Policy
-- Python AI ServiceのEmbedding生成API実装
+- AI推論サービスのEmbedding生成API実装
 - Haskellの実HTTP clientとrequest / response変換
 - retry executorとtimeout制御の実装
 - PostgreSQL transaction、unique constraint、upsertによる重複防止の具体化
@@ -57,7 +57,7 @@ epic: "[[v0.0 文書チャンクのEmbedding要求をtimeoutと安全なretryで
 
 - [RAGScope要求定義「3.3 信頼性と保守性」](<../../../../docs/RAGScope要求定義.md#3.3 信頼性と保守性>)
 - [システムアーキテクチャ「3.4 共通実行基盤の責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.4 共通実行基盤の責務境界>)
-- [システムアーキテクチャ「5. HaskellとPythonの通信」](<../../../../docs/design/システムアーキテクチャ.md#5. HaskellとPythonの通信>)
+- [システムアーキテクチャ「5. HaskellとAI推論サービスの通信」](<../../../../docs/design/システムアーキテクチャ.md#5. HaskellとAI推論サービスの通信>)
 - [ADR-0002 — 共通実行基盤の契約とコンポーネント実装を分離する](<../../../../docs/adr/ADR-0002 共通実行基盤の契約とコンポーネント実装を分離する.md>)
 - [エラー・ログ設計](../../../../docs/design/エラー・ログ設計.md)
 - [Embedding生成設計](../../../../docs/design/Embedding生成設計.md)
@@ -69,7 +69,7 @@ epic: "[[v0.0 文書チャンクのEmbedding要求をtimeoutと安全なretryで
 - 本設計は対象operationの安全な実行制御を正本とし、一般的なretryの解説書にはしない。
 - 共通化はRS-0004で直ちに利用する範囲に限定し、将来のoperationを想定した未使用optionを増やさない。
 - API固有のHTTP statusとエラーpayloadはOpenAPI・Embedding生成設計を参照し、同じ定義を重複して正本化しない。
-- Policy値は根拠なく一般的な推奨値を採用せず、ローカルのPython AI Service、モデル処理時間、v0.0の処理量を踏まえて決定する。
+- Policy値は根拠なく一般的な推奨値を採用せず、ローカルのAI推論サービス、モデル処理時間、v0.0の処理量を踏まえて決定する。
 
 ## 結果
 

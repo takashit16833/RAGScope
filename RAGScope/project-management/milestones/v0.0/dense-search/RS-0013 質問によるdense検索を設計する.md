@@ -23,8 +23,8 @@ v0.0の最後のEpicでは、質問Embeddingの生成、Haskellからの取得�
 ## 完了条件
 
 - [ ] `docs/design/検索設計.md`が`note_type: design`の機能設計書として作成されている
-- [ ] Haskell CLIの質問入力から、Python AI Serviceによる質問Embedding生成、PostgreSQL / pgvector検索、上位チャンク表示までの全体フローが記載されている
-- [ ] Haskell、Python AI Service、PostgreSQL / pgvector、CLI表示の責務境界が記載されている
+- [ ] Haskell CLIの質問入力から、AI推論サービスによる質問Embedding生成、PostgreSQL / pgvector検索、上位チャンク表示までの全体フローが記載されている
+- [ ] Haskell、AI推論サービス、PostgreSQL / pgvector、CLI表示の責務境界が記載されている
 - [ ] 空でない質問を1件扱い、空文字または空白だけの質問を入力エラーとする方針が記載されている
 - [ ] 質問Embeddingが文書Embeddingと同じmodel、revision、Tokenizer、生成条件、vector次元を使用する互換条件が記載されている
 - [ ] 文書用と質問用で異なるprefixまたはinstructionが必要な場合の適用責務が記載されている
@@ -35,7 +35,7 @@ v0.0の最後のEpicでは、質問Embeddingの生成、Haskellからの取得�
 - [ ] 同距離時の補助順序と、再実行可能な順位付けの方針が記載されている
 - [ ] 検索結果が、順位、距離または類似度、元文書を識別する情報、`chunkIndex`、チャンク本文を保持することが記載されている
 - [ ] 検索対象が0件の場合、固定取得件数未満の場合、vector次元が不一致の場合の扱いが記載されている
-- [ ] Python AI Serviceへの接続失敗、Embedding生成失敗、PostgreSQL接続失敗、検索失敗を区別する基本方針が記載されている
+- [ ] AI推論サービスへの接続失敗、Embedding生成失敗、PostgreSQL接続失敗、検索失敗を区別する基本方針が記載されている
 - [ ] Haskell CLIの検索コマンド、標準出力・標準エラー出力、終了status、0件時の表示について初期方針が記載されている
 - [ ] 固定Markdown文書の取り込みから検索結果表示までのend-to-end確認範囲が記載されている
 - [ ] SQLの正確な構文はコード、API schemaはOpenAPI、CLIの正確な引数は実装と`--help`を正本とすることが明記されている
@@ -59,9 +59,9 @@ v0.0の最後のEpicでは、質問Embeddingの生成、Haskellからの取得�
 - [RAGScope要求定義「2.2 検索」](<../../../../docs/RAGScope要求定義.md#2.2 検索>)
 - [RAGScope要求定義「2.7 実行とレポート」](<../../../../docs/RAGScope要求定義.md#2.7 実行とレポート>)
 - [システムアーキテクチャ「3.1 Haskellの責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.1 Haskellの責務境界>)
-- [システムアーキテクチャ「3.2 Pythonの責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.2 Pythonの責務境界>)
+- [システムアーキテクチャ「3.2 AI推論サービスの責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.2 AI推論サービスの責務境界>)
 - [システムアーキテクチャ「3.3 PostgreSQLの責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.3 PostgreSQLの責務境界>)
-- [システムアーキテクチャ「5. HaskellとPythonの通信」](<../../../../docs/design/システムアーキテクチャ.md#5. HaskellとPythonの通信>)
+- [システムアーキテクチャ「5. HaskellとAI推論サービスの通信」](<../../../../docs/design/システムアーキテクチャ.md#5. HaskellとAI推論サービスの通信>)
 - [システムアーキテクチャ「7. 質問と実験の全体フロー」](<../../../../docs/design/システムアーキテクチャ.md#7. 質問と実験の全体フロー>)
 - [Embedding生成設計](<../../../../docs/design/Embedding生成設計.md>)
 - [データモデル設計](<../../../../docs/design/データモデル設計.md>)

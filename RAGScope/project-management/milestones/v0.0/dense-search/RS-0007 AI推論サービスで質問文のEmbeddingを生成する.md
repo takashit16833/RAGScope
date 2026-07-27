@@ -4,13 +4,13 @@ status: planned
 milestone: "[[v0.0]]"
 epic: "[[v0.0 質問によるdense検索の実行]]"
 ---
-# RS-0007 Python AI Serviceで質問文のEmbeddingを生成する
+# RS-0007 AI推論サービスで質問文のEmbeddingを生成する
 
 ## 目的
 
 v0.0で文書チャンクを質問との意味的な近さによって検索するためには、利用者が入力した質問文を、保存済みの文書チャンクEmbeddingと比較できる質問Embeddingへ変換する必要がある。
 
-このTicketでは、RS-0013で設計・更新した質問Embeddingの契約に従い、Python AI Serviceへ質問Embedding生成機能を実装する。RS-0003で採用したものと同じEmbedding model、revision、Tokenizerおよび固定生成条件を使用し、文書用と質問用で異なる入力規則がある場合は、Python AI Service内で質問用の規則を適用する。
+このTicketでは、RS-0013で設計・更新した質問Embeddingの契約に従い、AI推論サービスへ質問Embedding生成機能を実装する。RS-0003で採用したものと同じEmbedding model、revision、Tokenizerおよび固定生成条件を使用し、文書用と質問用で異なる入力規則がある場合は、AI推論サービス内で質問用の規則を適用する。
 
 ## 前提
 
@@ -22,7 +22,7 @@ v0.0で文書チャンクを質問との意味的な近さによって検索す�
 
 - [ ] RS-0003で採用したものと同じEmbedding model、revision、Tokenizerを利用して質問Embeddingを生成できる
 - [ ] 設計で固定した質問用の入力規則、pooling、最大入力長、truncation、vector正規化が適用される
-- [ ] Python AI Serviceが、1件の空でない質問文を受け取り、その質問文に対応するEmbeddingを返せる
+- [ ] AI推論サービスが、1件の空でない質問文を受け取り、その質問文に対応するEmbeddingを返せる
 - [ ] 文書用と質問用のEmbedding生成をAPI契約上で区別し、質問文へ文書用のprefixまたはinstructionを誤って適用しない
 - [ ] 生成される質問Embeddingが、保存済みの文書チャンクEmbeddingと同じvector次元を持つ
 - [ ] 生成される質問Embeddingに、`NaN`や無限大など利用できない値が含まれないことを確認できる
@@ -34,13 +34,13 @@ v0.0で文書チャンクを質問との意味的な近さによって検索す�
 - [ ] 実装された質問Embedding APIとOpenAPIのrequest / response、必須条件、エラー形式が一致している
 - [ ] 実装で具体化または変更された質問Embedding生成の現在設計が`docs/design/Embedding生成設計.md`へ反映されている
 - [ ] 実装、OpenAPI、Embedding生成設計に解消していない差異がない
-- [ ] プロジェクトで定めたPython側のテストコマンドを実行し、追加したテストを含めて成功する
+- [ ] プロジェクトで定めたAI推論サービス側のテストコマンドを実行し、追加したテストを含めて成功する
 
 ## 対象外
 
 - Embedding model、revision、Tokenizerの新たな選定または比較
 - 文書チャンクEmbeddingを生成する処理の新規実装
-- HaskellからPython AI Serviceを呼び出す処理
+- HaskellからAI推論サービスを呼び出す処理
 - Haskellの質問型とAPI request / response型の変換
 - PostgreSQL / pgvectorへの接続
 - 質問Embeddingを使用したdense検索
@@ -56,17 +56,17 @@ v0.0で文書チャンクを質問との意味的な近さによって検索す�
 ## 関連文書
 
 - [RAGScope要求定義「2.2 検索」](<../../../../docs/RAGScope要求定義.md#2.2 検索>)
-- [システムアーキテクチャ「3.2 Pythonの責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.2 Pythonの責務境界>)
-- [システムアーキテクチャ「5. HaskellとPythonの通信」](<../../../../docs/design/システムアーキテクチャ.md#5. HaskellとPythonの通信>)
+- [システムアーキテクチャ「3.2 AI推論サービスの責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.2 AI推論サービスの責務境界>)
+- [システムアーキテクチャ「5. HaskellとAI推論サービスの通信」](<../../../../docs/design/システムアーキテクチャ.md#5. HaskellとAI推論サービスの通信>)
 - [システムアーキテクチャ「7. 質問と実験の全体フロー」](<../../../../docs/design/システムアーキテクチャ.md#7. 質問と実験の全体フロー>)
 - [Embedding生成設計](<../../../../docs/design/Embedding生成設計.md>)
 - [検索設計](<../../../../docs/design/検索設計.md>)
 
 ## 実装メモ
 
-- Python AI ServiceはAI推論だけを担当し、質問の永続化、dense検索、RAGScope全体の処理順序を管理しない。
+- AI推論サービスはAI推論だけを担当し、質問の永続化、dense検索、RAGScope全体の処理順序を管理しない。
 - 質問Embedding生成には、設計とOpenAPIで定めた既存APIの拡張または再利用方法を使用する。
-- 文書用と質問用でprefixやinstructionが異なるモデルでは、呼び出し側が加工済み文字列を組み立てるのではなく、Python AI Serviceが用途に応じた固定規則を適用する。
+- 文書用と質問用でprefixやinstructionが異なるモデルでは、呼び出し側が加工済み文字列を組み立てるのではなく、AI推論サービスが用途に応じた固定規則を適用する。
 - 質問文そのものに不要な正規化や改変を行わない。ただし、空文字または空白だけの入力を無効として検証するための判定は行ってよい。
 - RS-0003でロード済みのモデルを再利用し、質問処理のたびにモデルを再ロードしない。
 - 自動テストではEmbeddingの浮動小数点値そのものの完全一致へ過度に依存せず、入力用途、次元、有限値、エラー分類などの契約を主に確認する。
