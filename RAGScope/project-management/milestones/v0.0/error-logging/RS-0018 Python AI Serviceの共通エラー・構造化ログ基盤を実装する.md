@@ -1,0 +1,85 @@
+---
+note_type: ticket
+status: planned
+milestone: "[[v0.0]]"
+epic: "[[v0.0 共通エラーと構造化ログによる実行追跡]]"
+---
+# RS-0018 Python AI Serviceの共通エラー・構造化ログ基盤を実装する
+
+## 目的
+
+RS-0014で定義した共通エラー契約と構造化ログを、Embedding生成以降のPython AI Service実装から利用できる最小基盤として提供する必要がある。
+
+このTicketでは、Python例外を安全な共通エラーへ変換する境界、構造化ログevent、相関情報、JSON出力、ローカル向けsink、テスト用sinkを実装する。共通のJSON Schemaおよびfixtureへ適合させる一方、Web framework、model、Tokenizer、AI library固有の例外mappingは後続の機能Ticketに残す。
+
+## 前提
+
+- [RS-0014 共通エラーと構造化ログを設計する](<./RS-0014 共通エラーと構造化ログを設計する.md>)が完了している
+- `docs/design/エラー・ログ設計.md`に、v0.0で実装する共通契約、Pythonの責務境界、ローカル出力方針が記載されている
+- 共通ログeventのJSON Schemaと、Schema適合・不適合の代表的なfixtureが作成されている
+
+## 完了条件
+
+- [ ] Python例外を共通エラーへ変換するための、機能固有libraryへ依存しない共通境界が実装されている
+- [ ] 想定外例外を安全なinternal errorへ変換するfallbackが実装されている
+- [ ] 利用者またはHTTP境界へraw exceptionとtracebackを公開せず、内部原因と公開情報を区別できる
+- [ ] 共通Envelope、Context、event固有Payloadを表現できるPythonの型または同等の境界が実装されている
+- [ ] execution-scoped eventとservice-scoped eventを、設計で定めたvariantとして表現できる
+- [ ] event名、level、component、operation、error code、追加contextを設計に従って表現できる
+- [ ] 呼び出し元から渡された`execution_id`をPython側の同じcommandに属するeventへ引き継げる
+- [ ] Python service自身が生成するservice-scoped eventでは、設計に従って`execution_id`のないeventを扱える
+- [ ] 構造化ログを1イベント1行のJSON Linesへencodeできる
+- [ ] Pythonが出力するeventがJSON Schemaへ適合することを自動テストで確認できる
+- [ ] 共通の適合fixtureをdecode・encodeまたはSchema検証へ利用し、不適合fixtureを拒否できる
+- [ ] 該当しないoptional項目が設計に従って省略され、異なるeventの項目を1つの巨大なnullable構造へ集約していない
+- [ ] ローカル向けsinkが構造化ログをstderrへ出力し、正常なHTTP responseの生成から分離されている
+- [ ] application logicが具体的なstderr処理へ直接依存せず、sinkを差し替えられる
+- [ ] 自動テストから出力eventを検査できるin-memoryまたは同等のテスト用sinkが実装されている
+- [ ] 文書本文、prompt、secret、認証情報など、設計で記録対象外とした情報を不用意に出力しない
+- [ ] encode失敗とsink失敗を設計どおりに扱い、元のoperation失敗をlogger失敗で上書きせず、失敗したsinkへ再帰的にeventを書き込まない
+- [ ] failing sinkを使用し、logger失敗時の挙動を自動テストで確認できる
+- [ ] 共通エラーと代表的な構造化ログeventについて、JSON出力、相関情報、level、エラー情報、optional項目の扱いを自動テストで確認できる
+- [ ] 実装で具体化または変更された現在設計が`docs/design/エラー・ログ設計.md`へ反映されている
+- [ ] 実装、JSON Schema、fixture、`エラー・ログ設計.md`に解消していない差異がない
+- [ ] プロジェクトで定めたPython側のテストコマンドを実行し、追加したテストを含めて成功する
+
+## 対象外
+
+- Python AI ServiceのWeb frameworkとHTTP adapterの実装
+- request validation、HTTP status、error responseの具体的なmapping
+- model・Tokenizer・AI library固有の例外mapping
+- Embedding、reranking、回答生成など、各機能固有のエラー分類とevent実装
+- Haskell側の共通エラー型とloggerの実装
+- retry / timeoutのPolicyとexecutor
+- CloudWatchへの送信、AWS SDK依存、log groupや保持期間の設定
+- health・readiness endpointのaccess log共通化
+- 本格的なtracing、性能集計、batch、非同期job固有の相関情報
+- 独立した共通packageへの分離
+
+## 関連文書
+
+- [RAGScope要求定義「3.3 信頼性と保守性」](<../../../../docs/RAGScope要求定義.md#3.3 信頼性と保守性>)
+- [システムアーキテクチャ「3.2 Pythonの責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.2 Pythonの責務境界>)
+- [システムアーキテクチャ「3.4 共通実行基盤の責務境界」](<../../../../docs/design/システムアーキテクチャ.md#3.4 共通実行基盤の責務境界>)
+- [システムアーキテクチャ「4. 依存方向」](<../../../../docs/design/システムアーキテクチャ.md#4. 依存方向>)
+- [ADR-0002 — 共通実行基盤の契約とコンポーネント実装を分離する](<../../../../docs/adr/ADR-0002 共通実行基盤の契約とコンポーネント実装を分離する.md>)
+- [エラー・ログ設計](../../../../docs/design/エラー・ログ設計.md)
+
+## 実装メモ
+
+- 最初はPython AI Service内部に、責務の明確な共通moduleとして実装する。利用実態が生じる前に独立packageへ分離しない。
+- 具体的なframeworkやAI libraryの例外は、RS-0003やRS-0007で機能固有error codeと一緒に共通境界へmappingする。
+- raw exceptionとtracebackは公開responseへ含めず、内部で記録する場合も設計の機密情報方針に従う。
+- JSON objectのfield順に依存せず、Schema適合性と意味を検査する。
+
+## 結果
+
+> [!note] 完了時に記入
+> - 実装した共通エラーと構造化ログ基盤
+> - 利用できるsinkと相関情報
+> - 例外変換境界とfallback
+> - 実行した確認コマンドと結果
+> - エラー・ログ設計へ反映した内容
+> - 後続機能へ残した例外mapping
+> - 既知の制約
+> - 関連Pull Request
