@@ -12,13 +12,13 @@ v0.0で文書チャンクを意味的な近さによって検索するために�
 
 このTicketでは、RS-0012で選定・設計したEmbedding modelと固定生成条件に従い、AI推論サービスへ文書チャンクのEmbedding生成機能を実装する。AI推論サービスは、1件以上の文書チャンク本文を受け取り、入力した各本文に対応する固定次元のEmbeddingを返す。
 
-Haskellからの呼び出しはRS-0004、PostgreSQLへの保存はRS-0005とRS-0006で扱う。
+RAGScopeアプリケーションからの呼び出しはRS-0004、PostgreSQLへの保存はRS-0005とRS-0006で扱う。
 
 ## 前提
 
 - [RS-0012 文書チャンクのEmbedding生成と保存を設計する](<./RS-0012 文書チャンクのEmbedding生成と保存を設計する.md>)が完了している
 - [RS-0018 AI推論サービスの共通エラー・構造化ログ基盤を実装する](<../error-logging/RS-0018 AI推論サービスの共通エラー・構造化ログ基盤を実装する.md>)が完了している
-- `docs/design/Embedding生成設計.md`と文書Embedding生成APIのOpenAPI初期定義が作成されている
+- `docs/design/Embedding生成設計.md`と文書チャンクのEmbedding生成APIのOpenAPI初期定義が作成されている
 - `RS-0002`が完了し、Embedding生成へ渡す文書チャンクの内容が確定している
 
 ## 完了条件
@@ -35,7 +35,7 @@ Haskellからの呼び出しはRS-0004、PostgreSQLへの保存はRS-0005とRS-0
 - [ ] 使用中のmodel ID、revision、Embeddingの出力次元を、設計で定めた方法から確認できる
 - [ ] 空の入力一覧、空の本文、不正なrequestを、正常なEmbedding生成と区別できるエラーとして扱える
 - [ ] モデルをロードできない場合とEmbedding生成に失敗した場合を、正常終了と区別して確認できる
-- [ ] request validation、Web framework、model、Tokenizer、AI libraryのうち文書Embedding生成で発生する機能固有例外が、RS-0018の共通境界を通じて共通エラーとAPI error responseへ変換される
+- [ ] request validation、Web framework、model、Tokenizer、AI libraryのうち文書チャンクのEmbedding生成で発生する機能固有例外が、RS-0018の共通境界を通じて共通エラーとAPI error responseへ変換される
 - [ ] 機能固有例外の変換後もraw exceptionとtracebackが公開responseへ含まれず、想定外例外には共通fallbackが適用される
 - [ ] requestの検証、入力と出力の対応、固定生成条件、vector次元、有限値、主要な異常系を自動テストで確認できる
 - [ ] `execution_id`の受領・共通Contextへの引き渡しと、代表的な機能固有例外のmappingを自動テストで確認できる
@@ -48,7 +48,7 @@ Haskellからの呼び出しはRS-0004、PostgreSQLへの保存はRS-0005とRS-0
 ## 対象外
 
 - Embedding modelまたは生成条件の新たな比較・選定
-- HaskellからAI推論サービスをHTTP / JSONで呼び出す処理
+- RAGScopeアプリケーションからAI推論サービスをHTTP / JSONで呼び出す処理
 - Haskellの文書チャンク型とAPI request / response型の変換
 - PostgreSQL / pgvectorの導入、DB schema、migration
 - 文書チャンク本文とEmbeddingのPostgreSQLへの保存
@@ -78,7 +78,7 @@ Haskellからの呼び出しはRS-0004、PostgreSQLへの保存はRS-0005とRS-0
 - AI推論サービスはAI推論だけを担当し、文書チャンクの永続化やRAGScope全体の処理順序を管理しない。
 - APIの正確なpath、項目名、型、必須条件、エラー形式はOpenAPIを正本とする。
 - HTTP adapterはOpenAPIに従って`execution_id`を受領し、RS-0018で実装した共通Contextへ引き渡す。`execution_id`のHTTP上の表現をこのTicketで独自に追加しない。
-- 機能固有例外は、文書Embedding生成で実際に使用するframework、model、Tokenizer、AI libraryの境界でmappingする。将来機能の例外まで先回りして網羅しない。
+- 機能固有例外は、文書チャンクのEmbedding生成で実際に使用するframework、model、Tokenizer、AI libraryの境界でmappingする。将来機能の例外まで先回りして網羅しない。
 - 文書用prefixやinstructionが必要なモデルでは、呼び出し側へ組み立てを分散させず、AI推論サービス内で文書用の固定規則を適用する。
 - 質問用の入力規則は互換性確保のため設計済みだが、このTicketでは質問Embeddingを生成する処理を実装しない。
 - 自動テストでは、Embeddingの浮動小数点値そのものの完全一致へ過度に依存せず、件数、対応、次元、有限値、エラー分類などの契約を主に確認する。

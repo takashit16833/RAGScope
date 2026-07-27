@@ -4,11 +4,11 @@ status: planned
 milestone: "[[v0.0]]"
 epic: "[[v0.0 質問によるdense検索の実行]]"
 ---
-# RS-0007 AI推論サービスで質問文のEmbeddingを生成する
+# RS-0007 AI推論サービスで質問Embeddingを生成する
 
 ## 目的
 
-v0.0で文書チャンクを質問との意味的な近さによって検索するためには、利用者が入力した質問文を、保存済みの文書チャンクEmbeddingと比較できる質問Embeddingへ変換する必要がある。
+v0.0で文書チャンクを質問との意味的な近さによって検索するためには、利用者が入力した質問文を、保存済みの文書チャンクのEmbeddingと比較できる質問Embeddingへ変換する必要がある。
 
 このTicketでは、RS-0013で設計・更新した質問Embeddingの契約に従い、AI推論サービスへ質問Embedding生成機能を実装する。RS-0003で採用したものと同じEmbedding model、revision、Tokenizerおよび固定生成条件を使用し、文書用と質問用で異なる入力規則がある場合は、AI推論サービス内で質問用の規則を適用する。
 
@@ -16,7 +16,7 @@ v0.0で文書チャンクを質問との意味的な近さによって検索す�
 
 - [RS-0013 質問によるdense検索を設計する](<./RS-0013 質問によるdense検索を設計する.md>)が完了している
 - `docs/design/Embedding生成設計.md`とOpenAPIに、質問Embeddingの入力規則とAPI契約が反映されている
-- `RS-0003`が完了し、文書Embedding生成に使用するmodelと固定生成条件が実装されている
+- `RS-0003`が完了し、文書チャンクのEmbedding生成に使用するmodelと固定生成条件が実装されている
 
 ## 完了条件
 
@@ -24,13 +24,13 @@ v0.0で文書チャンクを質問との意味的な近さによって検索す�
 - [ ] 設計で固定した質問用の入力規則、pooling、最大入力長、truncation、vector正規化が適用される
 - [ ] AI推論サービスが、1件の空でない質問文を受け取り、その質問文に対応するEmbeddingを返せる
 - [ ] 文書用と質問用のEmbedding生成をAPI契約上で区別し、質問文へ文書用のprefixまたはinstructionを誤って適用しない
-- [ ] 生成される質問Embeddingが、保存済みの文書チャンクEmbeddingと同じvector次元を持つ
+- [ ] 生成される質問Embeddingが、保存済みの文書チャンクのEmbeddingと同じvector次元を持つ
 - [ ] 生成される質問Embeddingに、`NaN`や無限大など利用できない値が含まれないことを確認できる
 - [ ] 使用中のmodel ID、revision、Embeddingの出力次元を既存の確認方法から取得できる
 - [ ] 空文字または空白だけの質問文、不正なrequestを、正常なEmbedding生成と区別できるエラーとして扱える
 - [ ] モデルをロードできない場合と質問Embeddingの生成に失敗した場合を、正常終了と区別して確認できる
 - [ ] requestの検証、質問用入力規則の適用、vector次元、有限値、主要な異常系を自動テストで確認できる
-- [ ] 採用した実モデルを使用し、質問文から文書チャンクEmbeddingと比較可能なEmbeddingを生成できることを統合テストまたは実行によって確認できる
+- [ ] 採用した実モデルを使用し、質問文から文書チャンクのEmbeddingと比較可能なEmbeddingを生成できることを統合テストまたは実行によって確認できる
 - [ ] 実装された質問Embedding APIとOpenAPIのrequest / response、必須条件、エラー形式が一致している
 - [ ] 実装で具体化または変更された質問Embedding生成の現在設計が`docs/design/Embedding生成設計.md`へ反映されている
 - [ ] 実装、OpenAPI、Embedding生成設計に解消していない差異がない
@@ -39,8 +39,8 @@ v0.0で文書チャンクを質問との意味的な近さによって検索す�
 ## 対象外
 
 - Embedding model、revision、Tokenizerの新たな選定または比較
-- 文書チャンクEmbeddingを生成する処理の新規実装
-- HaskellからAI推論サービスを呼び出す処理
+- 文書チャンクのEmbeddingを生成する処理の新規実装
+- RAGScopeアプリケーションからAI推論サービスを呼び出す処理
 - Haskellの質問型とAPI request / response型の変換
 - PostgreSQL / pgvectorへの接続
 - 質問Embeddingを使用したdense検索
