@@ -11,19 +11,23 @@ note_type: reference
 
 本規約は、RAGScopeリポジトリで人が作成・管理し、利用者または開発者が読む文書、および文書として管理する成果物へ適用する。
 
-本規約で`docs/`、`project-management/`、`templates/`、`reports/`、Vault直下のMarkdownと記載する場合は、Obsidian Vaultである`project-docs/`を基準とする。`README.md`と`.github/`は、リポジトリルートを基準とする。
+本規約で`rules/`、`design/`、`adr/`、`experiments/`、`project-management/`、`templates/`、Vault直下のMarkdownと記載する場合は、Obsidian Vaultである`project-docs/`を基準とする。`README.md`と`.github/`は、リポジトリルートを基準とする。
 
 主な対象は次のとおりとする。ここに列挙されていない文書でも、同じ性質を持つものには本規約を適用する。
 
 - リポジトリルートの`README.md`
-- Vault直下で管理する各種規約文書
-- `docs/`配下の概要、要求、設計、ADR、実験記録、開発運用ガイド
+- Vault直下の`RAGScope概要.md`、`RAGScope要求定義.md`、`RAGScope開発運用ガイド.md`
+- `rules/`配下の各種規約文書
+- `design/`配下のシステム・機能設計
+- `adr/`配下の設計判断
+- `experiments/`配下の実験記録
 - `project-management/`配下のRoadmap、Milestone、Epic、Ticket
 - `templates/`配下のObsidianテンプレート
 - リポジトリルートの`.github/pull_request_template.md`
-- `reports/`配下でGit管理する代表的な生成結果
 
 ソースコード、テストコード、migration、OpenAPIなどのAPI定義、設定ファイル、依存関係のlock file、CI/CD定義、ローカル開発環境・エディタ設定、ビルド生成物、一時ファイルには適用しない。ただし、それらの正確な定義とMarkdownの説明を重複させないための扱いは、第2.3節に従う。
+
+`internal/`配下の非公開資料は公開文書の正本として使用せず、公開文書からリンクしない。内部資料の扱いは`AGENTS.md`と`internal/RAGScopeプロジェクトコンテキスト.md`に従う。
 
 Frontmatterは[Obsidianメタデータ規約](./Obsidianメタデータ規約.md)、Roadmap・Milestone・Epic・Ticketの運用は[RAGScopeプロジェクト管理規約](./RAGScopeプロジェクト管理規約.md)に従う。
 
@@ -35,13 +39,12 @@ Frontmatterは[Obsidianメタデータ規約](./Obsidianメタデータ規約.md
 
 | 情報 | 正本 |
 |---|---|
-| RAGScopeの目的、価値、想定利用方法、主な能力の概要 | `docs/RAGScope概要.md` |
-| 機能・品質・制約・対象範囲・対象外の詳細 | `docs/RAGScope要求定義.md` |
-| 現在採用しているシステム・機能の設計 | `docs/design/` |
-| 重要な設計判断の背景、選択肢、理由 | `docs/adr/` |
-| 仮説、検証条件、結果、考察 | `docs/experiments/` |
+| RAGScopeの目的、価値、想定利用方法、主な能力の概要 | `RAGScope概要.md` |
+| 機能・品質・制約・対象範囲・対象外の詳細 | `RAGScope要求定義.md` |
+| 現在採用しているシステム・機能の設計 | `design/` |
+| 重要な設計判断の背景、選択肢、理由 | `adr/` |
+| 仮説、検証条件、結果、考察 | `experiments/` |
 | バージョン計画と作業の進行記録 | `project-management/` |
-| 代表的な生成結果 | `reports/` |
 | 正確な実装、型、スキーマ、テスト | コード、migration、OpenAPI、テストなど |
 
 同じ情報を複数の文書で正本として管理しない。別の文書で触れる場合は簡潔に要約し、詳細の正本へ相対リンクする。
@@ -86,32 +89,37 @@ RAGScope/
 ├── .github/
 │   └── pull_request_template.md
 └── project-docs/
-    ├── <各種規約文書>
-    ├── docs/
-    │   ├── RAGScope概要.md
-    │   ├── RAGScope要求定義.md
-    │   ├── RAGScope開発運用ガイド.md
-    │   ├── design/
-    │   │   ├── システムアーキテクチャ.md
-    │   │   └── <必要になった機能設計>.md
-    │   ├── adr/
-    │   │   └── ADR-0001 <判断の題名>.md
-    │   └── experiments/
-    │       └── <実施した検証>.md
+    ├── AGENTS.md
+    ├── RAGScope概要.md
+    ├── RAGScope要求定義.md
+    ├── RAGScope開発運用ガイド.md
+    ├── rules/
+    │   ├── Obsidianメタデータ規約.md
+    │   ├── RAGScope文書管理規約.md
+    │   └── RAGScopeプロジェクト管理規約.md
+    ├── internal/
+    │   ├── RAGScopeプロジェクトコンテキスト.md
+    │   └── archive/
+    │       └── RAGScope旧設計サルベージ.md
+    ├── design/
+    │   ├── システムアーキテクチャ.md
+    │   └── <必要になった機能設計>.md
+    ├── adr/
+    │   └── ADR-0001 <判断の題名>.md
+    ├── experiments/
+    │   └── <実施した検証>.md
     ├── project-management/
     │   ├── ロードマップ.md
     │   └── milestones/
-    ├── templates/
-    │   ├── 設計書テンプレート.md
-    │   ├── Milestoneテンプレート.md
-    │   ├── Epicテンプレート.md
-    │   └── Ticketテンプレート.md
-    └── reports/
-        └── <管理する代表的な生成結果>
+    └── templates/
+        ├── 設計書テンプレート.md
+        ├── Milestoneテンプレート.md
+        ├── Epicテンプレート.md
+        └── Ticketテンプレート.md
 ```
 
-- `docs/design/`、`docs/adr/`、`docs/experiments/`、`reports/`は、最初の内容が生じた時点で作成する。
-- `docs/RAGScope開発運用ガイド.md`は、プロジェクト管理規約に基づく具体的な操作の入口として使用する。
+- `experiments/`は、最初の内容が生じた時点で作成する。
+- `RAGScope開発運用ガイド.md`は、プロジェクト管理規約に基づく具体的な操作の入口として使用する。
 - `templates/`とリポジトリルートの`.github/pull_request_template.md`は、開発運用ガイドに従ってノート作成・PR作成に使用する。
 - 機能別設計書は、技術要素ではなく設計対象となる機能・責務で分ける。
 - Roadmap、Milestone、Epic、Ticketの詳細な構成は、RAGScopeプロジェクト管理規約を正本とする。
@@ -130,13 +138,13 @@ RAGScope/
 - 代表的な生成結果
 - 詳細文書への導線
 
-RAGScopeの目的・価値・対象範囲は、`docs/RAGScope概要.md`の内容を要約し、詳細は同文書へリンクする。
+RAGScopeの目的・価値・対象範囲は、`RAGScope概要.md`の内容を要約し、詳細は同文書へリンクする。
 
 READMEには、作業中のMilestone名や一時的な`status`を手作業で転記しない。開発予定はRoadmapへリンクし、作業中のMilestoneはMilestoneノートの`status`とBases・検索から確認する。READMEの状態説明は、現在利用できる機能と最新リリースの内容を中心とする。
 
 READMEへ詳細な設計、要求一覧、Ticket一覧、実験の生データを記載しない。
 
-### 4.2 `docs/RAGScope概要.md`
+### 4.2 `RAGScope概要.md`
 
 RAGScopeというアプリケーションの概要の正本とする。
 
@@ -147,11 +155,11 @@ RAGScopeというアプリケーションの概要の正本とする。
 - 対象範囲の概要
 - 対象外・主張しないことの概要
 
-主な能力、対象範囲、対象外は高い粒度で要約し、詳細かつ検証可能な定義は`docs/RAGScope要求定義.md`を正本とする。
+主な能力、対象範囲、対象外は高い粒度で要約し、詳細かつ検証可能な定義は`RAGScope要求定義.md`を正本とする。
 
 詳細な機能要件、技術選定、設計、バージョン計画は記載しない。
 
-### 4.3 `docs/RAGScope要求定義.md`
+### 4.3 `RAGScope要求定義.md`
 
 RAGScopeが満たすべき内容の正本とする。
 
@@ -163,9 +171,9 @@ RAGScopeが満たすべき内容の正本とする。
 
 要求定義には「何を満たすか」を記載する。「どのコンポーネント、型、DB、ライブラリで実現するか」は設計書へ記載する。
 
-### 4.4 `docs/design/`
+### 4.4 `design/`
 
-`docs/design/`全体をRAGScopeのシステム設計とする。
+`design/`全体をRAGScopeのシステム設計とする。
 
 #### `システムアーキテクチャ.md`
 
@@ -200,7 +208,7 @@ Ticketごとに新しい設計書を作ることは必須としない。既存�
 
 基本設計と詳細設計を、`basic-design/`と`detailed-design/`のような別フォルダや文書体系へ分けない。対象機能の同じ設計書に、責務、入出力、処理フロー、コンポーネント間の関係などの全体像から、不変条件、厳密な規則、エラー処理、境界条件などの詳細まで、必要な粒度を記載する。
 
-機能設計書を新規作成する場合は、原則として[`templates/設計書テンプレート.md`](<./templates/設計書テンプレート.md>)を使用する。テンプレートの次の章は、すべての機能設計書に設ける。
+機能設計書を新規作成する場合は、原則として[`templates/設計書テンプレート.md`](<../templates/設計書テンプレート.md>)を使用する。テンプレートの次の章は、すべての機能設計書に設ける。
 
 1. `目的と適用範囲`
 2. `関連する要求と上位設計`
@@ -212,7 +220,7 @@ Ticketごとに新しい設計書を作ることは必須としない。既存�
 
 詳細がコード、migration、OpenAPI、テストなどの機械可読な正本と重複する場合は、正確な定義を複製せず、その設計意図や守るべき制約を記載する。
 
-### 4.6 `docs/adr/`
+### 4.6 `adr/`
 
 重要な設計判断について、背景、検討した選択肢、決定、結果と影響を記録する。
 
@@ -241,7 +249,7 @@ ADRは、次のいずれかに該当する場合に作成する。
 
 判断が変わった場合は、採用済みADRを黙って書き換えて履歴を消さない。新しいADRを作成し、旧ADRを`superseded`へ変更する。
 
-### 4.7 `docs/experiments/`
+### 4.7 `experiments/`
 
 仮説を実際に検証した記録を置く。
 
@@ -257,13 +265,13 @@ ADRは、次のいずれかに該当する場合に作成する。
 
 一般知識の解説や、単なる実装作業の記録は置かない。実験結果が重要な設計判断につながった場合は、ADRから該当する実験記録へリンクする。
 
-### 4.8 `reports/`
+### 4.8 `rules/`
 
-RAGScopeが生成したMarkdown、CSVなどの結果を管理する。
+RAGScopeの文書管理、Obsidianメタデータ、プロジェクト管理に関する規約を置く。
 
-- すべての実行結果をGit管理しない。
-- 比較、確認、再現に有用で、文書や実験から参照される代表的な結果だけを管理する。
-- 人が記述する仮説、分析、考察は`docs/experiments/`へ置き、生成結果と混在させない。
+- `RAGScope文書管理規約.md`は、文書の配置、責務、正本、参照関係を定義する。
+- `Obsidianメタデータ規約.md`は、Frontmatterのプロパティ、型、許容値を定義する。
+- `RAGScopeプロジェクト管理規約.md`は、Roadmap、Milestone、Epic、Ticketの運用を定義する。
 
 ### 4.9 `project-management/`
 
@@ -271,7 +279,7 @@ Roadmap、Milestone、Epic、Ticketなど、開発作業の計画と進行記録
 
 要求や設計の現在内容を、プロジェクト管理文書だけに記載しない。具体的な運用は[RAGScopeプロジェクト管理規約](./RAGScopeプロジェクト管理規約.md)に従う。
 
-### 4.10 `docs/RAGScope開発運用ガイド.md`
+### 4.10 `RAGScope開発運用ガイド.md`
 
 RAGScopeのプロジェクト管理に関する具体的な操作手順を一元的に記載する。
 
@@ -291,7 +299,7 @@ RAGScopeのプロジェクト管理に関する具体的な操作手順を一元
 
 リポジトリルートの`.github/pull_request_template.md`には、Pull Request作成時に記載する項目と完了確認を置く。規約本文の説明を複製せず、実際の作業時に確認する最小限の入力欄とチェック項目だけを記載する。
 
-設計書テンプレートで必須とする構成と使用規則は本規約、Milestone・Epic・Ticketテンプレートは[RAGScopeプロジェクト管理規約](./RAGScopeプロジェクト管理規約.md)を正本とする。具体的な操作方法は[RAGScope開発運用ガイド](./docs/RAGScope開発運用ガイド.md)、実際に挿入される雛形は各テンプレートファイルを正本とする。
+設計書テンプレートで必須とする構成と使用規則は本規約、Milestone・Epic・Ticketテンプレートは[RAGScopeプロジェクト管理規約](./RAGScopeプロジェクト管理規約.md)を正本とする。具体的な操作方法は[RAGScope開発運用ガイド](../RAGScope開発運用ガイド.md)、実際に挿入される雛形は各テンプレートファイルを正本とする。
 
 ## 5. 文書間の整合
 
@@ -314,7 +322,7 @@ RAGScopeのプロジェクト管理に関する具体的な操作手順を一元
 
 - MarkdownのH1は、その文書の名称を明確に表す。原則としてファイル名に対応させるが、README、ADR、Milestoneなど、別規約またはテンプレートで形式を定める文書は、その形式に従う。
 - 説明文の基本言語は日本語とする。
-- RAGScope固有のコンポーネント名と領域用語は、[システムアーキテクチャ「1.1 正式用語」](<./docs/design/システムアーキテクチャ.md#1.1 正式用語>)を正本とし、人が読む文書では同じ意味に同じ正式用語を使用する。
+- RAGScope固有のコンポーネント名と領域用語は、[システムアーキテクチャ「1.1 正式用語」](<../design/システムアーキテクチャ.md#1.1 正式用語>)を正本とし、人が読む文書では同じ意味に同じ正式用語を使用する。
 - 実装言語は実装技術として記載し、コンポーネント名の代わりに使用しない。
 - 正式用語の別名一覧を各文書へ複製しない。新しいRAGScope固有の用語を定義する場合や既存用語の意味を変更する場合は、システムアーキテクチャの正式用語を更新する。
 - コード上の識別子、API名、型名、技術用語、引用は、必要に応じて原表記を使用する。
@@ -331,8 +339,8 @@ RAGScopeのプロジェクト管理に関する具体的な操作手順を一元
 例：
 
 ```markdown
-[RAGScope概要](<./docs/RAGScope概要.md>)
-[文書処理設計](<./docs/design/文書処理設計.md>)
+[RAGScope概要](<../RAGScope概要.md>)
+[文書処理設計](<../design/文書処理設計.md>)
 [親子状態の整合](<./RAGScopeプロジェクト管理規約.md#6.1 親子状態の整合>)
 ```
 

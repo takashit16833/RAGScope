@@ -20,7 +20,7 @@ status: planned
 複数のMilestoneにまたがる要求は、今回の担当範囲だけを書く。
 
 例：
-| [`REQ-DOC-001`](<../../../docs/RAGScope要求定義.md#2.1 文書の取り込みと追跡>) | 固定Markdown文書を取り込む。 |
+| [`REQ-DOC-001`](<../../../RAGScope要求定義.md#2.1 文書の取り込みと追跡>) | 固定Markdown文書を取り込む。 |
 -->
 
 | 要求ID | このMilestoneで実現する範囲 |

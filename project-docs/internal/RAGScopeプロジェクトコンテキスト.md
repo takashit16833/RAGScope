@@ -61,9 +61,9 @@ RAGScopeの開発には、次の個人目的も含まれる。
 
 RAGScope関連のMarkdownを作成・更新する前に、少なくとも次を直接確認する。
 
-1. `Obsidianメタデータ規約.md`
-2. `RAGScope文書管理規約.md`
-3. `RAGScopeプロジェクト管理規約.md`
+1. `../rules/Obsidianメタデータ規約.md`
+2. `../rules/RAGScope文書管理規約.md`
+3. `../rules/RAGScopeプロジェクト管理規約.md`
 4. 対象機能に関係する要求、設計、ADR、Experiment、Ticket
 
 本書には、これらの規約で定めたプロパティ、文書配置、管理手順、状態遷移などの要約を持たせない。規約変更時は各規約を正本として更新し、本書との手作業同期を発生させない。

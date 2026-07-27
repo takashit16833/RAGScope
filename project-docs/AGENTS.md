@@ -6,15 +6,15 @@
 
 RAGScope関連のMarkdownを作成・更新する場合は、次の実ファイルを直接確認する。
 
-* `Obsidianメタデータ規約.md`
-* `RAGScope文書管理規約.md`
-* `RAGScopeプロジェクト管理規約.md`
+* `rules/Obsidianメタデータ規約.md`
+* `rules/RAGScope文書管理規約.md`
+* `rules/RAGScopeプロジェクト管理規約.md`
 
 対象に関係する要求、設計、ADR、Experiment、Roadmap、Milestone、Epic、Ticket、テンプレートなどは、Vaultルートである`project-docs/`から現在のフォルダ構成をたどり、実際のファイルを確認する。
 
 ## 文書の正本
 
-`project-management/`に限らず、`docs/`、`templates/`、`reports/`、Vault直下のMarkdownを含む`project-docs/`全体について、ローカルに存在する実ファイルを現在状態として扱う。
+`project-management/`に限らず、`design/`、`adr/`、`experiments/`、`rules/`、`templates/`、`internal/`、Vault直下のMarkdownを含む`project-docs/`全体について、ローカルに存在する実ファイルを現在状態として扱う。
 
 同じ情報を複数の文書で正本として管理せず、別の文書で触れる場合は必要な要約と相対リンクを使用する。
 
@@ -30,7 +30,7 @@ RAGScope関連のMarkdownを作成・更新する場合は、次の実ファイ�
 
 ## 新規文書の作成
 
-新規ファイルを作成する場合は、RAGScope文書管理規約とプロジェクト管理規約に従って配置先、責務、命名を決定する。
+新規ファイルを作成する場合は、`rules/RAGScope文書管理規約.md`と`rules/RAGScopeプロジェクト管理規約.md`に従って配置先、責務、命名を決定する。
 
 Frontmatterには、Obsidianメタデータ規約で許可されたプロパティと値だけを使用する。未承認のメタデータや状態値を追加しない。
 

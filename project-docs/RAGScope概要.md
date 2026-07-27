@@ -5,7 +5,7 @@ note_type: overview
 
 > [!abstract] この文書の役割
 > RAGScopeが解決する問題、提供する価値、想定する利用方法、主な能力、対象範囲の概要を示す。  
-> 詳細かつ検証可能な内容は[RAGScope要求定義](./RAGScope要求定義.md)、システム構成は[システムアーキテクチャ](./design/システムアーキテクチャ.md)、開発段階は[ロードマップ](../project-management/ロードマップ.md)を正本とする。
+> 詳細かつ検証可能な内容は[RAGScope要求定義](./RAGScope要求定義.md)、システム構成は[システムアーキテクチャ](./design/システムアーキテクチャ.md)、開発段階は[ロードマップ](./project-management/ロードマップ.md)を正本とする。
 
 ## 1. RAGScopeとは
 
@@ -136,4 +136,4 @@ RAGScopeは、段階的に次の能力を備える。
 
 - [RAGScope要求定義](./RAGScope要求定義.md)
 - [システムアーキテクチャ](./design/システムアーキテクチャ.md)
-- [RAGScopeロードマップ](../project-management/ロードマップ.md)
+- [RAGScopeロードマップ](./project-management/ロードマップ.md)

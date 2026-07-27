@@ -10,7 +10,7 @@ RAGScope関連の作業では、このローカルリポジトリに実際に存
 
 RAGScope関連の作業では、最初に本ファイルと、次の実ファイルを直接確認する。
 
-* `project-docs/RAGScopeプロジェクトコンテキスト.md`
+* `project-docs/internal/RAGScopeプロジェクトコンテキスト.md`
 
 対象に関係する要求、設計、ADR、Experiment、Roadmap、Milestone、Epic、Ticket、コード、テスト、契約、Schema、migration、設定、テンプレートなどは、リポジトリルートから現在のフォルダ構成をたどり、実際のファイルを確認する。
 

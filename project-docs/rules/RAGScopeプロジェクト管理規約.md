@@ -13,7 +13,7 @@ note_type: reference
 
 - 文書の配置・責務・参照関係は[RAGScope文書管理規約](./RAGScope文書管理規約.md)に従う。
 - Frontmatterは[Obsidianメタデータ規約](./Obsidianメタデータ規約.md)に従う。
-- Milestone・Epic・Ticketの作成、Ticketへの着手、Pull Request、リリースなどの具体的な操作は[RAGScope開発運用ガイド](./docs/RAGScope開発運用ガイド.md)に従う。
+- Milestone・Epic・Ticketの作成、Ticketへの着手、Pull Request、リリースなどの具体的な操作は[RAGScope開発運用ガイド](../RAGScope開発運用ガイド.md)に従う。
 - 規約間または規約と実装の矛盾を発見した場合は、影響範囲を確認し、解消または明示してから作業を進める。
 
 ## 2. 基本原則
@@ -64,7 +64,7 @@ RAGScopeでは、独立したBacklog管理を採用しない。
 ### 2.5 Milestoneで対象要求を明示する
 
 - 具体化したMilestoneには、要求定義のうち、そのリリースで直接扱う要求IDと、このMilestoneで実現する範囲を記載する。
-- 要求の全文と確認方法は`docs/RAGScope要求定義.md`を正本とし、Milestoneへ複製しない。要求IDから要求定義の該当節へ相対リンクする。
+- 要求の全文と確認方法は`RAGScope要求定義.md`を正本とし、Milestoneへ複製しない。要求IDから要求定義の該当節へ相対リンクする。
 - 1つの要求を複数のMilestoneで段階的に実現する場合は、各Milestoneに、そのバージョンが担当する範囲だけを記載する。
 - Milestoneの対象要求は、要求とリリースの対応を示すためのものであり、要求とEpic・Ticketを1対1で対応させるものではない。Epic・Ticketへの要求ID記載は必須としない。
 - 要求ごとの`partial`や`done`などの状態値、独立した要求トレーサビリティマトリクス、同内容の手作業一覧は設けない。実現範囲はMilestoneの記述と成功条件・リリース結果から確認する。
@@ -280,7 +280,7 @@ stateDiagram-v2
 
 ## 7. ノートの最小構成とテンプレート
 
-見出しの説明文は日本語を基本とし、コード上の識別子や技術用語は必要に応じて原表記を使用する。具体的な作成操作は[RAGScope開発運用ガイド](./docs/RAGScope開発運用ガイド.md)を参照する。
+見出しの説明文は日本語を基本とし、コード上の識別子や技術用語は必要に応じて原表記を使用する。具体的な作成操作は[RAGScope開発運用ガイド](../RAGScope開発運用ガイド.md)を参照する。
 
 ### 7.1 Roadmap
 
@@ -288,7 +288,7 @@ Roadmapには、`RAGScopeロードマップ`をH1として置き、バージョ�
 
 ### 7.2 Milestone
 
-新規Milestoneは[Milestoneテンプレート](./templates/Milestoneテンプレート.md)を使用して作成する。
+新規Milestoneは[Milestoneテンプレート](../templates/Milestoneテンプレート.md)を使用して作成する。
 
 - `目標`、`対象要求`、`成功条件`、`リリース結果`は必須とする。
 - `対象要求`には、要求IDから要求定義の該当節への相対リンクと、このMilestoneで実現する範囲を記載する。
@@ -299,7 +299,7 @@ Roadmapには、`RAGScopeロードマップ`をH1として置き、バージョ�
 
 ### 7.3 Epic
 
-新規Epicは[Epicテンプレート](./templates/Epicテンプレート.md)を使用して作成する。
+新規Epicは[Epicテンプレート](../templates/Epicテンプレート.md)を使用して作成する。
 
 - `能力`、`Milestoneでの役割`、`完了条件`、`結果`を必須とする。
 - `関連文書`は、作業に必要な要求、設計書、ADR、Experimentがある場合に記載する。
@@ -308,7 +308,7 @@ Roadmapには、`RAGScopeロードマップ`をH1として置き、バージョ�
 
 ### 7.4 Ticket
 
-新規Ticketは[Ticketテンプレート](./templates/Ticketテンプレート.md)を使用して作成する。
+新規Ticketは[Ticketテンプレート](../templates/Ticketテンプレート.md)を使用して作成する。
 
 - `目的`、`完了条件`、`結果`を必須とする。
 - `対象外`は、範囲の誤解が生じる場合に記載する。機能の一部だけを扱うTicketでは原則として記載する。
@@ -384,7 +384,7 @@ refactor/RS-0005-separate-loader-module
 
 ### 9.3 Pull Request
 
-PRは[Pull Requestテンプレート](../.github/pull_request_template.md)を使用し、最低限、目的、主な変更、確認方法、関連Ticketを記載する。
+PRは[Pull Requestテンプレート](../../.github/pull_request_template.md)を使用し、最低限、目的、主な変更、確認方法、関連Ticketを記載する。
 
 Ticketを完了するPRには、Ticketの`status: done`と`結果`の更新を含める。マージ後、Ticketの`結果`へ記載した確認内容と実際の結果に差異がないことを確認する。
 
@@ -413,7 +413,7 @@ GitHub Releaseには、実現した能力、対象要求、確認方法、利用
 ## 10. 要求・設計・ADR・Experimentとの関係
 
 - Epic・Ticketには、今回の変更目的、作業範囲、完了条件、実施結果を記録する。
-- 新しい機能または変更によって完了後も有効な設計情報が生じる場合は、機能・責務を単位として`docs/design/`の設計書を作成または更新する。
+- 新しい機能または変更によって完了後も有効な設計情報が生じる場合は、機能・責務を単位として`design/`の設計書を作成または更新する。
 - Ticketごとに設計書を新設せず、既存の機能設計書で現在設計を自然に説明できる場合は、その設計書を更新する。
 - Ticketは、作業に必要な要求、設計書、ADR、Experimentを必要な範囲で参照する。すべての関連情報をEpic・Ticketへ集約することは必須としない。
 - 長期的に有効な要求・設計は、Ticketではなく要求定義または機能設計書を正本とする。
