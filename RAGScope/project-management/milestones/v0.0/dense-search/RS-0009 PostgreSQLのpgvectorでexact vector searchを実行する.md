@@ -8,20 +8,20 @@ epic: "[[v0.0 質問によるdense検索の実行]]"
 
 ## 目的
 
-v0.0で質問に近い文書チャンクを取得するためには、RS-0008でHaskellから取得した質問Embeddingと、RS-0006でPostgreSQL / pgvectorへ保存した文書チャンクEmbeddingの距離を比較し、近い順に文書チャンクを取得する必要がある。
+v0.0で質問に近い文書チャンクを取得するためには、RS-0008でRAGScopeアプリケーションが取得した質問Embeddingと、RS-0006でPostgreSQL / pgvectorへ保存した文書チャンクのEmbeddingの距離を比較し、近い順に文書チャンクを取得する必要がある。
 
-このTicketでは、RS-0013で決定した距離尺度、上位取得件数、補助順序に従い、HaskellからPostgreSQLへparameterized queryを実行するdense検索処理を実装する。HNSW / IVFFlatなどの近似検索indexは使用せず、保存済みのすべての対象Embeddingを比較するexact vector searchとして実行する。
+このTicketでは、RS-0013で決定した距離尺度、上位取得件数、補助順序に従い、RAGScopeアプリケーションからPostgreSQLへparameterized queryを実行するdense検索処理を実装する。HNSW / IVFFlatなどの近似検索indexは使用せず、保存済みのすべての対象Embeddingを比較するexact vector searchとして実行する。
 
 ## 前提
 
 - [RS-0013 質問によるdense検索を設計する](<./RS-0013 質問によるdense検索を設計する.md>)が完了している
-- [RS-0008 Haskellから質問文のEmbeddingを取得する](<./RS-0008 Haskellから質問文のEmbeddingを取得する.md>)が完了している
+- [RS-0008 RAGScopeアプリケーションで質問Embeddingを取得する](<./RS-0008 RAGScopeアプリケーションで質問Embeddingを取得する.md>)が完了している
 - `RS-0006`が完了し、検索対象となる文書チャンクとEmbeddingがPostgreSQL / pgvectorへ保存されている
 - `docs/design/検索設計.md`に距離尺度、上位取得件数、補助順序、検索結果の構造が記載されている
 
 ## 完了条件
 
-- [ ] RS-0013で決定した距離尺度を使用し、質問Embeddingと保存済みの文書チャンクEmbeddingを比較できる
+- [ ] RS-0013で決定した距離尺度を使用し、質問Embeddingと保存済みの文書チャンクのEmbeddingを比較できる
 - [ ] RS-0013で決定した固定件数までの上位チャンクを取得できる
 - [ ] 質問EmbeddingをPostgreSQL / pgvectorの検索queryへ安全に渡せる
 - [ ] HNSW / IVFFlatなどの近似検索indexを使用せず、exact vector searchとして検索できる
@@ -38,16 +38,16 @@ v0.0で質問に近い文書チャンクを取得するためには、RS-0008で
 - [ ] 実装で具体化または変更されたexact vector searchの現在設計が`docs/design/検索設計.md`へ反映されている
 - [ ] 必要な場合、検索結果の取得に関係するデータの責務や不変条件が`docs/design/データモデル設計.md`へ反映されている
 - [ ] 実装、検索設計、データモデル設計に解消していない差異がない
-- [ ] プロジェクトで定めたHaskell側とDB側のテストコマンドを実行し、追加した確認を含めて成功する
+- [ ] プロジェクトで定めたRAGScopeアプリケーション側とDB側のテストコマンドを実行し、追加した確認を含めて成功する
 
 ## 対象外
 
 - 距離尺度、上位取得件数、補助順序を新たに比較・選定する作業
 - AI推論サービスで質問Embeddingを生成する処理
-- HaskellからAI推論サービスへ質問文を渡してEmbeddingを取得する処理
+- RAGScopeアプリケーションからAI推論サービスへ質問文を渡してEmbeddingを取得する処理
 - PostgreSQL / pgvectorの導入、DB schema、migrationの新規作成
 - 文書チャンクとEmbeddingの保存処理
-- Haskell CLIの検索コマンドと質問入力UI
+- RAGScope CLIの検索コマンドと質問入力UI
 - 検索結果のCLI表示
 - 検索結果、距離、順位、質問の永続化
 - PostgreSQL全文検索、hybrid検索、reranking
@@ -71,7 +71,7 @@ v0.0で質問に近い文書チャンクを取得するためには、RS-0008で
 
 ## 実装メモ
 
-- dense検索の実行と検索結果の組み立てはHaskellが制御し、PostgreSQLはpgvectorによる距離計算と並べ替えを担当する。
+- dense検索の実行と検索結果の組み立てはRAGScopeアプリケーションが制御し、PostgreSQLはpgvectorによる距離計算と並べ替えを担当する。
 - 検索queryはRS-0005で作成したDB schemaを利用し、RS-0006で保存した検索対象だけを参照する。
 - exact vector searchであることは、近似検索indexを作成・使用しないことと、pgvectorの距離演算子を使用して全対象から並べ替えるqueryであることによって確認する。
 - 検索結果用のHaskell型は、設計で定めた情報を保持する。正確な型名とフィールド名はコードを正本とする。

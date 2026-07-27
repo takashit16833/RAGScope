@@ -8,19 +8,19 @@ epic: "[[v0.0 文書チャンクのEmbedding要求をtimeoutと安全なretryで
 
 ## 目的
 
-RS-0016で定義した文書チャンクのEmbedding要求向けRetry Policyとtimeout規則を、RS-0004から利用できるHaskellの実行制御として実装する必要がある。
+RS-0016で定義した文書チャンクのEmbedding要求向けRetry Policyとtimeout規則を、RS-0004から利用できるRAGScopeアプリケーションの実行制御としてHaskellで実装する必要がある。
 
-このTicketでは、対象operationに必要な最小範囲のretry executor、timeout制御、エラー分類との接続、試行eventの構造化ログ出力を実装する。実際の文書Embedding生成APIのrequest / response変換やチャンクとEmbeddingの対応検証はRS-0004に残し、このTicketでは1回の試行を安全に制御する部品と統合境界を完成させる。
+このTicketでは、対象operationに必要な最小範囲のretry executor、timeout制御、エラー分類との接続、試行eventの構造化ログ出力を実装する。実際の文書チャンクのEmbedding生成APIのrequest / response変換やチャンクとEmbeddingの対応検証はRS-0004に残し、このTicketでは1回の試行を安全に制御する部品と統合境界を完成させる。
 
 ## 前提
 
 - [RS-0016 文書チャンクのEmbedding要求に必要なretryとtimeoutを設計する](<./RS-0016 文書チャンクのEmbedding要求に必要なretryとtimeoutを設計する.md>)が完了している
-- [RS-0015 Haskellの共通エラー・構造化ログ基盤を実装する](<../error-logging/RS-0015 Haskellの共通エラー・構造化ログ基盤を実装する.md>)が完了している
+- [RS-0015 RAGScopeアプリケーションの共通エラー・構造化ログ基盤を実装する](<../error-logging/RS-0015 RAGScopeアプリケーションの共通エラー・構造化ログ基盤を実装する.md>)が完了している
 - `docs/design/リトライ・タイムアウト設計.md`に、対象operationのPolicy、timeout、エラー分類、ログevent、テスト方針が記載されている
 
 ## 完了条件
 
-- [ ] 設計で定義したPolicyを表現し、文書Embedding要求向けの実行制御へ渡せるHaskell型または設定境界が実装されている
+- [ ] 設計で定義したPolicyを表現し、文書チャンクのEmbedding要求向けの実行制御へ渡せるHaskell型または設定境界が実装されている
 - [ ] 1回の試行を表すactionを受け取り、成功結果または共通エラーを返すretry executorが実装されている
 - [ ] 設計で定義した範囲へtimeoutを適用し、規定時間内に完了しない試行またはoperationを共通エラーとして扱える
 - [ ] 一時的失敗かつ再試行安全と分類された場合だけretryする
@@ -40,15 +40,15 @@ RS-0016で定義した文書チャンクのEmbedding要求向けRetry Policyとt
 - [ ] retryに関係する構造化ログeventと相関情報をテスト用sinkで確認できる
 - [ ] 実装で具体化または変更された現在設計が`docs/design/リトライ・タイムアウト設計.md`と`docs/design/エラー・ログ設計.md`へ反映されている
 - [ ] 実装、両設計書、共通エラー・ログ基盤に解消していない差異がない
-- [ ] プロジェクトで定めたHaskell側のテストコマンドを実行し、追加したテストを含めて成功する
+- [ ] プロジェクトで定めたRAGScopeアプリケーション側のテストコマンドを実行し、追加したテストを含めて成功する
 
 ## 対象外
 
-- AI推論サービスの文書Embedding生成API実装
-- Haskellの文書Embedding用request / response型とJSON変換
+- AI推論サービスの文書チャンクのEmbedding生成API実装
+- 文書チャンクのEmbedding要求に使用するHaskellのrequest / response型とJSON変換
 - 入力チャンクと返却Embeddingの対応検証
 - RS-0004における実HTTP clientへの統合
-- 文書Embedding要求以外のoperationへのretry / timeout適用
+- 文書チャンクのEmbedding要求以外のoperationへのretry / timeout適用
 - PostgreSQL処理のtransaction、unique constraint、upsert
 - 大規模batch、並列request、非同期job
 - CloudWatch固有の収集・監視設定
@@ -62,7 +62,7 @@ RS-0016で定義した文書チャンクのEmbedding要求向けRetry Policyとt
 - [ADR-0002 — 共通実行基盤の契約とコンポーネント実装を分離する](<../../../../docs/adr/ADR-0002 共通実行基盤の契約とコンポーネント実装を分離する.md>)
 - [エラー・ログ設計](../../../../docs/design/エラー・ログ設計.md)
 - [リトライ・タイムアウト設計](../../../../docs/design/リトライ・タイムアウト設計.md)
-- [RS-0004 Haskellから文書チャンクのEmbeddingを取得する](<../embedding-storage/RS-0004 Haskellから文書チャンクのEmbeddingを取得する.md>)
+- [RS-0004 RAGScopeアプリケーションで文書チャンクのEmbeddingを取得する](<../embedding-storage/RS-0004 RAGScopeアプリケーションで文書チャンクのEmbeddingを取得する.md>)
 
 ## 実装メモ
 

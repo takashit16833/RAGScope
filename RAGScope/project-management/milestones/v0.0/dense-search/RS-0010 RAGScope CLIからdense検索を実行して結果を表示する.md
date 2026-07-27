@@ -4,26 +4,26 @@ status: planned
 milestone: "[[v0.0]]"
 epic: "[[v0.0 質問によるdense検索の実行]]"
 ---
-# RS-0010 Haskell CLIからdense検索を実行して結果を表示する
+# RS-0010 RAGScope CLIからdense検索を実行して結果を表示する
 
 ## 目的
 
-v0.0の最小のdense検索経路を利用者が実行できる状態にするためには、Haskell CLIから質問文を入力し、質問Embeddingの取得、PostgreSQL / pgvectorでの検索、上位チャンクの表示までを一連の操作としてつなぐ必要がある。
+v0.0の最小のdense検索経路を利用者が実行できる状態にするためには、RAGScope CLIから質問文を入力し、質問Embeddingの取得、PostgreSQL / pgvectorでの検索、上位チャンクの表示までを一連の操作としてつなぐ必要がある。
 
-このTicketでは、RS-0013の初期設計に従い、Haskell CLIへ検索コマンドを追加する。RS-0008の質問Embedding取得処理とRS-0009のexact vector searchを順番に呼び出し、順位付きの検索結果を人が読める形式で表示する。
+このTicketでは、RS-0013の初期設計に従い、RAGScope CLIへ検索コマンドを追加する。RS-0008の質問Embedding取得処理とRS-0009のexact vector searchを順番に呼び出し、順位付きの検索結果を人が読める形式で表示する。
 
 さらに、前のEpicで実装した固定Markdown文書の取り込みとEmbedding保存を含め、文書取り込みから検索結果表示までをローカル環境で再実行できる手順を整え、v0.0のend-to-end動作を確認する。
 
 ## 前提
 
 - [RS-0013 質問によるdense検索を設計する](<./RS-0013 質問によるdense検索を設計する.md>)が完了している
-- [RS-0008 Haskellから質問文のEmbeddingを取得する](<./RS-0008 Haskellから質問文のEmbeddingを取得する.md>)が完了している
+- [RS-0008 RAGScopeアプリケーションで質問Embeddingを取得する](<./RS-0008 RAGScopeアプリケーションで質問Embeddingを取得する.md>)が完了している
 - [RS-0009 PostgreSQLのpgvectorでexact vector searchを実行する](<./RS-0009 PostgreSQLのpgvectorでexact vector searchを実行する.md>)が完了している
 - `RS-0006`が完了し、通常の実行入口から検索対象データを保存できる
 
 ## 完了条件
 
-- [ ] Haskell CLIへ、設計で定めた形式のdense検索commandを追加できる
+- [ ] RAGScope CLIへ、設計で定めた形式のdense検索commandを追加できる
 - [ ] CLIから1件の空でない質問文を受け取り、Haskellの`Text`として検索処理へ渡せる
 - [ ] 引数がない場合、空文字、または空白だけの質問文を、正常な検索実行と区別できる入力エラーとして扱える
 - [ ] RS-0008の処理を利用し、CLIから受け取った質問文に対応する質問Embeddingを取得できる
@@ -38,17 +38,17 @@ v0.0の最小のdense検索経路を利用者が実行できる状態にする�
 - [ ] 実際に起動したAI推論サービスとPostgreSQLを使用し、保存済みの文書チャンクに対してCLIから質問し、順位付きの検索結果を表示できる
 - [ ] end-to-end確認では、固定Markdown文書から2件以上のチャンクを生成・保存し、複数の検索候補に対する順位付き検索を確認できる
 - [ ] v0.0の確認用質問に対して、想定する関連チャンクが上位検索結果に含まれることをend-to-endの実行で確認できる
-- [ ] 固定Markdown文書の読み込み、チャンク化、文書Embedding生成、PostgreSQLへの保存、CLIからの質問、検索結果表示までを、定めた手順でローカル環境から再実行できる
+- [ ] 固定Markdown文書の読み込み、チャンク化、文書チャンクのEmbedding生成、PostgreSQLへの保存、CLIからの質問、検索結果表示までを、定めた手順でローカル環境から再実行できる
 - [ ] v0.0をローカル環境で再実行するための最小限のsetup、起動、文書取り込み、検索command、終了方法が`README.md`へ記載されている
 - [ ] CLIの正確なcommand、引数、終了statusを実装と`--help`から確認できる
 - [ ] 実装で具体化または変更されたCLI検索フローと表示内容が`docs/design/検索設計.md`へ反映されている
 - [ ] 実装、`--help`、README、検索設計に解消していない差異がない
-- [ ] プロジェクトで定めたHaskell側のテストコマンドとend-to-end確認手順を実行し、追加した確認を含めて成功する
+- [ ] プロジェクトで定めたRAGScopeアプリケーション側のテストコマンドとend-to-end確認手順を実行し、追加した確認を含めて成功する
 
 ## 対象外
 
 - AI推論サービスで質問Embeddingを生成する処理の新規実装
-- Haskellから質問Embeddingを取得するAPI clientの新規実装
+- RAGScopeアプリケーションの質問Embedding API clientの新規実装
 - PostgreSQL / pgvectorのdense検索queryの新規実装
 - 文書チャンクとEmbeddingのDB schemaおよび保存処理の新規実装
 - 対話形式で複数の質問を連続入力するREPL

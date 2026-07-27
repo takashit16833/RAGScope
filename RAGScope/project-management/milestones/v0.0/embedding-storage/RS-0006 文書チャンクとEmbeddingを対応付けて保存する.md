@@ -8,21 +8,21 @@ epic: "[[v0.0 文書チャンクのEmbedding生成と保存]]"
 
 ## 目的
 
-v0.0のdense検索で文書チャンクを検索対象として利用するためには、RS-0002で生成した文書チャンクと、RS-0004でHaskellから取得したEmbeddingを対応付け、RS-0005で作成したPostgreSQLのDB schemaへ正しく保存する必要がある。
+v0.0のdense検索で文書チャンクを検索対象として利用するためには、RS-0002で生成した文書チャンクと、RS-0004でRAGScopeアプリケーションが取得したEmbeddingを対応付け、RS-0005で作成したPostgreSQLのDB schemaへ正しく保存する必要がある。
 
-このTicketでは、RS-0012の初期設計に従い、Haskellが文書チャンクのEmbedding取得からPostgreSQLへの永続化までを制御する。元文書を識別する情報、`chunkIndex`、本文、Embeddingの対応を崩さずに保存し、保存後に読み出して後続のdense検索で利用できる状態であることを確認する。
+このTicketでは、RS-0012の初期設計に従い、RAGScopeアプリケーションが文書チャンクのEmbedding取得からPostgreSQLへの永続化までを制御する。元文書を識別する情報、`chunkIndex`、本文、Embeddingの対応を崩さずに保存し、保存後に読み出して後続のdense検索で利用できる状態であることを確認する。
 
 ## 前提
 
 - [RS-0012 文書チャンクのEmbedding生成と保存を設計する](<./RS-0012 文書チャンクのEmbedding生成と保存を設計する.md>)が完了している
 - `RS-0002`が完了し、文書チャンクを生成できる
-- [RS-0004 Haskellから文書チャンクのEmbeddingを取得する](<./RS-0004 Haskellから文書チャンクのEmbeddingを取得する.md>)が完了している
+- [RS-0004 RAGScopeアプリケーションで文書チャンクのEmbeddingを取得する](<./RS-0004 RAGScopeアプリケーションで文書チャンクのEmbeddingを取得する.md>)が完了している
 - [RS-0005 PostgreSQLに文書チャンクとEmbeddingを保存するデータ構造を作成する](<./RS-0005 PostgreSQLに文書チャンクとEmbeddingを保存するデータ構造を作成する.md>)が完了している
 
 ## 完了条件
 
-- [ ] 1件以上の文書チャンクを、Embedding取得と保存を行うHaskellの処理へ渡せる
-- [ ] RS-0004の処理を利用し、各文書チャンクに対応するEmbeddingをHaskellから取得できる
+- [ ] 1件以上の文書チャンクを、Embedding取得と保存を行うRAGScopeアプリケーションの処理へ渡せる
+- [ ] RS-0004の処理を利用し、RAGScopeアプリケーションで各文書チャンクに対応するEmbeddingを取得できる
 - [ ] 保存前に、チャンク件数とEmbedding件数、対応する識別情報、vector次元が整合していることを確認できる
 - [ ] 元文書を識別する情報、`chunkIndex`、チャンク本文、対応するEmbeddingを、RS-0005で作成したDB schemaへ保存できる
 - [ ] 複数の文書チャンクとEmbeddingを、対応関係を崩さずに1回の処理として保存できる
@@ -40,12 +40,12 @@ v0.0のdense検索で文書チャンクを検索対象として利用するた�
 - [ ] 固定Markdown文書の読み込み、チャンク化、Embedding取得、PostgreSQLへの保存までを、テスト専用ではない明示的な実行入口から起動できる
 - [ ] 実装で具体化または変更された保存フロー、transaction境界、再実行時の扱いが`docs/design/データモデル設計.md`へ反映されている
 - [ ] 実装とデータモデル設計に解消していない差異がない
-- [ ] プロジェクトで定めたHaskell側とDB側のテストコマンドを実行し、追加した確認を含めて成功する
+- [ ] プロジェクトで定めたRAGScopeアプリケーション側とDB側のテストコマンドを実行し、追加した確認を含めて成功する
 
 ## 対象外
 
 - AI推論サービスでのEmbedding model選定とEmbedding生成APIの新規実装
-- HaskellとAI推論サービス間のAPI clientの新規実装
+- RAGScopeアプリケーションとAI推論サービス間のAPI clientの新規実装
 - PostgreSQL / pgvectorの導入、DB schema、migrationの新規作成
 - 質問文の入力と質問Embeddingの生成
 - dense検索query、順位付け、上位チャンクの取得
@@ -73,7 +73,7 @@ v0.0のdense検索で文書チャンクを検索対象として利用するた�
 
 ## 実装メモ
 
-- Haskellが、文書チャンクのEmbedding取得、対応関係の検証、PostgreSQLへの保存順序を制御する。
+- RAGScopeアプリケーションが、文書チャンクのEmbedding取得、対応関係の検証、PostgreSQLへの保存順序を制御する。
 - AI推論サービスからPostgreSQLへ直接アクセスさせず、AI推論と永続化の責務境界を維持する。
 - 複数件のDB書き込みは1つのtransactionで実行し、すべて成功した場合だけcommitする。
 - 再実行時の既存データの扱いは、データモデル設計で定めた初期方針に従う。通常の実行手順から外れた手作業を必要としないものとする。

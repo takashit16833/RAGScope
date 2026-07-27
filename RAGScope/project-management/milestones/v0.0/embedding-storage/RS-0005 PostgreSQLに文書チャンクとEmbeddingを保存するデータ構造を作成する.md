@@ -12,7 +12,7 @@ v0.0で質問に近い文書チャンクをdense検索するためには、文�
 
 このTicketでは、RS-0012で作成したデータモデル設計に従い、ローカル環境のPostgreSQLでpgvector拡張を利用できるようにする。v0.0の検索対象となる文書チャンクとEmbeddingを保存する最小のDB schemaを、正確な定義の正本となるmigrationとして作成する。
 
-Haskellから実際の文書チャンクとEmbeddingを保存する処理はRS-0006で扱う。
+RAGScopeアプリケーションが実際の文書チャンクとEmbeddingを保存する処理はRS-0006で扱う。
 
 ## 前提
 
@@ -41,8 +41,8 @@ Haskellから実際の文書チャンクとEmbeddingを保存する処理はRS-0
 
 ## 対象外
 
-- HaskellからAI推論サービスを呼び出してEmbeddingを取得する処理
-- Haskellから文書チャンクとEmbeddingを保存するrepository・queryの実装
+- RAGScopeアプリケーションからAI推論サービスを呼び出してEmbeddingを取得する処理
+- RAGScopeアプリケーションが文書チャンクとEmbeddingを保存するrepository・queryの実装
 - 文書取り込みからEmbedding保存までの一連の処理
 - 質問Embeddingの生成
 - dense検索queryと検索結果の取得

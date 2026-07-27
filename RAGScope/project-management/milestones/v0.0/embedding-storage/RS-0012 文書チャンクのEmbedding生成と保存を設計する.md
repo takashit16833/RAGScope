@@ -8,11 +8,11 @@ epic: "[[v0.0 文書チャンクのEmbedding生成と保存]]"
 
 ## 目的
 
-このEpicでは、AI推論サービスによるEmbedding生成、HaskellとのHTTP / JSON通信、PostgreSQL / pgvectorのデータ構造、文書チャンクとEmbeddingの保存を複数の実装Ticketで構築する。これらは、採用するEmbedding model、生成条件、API契約、vector次元、保存するデータの関係を共有している。
+このEpicでは、AI推論サービスによるEmbedding生成、RAGScopeアプリケーションとのHTTP / JSON通信、PostgreSQL / pgvectorのデータ構造、文書チャンクとEmbeddingの保存を複数の実装Ticketで構築する。これらは、採用するEmbedding model、生成条件、API契約、vector次元、保存するデータの関係を共有している。
 
-このTicketでは、RS-0003からRS-0006へ着手する前に、文書チャンクのEmbedding生成から保存までの初期設計を行う。現在設計の正本として`docs/design/Embedding生成設計.md`と`docs/design/データモデル設計.md`を作成し、AI推論サービスの文書Embedding生成APIについてOpenAPIなどの機械可読な初期定義を作成する。
+このTicketでは、RS-0003からRS-0006へ着手する前に、文書チャンクのEmbedding生成から保存までの初期設計を行う。現在設計の正本として`docs/design/Embedding生成設計.md`と`docs/design/データモデル設計.md`を作成し、AI推論サービスの文書チャンクのEmbedding生成APIについてOpenAPIなどの機械可読な初期定義を作成する。
 
-HaskellからAI推論サービスへ文書チャンクのEmbeddingを要求するoperationの具体的なretry / timeout Policyとexecutorは、RS-0016とRS-0017で別に設計・実装する。このTicketでは、後続のretry / timeout設計が判断できるよう、operationの境界、副作用、主要な失敗、HTTP契約を定義するが、具体的な試行回数や待機方式は固定しない。
+RAGScopeアプリケーションからAI推論サービスへ文書チャンクのEmbeddingを要求するoperationの具体的なretry / timeout Policyとexecutorは、RS-0016とRS-0017で別に設計・実装する。このTicketでは、後続のretry / timeout設計が判断できるよう、operationの境界、副作用、主要な失敗、HTTP契約を定義するが、具体的な試行回数や待機方式は固定しない。
 
 初期設計では、後続Ticketが実装へ着手できる判断基準とコンポーネント間の契約を整える。正確なHaskell・Pythonの型、SQL、migrationの定義は、それぞれの機械可読な正本で実装時に確定する。
 
@@ -27,20 +27,20 @@ HaskellからAI推論サービスへ文書チャンクのEmbeddingを要求す�
 
 - [ ] `docs/design/Embedding生成設計.md`が`note_type: design`の機能設計書として作成されている
 - [ ] `docs/design/データモデル設計.md`が`note_type: design`の機能設計書として作成されている
-- [ ] Haskell、AI推論サービス、PostgreSQL / pgvectorの責務と、文書チャンクの受け渡しから保存までの全体フローが記載されている
+- [ ] RAGScopeアプリケーション、AI推論サービス、PostgreSQL / pgvectorの責務と、文書チャンクの受け渡しから保存までの全体フローが記載されている
 - [ ] v0.0で使用するEmbedding modelが1つ選定され、model ID、revision、Tokenizer、Tokenizer revisionを固定する方針が記載されている
 - [ ] 採用候補について、ローカル環境での利用可能性とRAGScopeでの利用を妨げるライセンス上の問題がないことを確認できる
 - [ ] 文書用・質問用の入力規則、pooling、最大入力長、truncation、vector正規化の有無、出力次元が固定条件として記載されている
 - [ ] 文書用と質問用のEmbeddingを比較可能に保つ互換条件が記載されている
-- [ ] AI推論サービスがAI推論を担当し、Haskellが処理全体とデータの対応関係を管理する責務境界が記載されている
-- [ ] HaskellからAI推論サービスへ文書チャンクのEmbeddingを要求するoperationの開始・終了、1回のHTTP request、AI推論サービス側のEmbedding計算の概念上の境界が記載されている
-- [ ] 文書Embedding生成APIの入力、出力、入力とEmbeddingの対応方法、主要なエラー分類が設計されている
+- [ ] AI推論サービスがAI推論を担当し、RAGScopeアプリケーションが処理全体とデータの対応関係を管理する責務境界が記載されている
+- [ ] RAGScopeアプリケーションからAI推論サービスへ文書チャンクのEmbeddingを要求するoperationの開始・終了、1回のHTTP request、AI推論サービス側のEmbedding計算の概念上の境界が記載されている
+- [ ] 文書チャンクのEmbedding生成APIの入力、出力、入力とEmbeddingの対応方法、主要なエラー分類が設計されている
 - [ ] AI推論サービスの失敗、HTTPの失敗、不正なresponse、入力・契約違反を、共通エラー契約へ変換する方針が記載されている
-- [ ] `execution_id`をHaskellからAI推論サービスへ伝播する正確な場所、形式、必須条件、検証方法がOpenAPIに定義され、欠落または不正な値の扱いが設計されている
-- [ ] Haskell側が`execution_id`をHTTP requestへ付与し、AI推論サービス側のHTTP adapterが受領した値を共通Contextへ引き渡す責務境界が記載されている
-- [ ] request validation、Web framework、model、Tokenizer、AI libraryのうち文書Embedding生成で扱う機能固有例外を、共通エラー境界とAPI error responseへ変換する方針が記載されている
+- [ ] `execution_id`をRAGScopeアプリケーションからAI推論サービスへ伝播する正確な場所、形式、必須条件、検証方法がOpenAPIに定義され、欠落または不正な値の扱いが設計されている
+- [ ] RAGScopeアプリケーション側が`execution_id`をHTTP requestへ付与し、AI推論サービス側のHTTP adapterが受領した値を共通Contextへ引き渡す責務境界が記載されている
+- [ ] request validation、Web framework、model、Tokenizer、AI libraryのうち文書チャンクのEmbedding生成で扱う機能固有例外を、共通エラー境界とAPI error responseへ変換する方針が記載されている
 - [ ] 後続のRS-0016がretry対象と再試行安全性を判断できるよう、operationの副作用と失敗時に成立する条件が記載されている
-- [ ] 文書Embedding生成APIの正確なrequest / responseがOpenAPIなどの機械可読な初期定義として作成されている
+- [ ] 文書チャンクのEmbedding生成APIの正確なrequest / responseがOpenAPIなどの機械可読な初期定義として作成されている
 - [ ] 生存確認、推論可能状態、使用中のmodel・revision・出力次元を確認する方法が設計されている
 - [ ] 文書チャンクとEmbeddingを保存する最小のデータ構造について、保持する情報、責務、関係、不変条件が記載されている
 - [ ] 元文書を識別する情報と`chunkIndex`によってv0.0のチャンクを一意に扱い、チャンク本文とEmbeddingの対応を維持する方針が記載されている
@@ -59,7 +59,7 @@ HaskellからAI推論サービスへ文書チャンクのEmbeddingを要求す�
 - HaskellのHTTP clientの実装
 - PostgreSQL / pgvectorのmigration作成
 - 文書チャンクとEmbeddingの保存処理の実装
-- 文書Embedding要求の具体的なretry回数、待機、backoff、jitter、timeout、executor
+- 文書チャンクのEmbedding要求の具体的なretry回数、待機、backoff、jitter、timeout、executor
 - 質問Embedding生成APIの実装
 - exact vector searchとCLIの設計・実装
 - 複数のEmbedding modelを実測比較するExperiment
@@ -84,8 +84,8 @@ HaskellからAI推論サービスへ文書チャンクのEmbeddingを要求す�
 ## 実装メモ
 
 - モデル選定は精度比較ではなく、v0.0のローカル環境で実行できること、文書用と質問用のEmbeddingを互換に生成できること、revisionを固定できること、ライセンス上利用可能であることを基準に行う。
-- 質問Embeddingの生成処理自体は後続Epicで実装するが、文書Embeddingとの互換性を確保するため、質問用の入力規則はこの時点で設計する。
-- OpenAPIの初期定義は、RS-0003で実装する文書Embedding生成の契約を対象とする。質問Embeddingに必要な契約は、後続Epicの初期設計Ticketで追加または更新する。
+- 質問Embeddingの生成処理自体は後続Epicで実装するが、文書チャンクのEmbeddingとの互換性を確保するため、質問用の入力規則はこの時点で設計する。
+- OpenAPIの初期定義は、RS-0003で実装する文書チャンクのEmbedding生成の契約を対象とする。質問Embeddingに必要な契約は、後続Epicの初期設計Ticketで追加または更新する。
 - `データモデル設計.md`にはmigrationを複製せず、保存対象の責務、関係、不変条件、transactionと再実行の方針を記載する。
 - RS-0016は、本Ticketで定義したoperation境界、API契約、主要な失敗を入力としてretry / timeoutを設計する。同じPolicyを両方の設計書へ重複して記載しない。
 - 実装によって初期設計を変更する必要が生じた場合は、該当する実装TicketでOpenAPI・設計書・実装を同じ変更として整合させる。

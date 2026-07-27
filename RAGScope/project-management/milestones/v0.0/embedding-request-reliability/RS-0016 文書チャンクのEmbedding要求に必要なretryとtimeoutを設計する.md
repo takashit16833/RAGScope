@@ -10,18 +10,18 @@ epic: "[[v0.0 文書チャンクのEmbedding要求をtimeoutと安全なretryで
 
 [ADR-0002](<../../../../docs/adr/ADR-0002 共通実行基盤の契約とコンポーネント実装を分離する.md>)では、retryを一時的失敗かつ再試行安全な場合だけ適用し、operation固有のPolicyと実装を具体的な利用箇所へ着手する段階で決定する方針を採用している。
 
-このTicketでは、HaskellからAI推論サービスへ文書チャンクのEmbeddingを要求するoperationを最初の対象として、必要なretry / timeoutの現在設計を`docs/design/リトライ・タイムアウト設計.md`に定義する。RS-0012で設計したAPI契約と主要な失敗を基に、どの失敗を何の根拠で再試行するか、再実行しても安全な条件は何か、どの時間範囲を制限するかを明確にし、RS-0017とRS-0004が実装へ着手できる判断基準を整える。
+このTicketでは、RAGScopeアプリケーションからAI推論サービスへ文書チャンクのEmbeddingを要求するoperationを最初の対象として、必要なretry / timeoutの現在設計を`docs/design/リトライ・タイムアウト設計.md`に定義する。RS-0012で設計したAPI契約と主要な失敗を基に、どの失敗を何の根拠で再試行するか、再実行しても安全な条件は何か、どの時間範囲を制限するかを明確にし、RS-0017とRS-0004が実装へ着手できる判断基準を整える。
 
 ## 前提
 
-- [RS-0015 Haskellの共通エラー・構造化ログ基盤を実装する](<../error-logging/RS-0015 Haskellの共通エラー・構造化ログ基盤を実装する.md>)が完了している
+- [RS-0015 RAGScopeアプリケーションの共通エラー・構造化ログ基盤を実装する](<../error-logging/RS-0015 RAGScopeアプリケーションの共通エラー・構造化ログ基盤を実装する.md>)が完了している
 - [RS-0012 文書チャンクのEmbedding生成と保存を設計する](<../embedding-storage/RS-0012 文書チャンクのEmbedding生成と保存を設計する.md>)が完了している
-- `docs/design/Embedding生成設計.md`と文書Embedding生成APIのOpenAPI初期定義から、operationの境界と主要な失敗を確認できる
+- `docs/design/Embedding生成設計.md`と文書チャンクのEmbedding生成APIのOpenAPI初期定義から、operationの境界と主要な失敗を確認できる
 
 ## 完了条件
 
 - [ ] `docs/design/リトライ・タイムアウト設計.md`が`note_type: design`の機能設計書として作成されている
-- [ ] 対象operationが「HaskellからAI推論サービスへ文書チャンクのEmbeddingを要求し、応答を受け取る処理」として明確に定義されている
+- [ ] 対象operationが「RAGScopeアプリケーションからAI推論サービスへ文書チャンクのEmbeddingを要求し、応答を受け取る処理」として明確に定義されている
 - [ ] 1回の論理operation、1回の試行、HTTP request、AI推論サービス側のEmbedding計算の境界が区別されている
 - [ ] このoperationが永続的な外部副作用を生成しないこと、またはretryを安全に行うために必要な条件が記載されている
 - [ ] retryの判断を共通エラー全体へ固定せず、このoperationのエラー分類と実行Contextから決定する方針が記載されている
@@ -62,7 +62,7 @@ epic: "[[v0.0 文書チャンクのEmbedding要求をtimeoutと安全なretryで
 - [エラー・ログ設計](../../../../docs/design/エラー・ログ設計.md)
 - [Embedding生成設計](../../../../docs/design/Embedding生成設計.md)
 - [RS-0012 文書チャンクのEmbedding生成と保存を設計する](<../embedding-storage/RS-0012 文書チャンクのEmbedding生成と保存を設計する.md>)
-- [RS-0004 Haskellから文書チャンクのEmbeddingを取得する](<../embedding-storage/RS-0004 Haskellから文書チャンクのEmbeddingを取得する.md>)
+- [RS-0004 RAGScopeアプリケーションで文書チャンクのEmbeddingを取得する](<../embedding-storage/RS-0004 RAGScopeアプリケーションで文書チャンクのEmbeddingを取得する.md>)
 
 ## 実装メモ
 
