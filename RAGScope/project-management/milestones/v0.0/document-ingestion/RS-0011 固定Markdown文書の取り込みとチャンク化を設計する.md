@@ -1,6 +1,6 @@
 ---
 note_type: ticket
-status: in_progress
+status: planned
 milestone: "[[v0.0]]"
 epic: "[[v0.0 固定Markdown文書の取り込みとチャンク化]]"
 ---
