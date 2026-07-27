@@ -12,12 +12,12 @@ note_type: reference
 次の場所にある、人が管理するMarkdownノートへ適用する。
 
 ```text
-- リポジトリ直下の各種規約文書
+- Vault直下の各種規約文書
 - `docs/`
 - `project-management/`
 ```
 
-`README.md`、RAGScopeが機械的に生成する`reports/`配下の出力、`templates/`配下のObsidianテンプレート、`.github/`配下のGitHub用ファイル、その他の外部ツールが管理するファイルには適用しない。
+リポジトリルートの`README.md`と`.github/`配下のGitHub用ファイル、RAGScopeが機械的に生成する`reports/`配下の出力、`templates/`配下のObsidianテンプレート、その他の外部ツールが管理するファイルには適用しない。
 
 `templates/`配下のMarkdownは、ノートへ挿入するFrontmatterと本文の雛形であり、テンプレートファイル自体をMilestone・Epic・Ticketとして管理しない。
 

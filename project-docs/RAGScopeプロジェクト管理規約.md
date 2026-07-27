@@ -191,16 +191,10 @@ project-management/
             ├── v0.0 固定Markdown文書の取り込み.md
             └── RS-0001 固定Markdownファイルを読み込む.md
 
-docs/
-└── RAGScope開発運用ガイド.md
-
 templates/
 ├── Milestoneテンプレート.md
 ├── Epicテンプレート.md
 └── Ticketテンプレート.md
-
-.github/
-└── pull_request_template.md
 ```
 
 ### 4.1 配置
@@ -209,8 +203,8 @@ templates/
 - Milestoneノートは`<version>.md`とする。
 - Epicごとに、Milestoneフォルダ直下へ英語・kebab-caseのフォルダを作る。
 - EpicノートとTicketノートは、所属Epicフォルダへ置く。
-- Obsidianで使用するMilestone・Epic・Ticketのテンプレートは、リポジトリ直下の`templates/`へ置く。
-- Pull Requestテンプレートは`.github/pull_request_template.md`へ置く。
+- Obsidianで使用するMilestone・Epic・Ticketのテンプレートは、Vault直下の`templates/`へ置く。
+- Pull Requestテンプレートは、リポジトリルートの`.github/pull_request_template.md`へ置く。
 
 ### 4.2 ファイル名
 
@@ -390,7 +384,7 @@ refactor/RS-0005-separate-loader-module
 
 ### 9.3 Pull Request
 
-PRは[Pull Requestテンプレート](./.github/pull_request_template.md)を使用し、最低限、目的、主な変更、確認方法、関連Ticketを記載する。
+PRは[Pull Requestテンプレート](../.github/pull_request_template.md)を使用し、最低限、目的、主な変更、確認方法、関連Ticketを記載する。
 
 Ticketを完了するPRには、Ticketの`status: done`と`結果`の更新を含める。マージ後、Ticketの`結果`へ記載した確認内容と実際の結果に差異がないことを確認する。
 

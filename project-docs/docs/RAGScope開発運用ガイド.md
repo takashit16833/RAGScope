@@ -16,7 +16,7 @@ note_type: reference
 | Frontmatterのプロパティ、型、許容値 | [Obsidianメタデータ規約](../Obsidianメタデータ規約.md) |
 | バージョン全体の計画 | [RAGScopeロードマップ](../project-management/ロードマップ.md) |
 | ノートへ挿入する実際の雛形 | [Milestoneテンプレート](../templates/Milestoneテンプレート.md)・[Epicテンプレート](../templates/Epicテンプレート.md)・[Ticketテンプレート](../templates/Ticketテンプレート.md) |
-| Pull Requestへ挿入する実際の雛形 | [Pull Requestテンプレート](../.github/pull_request_template.md) |
+| Pull Requestへ挿入する実際の雛形 | [Pull Requestテンプレート](../../.github/pull_request_template.md) |
 
 > [!important] 正本との分離
 > このガイドでは、各規約にある定義や完了条件を全文で再掲しない。  
@@ -35,7 +35,7 @@ note_type: reference
 
 ### 2.2 Pull Requestテンプレートを有効にする
 
-`.github/pull_request_template.md`がデフォルトブランチへ反映されると、新しいPull Requestの本文へ自動的に読み込まれる。追加のローカル設定は不要である。
+リポジトリルートの`.github/pull_request_template.md`がデフォルトブランチへ反映されると、新しいPull Requestの本文へ自動的に読み込まれる。追加のローカル設定は不要である。
 
 ## 3. 全体の作業フロー
 

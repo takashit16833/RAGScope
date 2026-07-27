@@ -11,14 +11,16 @@ note_type: reference
 
 本規約は、RAGScopeリポジトリで人が作成・管理し、利用者または開発者が読む文書、および文書として管理する成果物へ適用する。
 
+本規約で`docs/`、`project-management/`、`templates/`、`reports/`、Vault直下のMarkdownと記載する場合は、Obsidian Vaultである`project-docs/`を基準とする。`README.md`と`.github/`は、リポジトリルートを基準とする。
+
 主な対象は次のとおりとする。ここに列挙されていない文書でも、同じ性質を持つものには本規約を適用する。
 
-- `README.md`
-- リポジトリ直下で管理する各種規約文書
+- リポジトリルートの`README.md`
+- Vault直下で管理する各種規約文書
 - `docs/`配下の概要、要求、設計、ADR、実験記録、開発運用ガイド
 - `project-management/`配下のRoadmap、Milestone、Epic、Ticket
 - `templates/`配下のObsidianテンプレート
-- `.github/pull_request_template.md`
+- リポジトリルートの`.github/pull_request_template.md`
 - `reports/`配下でGit管理する代表的な生成結果
 
 ソースコード、テストコード、migration、OpenAPIなどのAPI定義、設定ファイル、依存関係のlock file、CI/CD定義、ローカル開発環境・エディタ設定、ビルド生成物、一時ファイルには適用しない。ただし、それらの正確な定義とMarkdownの説明を重複させないための扱いは、第2.3節に従う。
@@ -79,40 +81,38 @@ Markdownには、実装だけでは分かりにくい責務、理由、契約、
 ## 3. 文書構成
 
 ```text
-README.md
-
-docs/
-├── RAGScope概要.md
-├── RAGScope要求定義.md
-├── RAGScope開発運用ガイド.md
-├── design/
-│   ├── システムアーキテクチャ.md
-│   └── <必要になった機能設計>.md
-├── adr/
-│   └── ADR-0001 <判断の題名>.md
-└── experiments/
-    └── <実施した検証>.md
-
-project-management/
-├── ロードマップ.md
-└── milestones/
-
-templates/
-├── 設計書テンプレート.md
-├── Milestoneテンプレート.md
-├── Epicテンプレート.md
-└── Ticketテンプレート.md
-
-.github/
-└── pull_request_template.md
-
-reports/
-└── <管理する代表的な生成結果>
+RAGScope/
+├── README.md
+├── .github/
+│   └── pull_request_template.md
+└── project-docs/
+    ├── <各種規約文書>
+    ├── docs/
+    │   ├── RAGScope概要.md
+    │   ├── RAGScope要求定義.md
+    │   ├── RAGScope開発運用ガイド.md
+    │   ├── design/
+    │   │   ├── システムアーキテクチャ.md
+    │   │   └── <必要になった機能設計>.md
+    │   ├── adr/
+    │   │   └── ADR-0001 <判断の題名>.md
+    │   └── experiments/
+    │       └── <実施した検証>.md
+    ├── project-management/
+    │   ├── ロードマップ.md
+    │   └── milestones/
+    ├── templates/
+    │   ├── 設計書テンプレート.md
+    │   ├── Milestoneテンプレート.md
+    │   ├── Epicテンプレート.md
+    │   └── Ticketテンプレート.md
+    └── reports/
+        └── <管理する代表的な生成結果>
 ```
 
 - `docs/design/`、`docs/adr/`、`docs/experiments/`、`reports/`は、最初の内容が生じた時点で作成する。
 - `docs/RAGScope開発運用ガイド.md`は、プロジェクト管理規約に基づく具体的な操作の入口として使用する。
-- `templates/`と`.github/pull_request_template.md`は、開発運用ガイドに従ってノート作成・PR作成に使用する。
+- `templates/`とリポジトリルートの`.github/pull_request_template.md`は、開発運用ガイドに従ってノート作成・PR作成に使用する。
 - 機能別設計書は、技術要素ではなく設計対象となる機能・責務で分ける。
 - Roadmap、Milestone、Epic、Ticketの詳細な構成は、RAGScopeプロジェクト管理規約を正本とする。
 
@@ -283,13 +283,13 @@ RAGScopeのプロジェクト管理に関する具体的な操作手順を一元
 
 定義、状態遷移、完了条件、命名規則などのルールは複製せず、各規約の該当箇所へリンクする。ツールや操作方法が変わった場合は本ガイドを更新し、規約には操作手順を追加しない。
 
-### 4.11 `templates/`と`.github/`
+### 4.11 `templates/`とリポジトリルートの`.github/`
 
 `templates/`には、設計書およびMilestone・Epic・Ticketノートへ挿入するObsidianテンプレートを置く。テンプレートは、必須構造とFrontmatterの入力漏れを防ぎ、同じ種類の文書を一定の順序で読めるようにする作業支援ファイルである。テンプレートファイル自体を、実際の設計書、Milestone、Epic、Ticketとして扱わない。
 
 設計書テンプレートは、機能設計書の冒頭に必要な目的、根拠、責務境界を揃え、基本設計から詳細設計まで必要な粒度を選択できる雛形とする。設計対象に不要な選択節は、作成した設計書から削除する。
 
-`.github/pull_request_template.md`には、Pull Request作成時に記載する項目と完了確認を置く。規約本文の説明を複製せず、実際の作業時に確認する最小限の入力欄とチェック項目だけを記載する。
+リポジトリルートの`.github/pull_request_template.md`には、Pull Request作成時に記載する項目と完了確認を置く。規約本文の説明を複製せず、実際の作業時に確認する最小限の入力欄とチェック項目だけを記載する。
 
 設計書テンプレートで必須とする構成と使用規則は本規約、Milestone・Epic・Ticketテンプレートは[RAGScopeプロジェクト管理規約](./RAGScopeプロジェクト管理規約.md)を正本とする。具体的な操作方法は[RAGScope開発運用ガイド](./docs/RAGScope開発運用ガイド.md)、実際に挿入される雛形は各テンプレートファイルを正本とする。
 
