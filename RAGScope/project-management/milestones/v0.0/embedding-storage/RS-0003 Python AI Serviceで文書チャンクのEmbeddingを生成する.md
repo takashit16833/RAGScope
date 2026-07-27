@@ -17,6 +17,7 @@ Haskellからの呼び出しはRS-0004、PostgreSQLへの保存はRS-0005とRS-0
 ## 前提
 
 - [RS-0012 文書チャンクのEmbedding生成と保存を設計する](<./RS-0012 文書チャンクのEmbedding生成と保存を設計する.md>)が完了している
+- [RS-0018 Python AI Serviceの共通エラー・構造化ログ基盤を実装する](<../error-logging/RS-0018 Python AI Serviceの共通エラー・構造化ログ基盤を実装する.md>)が完了している
 - `docs/design/Embedding生成設計.md`と文書Embedding生成APIのOpenAPI初期定義が作成されている
 - `RS-0002`が完了し、Embedding生成へ渡す文書チャンクの内容が確定している
 
@@ -25,6 +26,8 @@ Haskellからの呼び出しはRS-0004、PostgreSQLへの保存はRS-0005とRS-0
 - [ ] RS-0012で選定したEmbedding model、revision、Tokenizer、Tokenizer revisionをPython AI Serviceからロードできる
 - [ ] Pythonの依存packageと採用モデルのrevisionが、設定ファイルやlock fileなどから再現できる形で固定されている
 - [ ] Python AI Serviceをローカル環境で起動し、サービスの生存状態とモデルが推論可能な状態を区別して確認できる
+- [ ] HTTP adapterがOpenAPIで定めた方法で`execution_id`を受領・検証し、同じrequestに属する処理とeventが利用する共通Contextへ引き渡せる
+- [ ] `execution_id`が欠落または不正なrequestを、OpenAPIで定めたエラーとして扱える
 - [ ] Python AI Serviceが、1件以上の空でない文書チャンク本文を受け取り、各入力に対応するEmbeddingを返せる
 - [ ] 文書用の入力規則、pooling、最大入力長、truncation、vector正規化が設計どおり適用される
 - [ ] 入力した文書チャンクの件数と返却されるEmbeddingの件数が一致し、入力と出力の対応をAPI契約どおり一意に確認できる
@@ -32,7 +35,10 @@ Haskellからの呼び出しはRS-0004、PostgreSQLへの保存はRS-0005とRS-0
 - [ ] 使用中のmodel ID、revision、Embeddingの出力次元を、設計で定めた方法から確認できる
 - [ ] 空の入力一覧、空の本文、不正なrequestを、正常なEmbedding生成と区別できるエラーとして扱える
 - [ ] モデルをロードできない場合とEmbedding生成に失敗した場合を、正常終了と区別して確認できる
+- [ ] request validation、Web framework、model、Tokenizer、AI libraryのうち文書Embedding生成で発生する機能固有例外が、RS-0018の共通境界を通じて共通エラーとAPI error responseへ変換される
+- [ ] 機能固有例外の変換後もraw exceptionとtracebackが公開responseへ含まれず、想定外例外には共通fallbackが適用される
 - [ ] requestの検証、入力と出力の対応、固定生成条件、vector次元、有限値、主要な異常系を自動テストで確認できる
+- [ ] `execution_id`の受領・共通Contextへの引き渡しと、代表的な機能固有例外のmappingを自動テストで確認できる
 - [ ] 採用した実モデルを使用し、文書チャンク本文からEmbeddingを生成できることを統合テストまたは実行によって確認できる
 - [ ] 実装されたAPIとOpenAPIのrequest / response、必須条件、エラー形式が一致している
 - [ ] 実装で具体化または変更された現在設計が`docs/design/Embedding生成設計.md`へ反映されている
@@ -63,11 +69,16 @@ Haskellからの呼び出しはRS-0004、PostgreSQLへの保存はRS-0005とRS-0
 - [文書処理設計](<../../../../docs/design/文書処理設計.md>)
 - [Embedding生成設計](<../../../../docs/design/Embedding生成設計.md>)
 - [データモデル設計](<../../../../docs/design/データモデル設計.md>)
+- [ADR-0002 — 共通実行基盤の契約とコンポーネント実装を分離する](<../../../../docs/adr/ADR-0002 共通実行基盤の契約とコンポーネント実装を分離する.md>)
+- [エラー・ログ設計](../../../../docs/design/エラー・ログ設計.md)
+- [RS-0018 Python AI Serviceの共通エラー・構造化ログ基盤を実装する](<../error-logging/RS-0018 Python AI Serviceの共通エラー・構造化ログ基盤を実装する.md>)
 
 ## 実装メモ
 
 - Python AI ServiceはAI推論だけを担当し、文書チャンクの永続化やRAGScope全体の処理順序を管理しない。
 - APIの正確なpath、項目名、型、必須条件、エラー形式はOpenAPIを正本とする。
+- HTTP adapterはOpenAPIに従って`execution_id`を受領し、RS-0018で実装した共通Contextへ引き渡す。`execution_id`のHTTP上の表現をこのTicketで独自に追加しない。
+- 機能固有例外は、文書Embedding生成で実際に使用するframework、model、Tokenizer、AI libraryの境界でmappingする。将来機能の例外まで先回りして網羅しない。
 - 文書用prefixやinstructionが必要なモデルでは、呼び出し側へ組み立てを分散させず、Python AI Service内で文書用の固定規則を適用する。
 - 質問用の入力規則は互換性確保のため設計済みだが、このTicketでは質問Embeddingを生成する処理を実装しない。
 - 自動テストでは、Embeddingの浮動小数点値そのものの完全一致へ過度に依存せず、件数、対応、次元、有限値、エラー分類などの契約を主に確認する。

@@ -23,7 +23,9 @@ v0.0で文書チャンクとEmbeddingをPostgreSQLへ保存するためには、
 
 - [ ] HaskellからPython AI Serviceの文書Embedding生成APIへHTTP / JSONでrequestを送信できる
 - [ ] 1件以上の文書チャンクについて、元文書を識別する情報、`chunkIndex`、本文をAPI requestへ変換できる
+- [ ] 現在のCLI commandに紐づく`execution_id`をOpenAPIで定めた方法で各HTTP requestへ付与し、Python AI Serviceへ伝播できる
 - [ ] 1回のHTTP requestを表すactionがRS-0017のexecutorへ接続され、独自のretry loopを実装していない
+- [ ] retryによる各試行でも同じCLI commandの`execution_id`を引き継ぎ、試行ごとに新しい`execution_id`を生成していない
 - [ ] 機能別設計で定めたtimeoutが実際の文書Embedding要求へ適用されている
 - [ ] 一時的失敗かつ再試行安全な場合にだけ、機能別設計で定めたPolicyに従ってretryできる
 - [ ] retry対象外のHTTP失敗、Python AI Serviceの明示的な失敗、不正なJSON、入力・契約違反、vector検証失敗を追加試行せず返せる
@@ -38,6 +40,7 @@ v0.0で文書チャンクとEmbeddingをPostgreSQLへ保存するためには、
 - [ ] HTTPの失敗status、不正なJSON、必須項目の欠落を、それぞれ正常な応答と区別して扱える
 - [ ] 件数不一致、識別子または順序の不整合、vector次元の不一致を検出し、不正な対応関係を後続処理へ渡さない
 - [ ] requestの組み立て、responseのdecode、チャンクとEmbeddingの対応、vector検証、主要な異常系を自動テストで確認できる
+- [ ] test serverまたは同等の制御された境界で、OpenAPIどおりの`execution_id`が各HTTP requestへ付与されていることを確認できる
 - [ ] test serverまたは同等の制御された境界を使用し、一時的失敗後の成功、retryしない失敗、試行上限到達、timeoutをAPI clientとの統合テストで確認できる
 - [ ] 実際に起動したPython AI ServiceをHaskellから呼び出し、複数の文書チャンクに対応するEmbeddingを取得できることを統合テストまたは実行によって確認できる
 - [ ] Haskell側の実装とOpenAPIの契約が一致している
@@ -84,6 +87,7 @@ v0.0で文書チャンクとEmbeddingをPostgreSQLへ保存するためには、
 
 - HaskellはRAGScopeの処理全体とデータの対応関係を管理し、Python AI ServiceはAI推論だけを担当する。
 - APIの正確なpath、request / response、項目名、型、エラー形式はOpenAPIを正本として使用する。
+- `execution_id`のHTTP上の表現はOpenAPIを正本とし、Haskell側で独自のheader名やrequest fieldを追加しない。
 - Haskell側では、API用の型とRAGScope内部の文書チャンク型を分け、境界で明示的に変換する。
 - Python AI Serviceから返された配列を無条件に入力チャンクへ`zip`せず、API契約で定めた対応を検証してから関連付ける。
 - 対応付け後の値は、元文書を識別する情報、`chunkIndex`、元の本文、Embeddingを失わずに保持する。正確な型名やフィールド名はコードを正本とする。
