@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RAGScope Log Event v1",
+  "description": "Serialized application event shared by RAGScope components.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "event_id",
+    "timestamp",
+    "level",
+    "event",
+    "component",
+    "operation",
+    "context",
+    "payload"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "event_id": {
+      "$ref": "#/$defs/uuidV4"
+    },
+    "timestamp": {
+      "$ref": "#/$defs/utcTimestamp"
+    },
+    "level": {
+      "enum": ["debug", "info", "warn", "error"]
+    },
+    "event": {
+      "$ref": "#/$defs/eventName"
+    },
+    "component": {
+      "enum": ["ragscope_app", "ai_service"]
+    },
+    "operation": {
+      "$ref": "#/$defs/operationName"
+    },
+    "context": {
+      "$ref": "#/$defs/eventContext"
+    },
+    "payload": {
+      "$ref": "#/$defs/nonNullObject"
+    },
+    "error": {
+      "$ref": "#/$defs/error"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "event": {
+            "pattern": "\\.failed$"
+          }
+        },
+        "required": ["event"]
+      },
+      "then": {
+        "required": ["error"],
+        "properties": {
+          "level": {
+            "const": "error"
+          }
+        }
+      },
+      "else": {
+        "not": {
+          "required": ["error"]
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "uuidV4": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "utcTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}Z$"
+    },
+    "operationName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$"
+    },
+    "eventName": {
+      "type": "string",
+      "pattern": "^([a-z][a-z0-9_]*\\.){2,}(started|succeeded|failed)$"
+    },
+    "errorCode": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+    },
+    "eventContext": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["scope", "execution_id"],
+          "additionalProperties": false,
+          "properties": {
+            "scope": {
+              "const": "execution"
+            },
+            "execution_id": {
+              "$ref": "#/$defs/uuidV4"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["scope"],
+          "additionalProperties": false,
+          "properties": {
+            "scope": {
+              "const": "service"
+            }
+          }
+        }
+      ]
+    },
+    "error": {
+      "type": "object",
+      "required": ["category", "code", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "category": {
+          "enum": ["input", "resource", "data", "dependency", "timeout", "internal"]
+        },
+        "code": {
+          "$ref": "#/$defs/errorCode"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "context": {
+          "$ref": "#/$defs/nonNullObject"
+        }
+      }
+    },
+    "fieldName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "nonNullObject": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/fieldName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/nonNullValue"
+      }
+    },
+    "nonNullValue": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonNullValue"
+          }
+        },
+        {
+          "$ref": "#/$defs/nonNullObject"
+        }
+      ]
+    }
+  }
+}
