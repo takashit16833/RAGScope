@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "event_id": "4d53ecb2-4221-45bf-bfa9-ec25cb553f4d",
+  "timestamp": "2026-07-28T10:00:01.456Z",
+  "level": "error",
+  "event": "embedding.generate.failed",
+  "component": "ai_service",
+  "operation": "embedding.generate",
+  "context": {
+    "scope": "execution",
+    "execution_id": "7d9c35b8-7980-4b20-a86c-7220e67276cc"
+  },
+  "payload": {
+    "duration_ms": 152
+  },
+  "error": {
+    "category": "dependency",
+    "code": "model.unavailable",
+    "message": "The embedding model is unavailable.",
+    "context": {
+      "model_id": "example-embedding-model"
+    }
+  }
+}

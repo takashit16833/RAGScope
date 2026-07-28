@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "event_id": "72a1bb40-cd35-4f20-80e8-f83f7b416cc5",
+  "timestamp": "2026-07-28T09:59:59.001Z",
+  "level": "info",
+  "event": "service.startup.succeeded",
+  "component": "ai_service",
+  "operation": "service.startup",
+  "context": {
+    "scope": "service",
+    "execution_id": "7d9c35b8-7980-4b20-a86c-7220e67276cc"
+  },
+  "payload": {}
+}
