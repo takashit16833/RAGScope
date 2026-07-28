@@ -27,8 +27,6 @@ note_type: reference
 
 ソースコード、テストコード、migration、OpenAPIなどのAPI定義、設定ファイル、依存関係のlock file、CI/CD定義、ローカル開発環境・エディタ設定、ビルド生成物、一時ファイルには適用しない。ただし、それらの正確な定義とMarkdownの説明を重複させないための扱いは、第2.3節に従う。
 
-`internal/`は任意のローカル専用領域としてGit管理から除外し、存在を必須としない。配下の非公開資料は公開文書の正本として使用せず、公開文書からリンクしない。内部資料の扱いはリポジトリルートの`AGENTS.md`に従う。
-
 Frontmatterは[Obsidianメタデータ規約](./Obsidianメタデータ規約.md)、Roadmap・Milestone・Epic・Ticketの運用は[RAGScopeプロジェクト管理規約](./RAGScopeプロジェクト管理規約.md)に従う。
 
 一般的なAI・LLM・RAGの学習ノートは、本リポジトリへ置かない。
@@ -89,7 +87,6 @@ RAGScope/
 ├── .github/
 │   └── pull_request_template.md
 └── project-docs/
-    ├── AGENTS.md
     ├── RAGScope概要.md
     ├── RAGScope要求定義.md
     ├── RAGScope開発運用ガイド.md
@@ -115,7 +112,6 @@ RAGScope/
 ```
 
 - `experiments/`は、最初の内容が生じた時点で作成する。
-- `internal/`はGit管理する標準構成に含めず、ローカル専用の資料が必要な場合だけ作成する。
 - `RAGScope開発運用ガイド.md`は、プロジェクト管理規約に基づく具体的な操作の入口として使用する。
 - `templates/`とリポジトリルートの`.github/pull_request_template.md`は、開発運用ガイドに従ってノート作成・PR作成に使用する。
 - 機能別設計書は、技術要素ではなく設計対象となる機能・責務で分ける。
