@@ -7,7 +7,23 @@ note_type: reference
 > RAGScopeのObsidian Vaultで使用するFrontmatterのプロパティ、型、許容値を定義する。  
 > 文書の配置と責務は[RAGScope文書管理規約](./RAGScope文書管理規約.md)、Milestone・Epic・Ticketの運用は[RAGScopeプロジェクト管理規約](./RAGScopeプロジェクト管理規約.md)に従う。
 
+## この規約の読み方
+
+| 確認したいこと | 主な参照先 |
+|---|---|
+| どのファイルへ適用するか | 第1章 |
+| 使用できるプロパティの原則 | 第2章 |
+| プロパティの型と使用条件 | 第3章 |
+| `note_type`と`status`の許容値 | 第3.1節・第3.2節 |
+| Milestone・Epicへの所属の記録方法 | 第3.3節・第3.4節 |
+| 文書種別ごとの必須プロパティ | 第3.6節 |
+| 本文中のリンクとの使い分け | 第4章 |
+| Frontmatterの記載例 | 第5章 |
+| 新しいプロパティや値を追加する手順 | 第6章 |
+
 ## 1. 適用範囲
+
+### 適用するファイル
 
 次の場所にある、人が管理するMarkdownノートへ適用する。
 
@@ -20,9 +36,16 @@ note_type: reference
 - `project-management/`
 ```
 
-リポジトリルートの`README.md`と`.github/`配下のGitHub用ファイル、`templates/`配下のObsidianテンプレート、その他の外部ツールが管理するファイルには適用しない。
+### 適用しないファイル
 
-`templates/`配下のMarkdownは、ノートへ挿入するFrontmatterと本文の雛形であり、テンプレートファイル自体をMilestone・Epic・Ticketとして管理しない。
+次のファイルには適用しない。
+
+- リポジトリルートの`README.md`
+- `.github/`配下のGitHub用ファイル
+- `templates/`配下のObsidianテンプレート
+- その他の外部ツールが管理するファイル
+
+`templates/`配下のMarkdownは、ノートへ挿入するFrontmatterと本文の雛形である。テンプレートファイル自体をMilestone・Epic・Ticketとして管理しない。
 
 ## 2. 絶対規則
 
@@ -34,6 +57,8 @@ note_type: reference
 - 未登録項目が必要な場合は、理由と影響範囲を示し、承認を得て本規約を先に変更する。
 
 ## 3. プロパティ定義
+
+### 使用できるプロパティ
 
 | プロパティ | 型 | 使用条件 | 許容値・形式 |
 |---|---|---|---|
@@ -114,10 +139,27 @@ epic: "[[v0.0 固定Markdown文書の取り込みとチャンク化]]"
 - ファイル名やタイトルだけで識別できる場合は使用しない。
 - 表記揺れを無制限に登録しない。
 
+### 3.6 文書種別ごとの必須プロパティ
+
+| 文書種別 | 必須プロパティ |
+|---|---|
+| 概要、要求定義、設計書、実験記録、規約・参照資料、Roadmap | `note_type` |
+| ADR | `note_type`、`status` |
+| Milestone | `note_type`、`status` |
+| Epic | `note_type`、`status`、`milestone` |
+| Ticket | `note_type`、`status`、`milestone`、`epic` |
+
+`aliases`は、文書種別にかかわらず、実際の利用目的がある場合だけ追加する。
+
 ## 4. リンクとの使い分け
 
-- 本文中のノート間リンクには、GitHubでも解決できる標準Markdownの相対リンクを使用する。
-- 一覧・絞り込みに使用する所属関係だけは、`milestone`・`epic`へObsidian内部リンク形式で記録する。
+| 記録する関係 | 使用する形式 |
+|---|---|
+| 本文中のノート間参照 | GitHubでも解決できる標準Markdownの相対リンク |
+| Epic・TicketのMilestone所属 | `milestone`へObsidian内部リンク形式で記録 |
+| TicketのEpic所属 | `epic`へObsidian内部リンク形式で記録 |
+
+一覧・絞り込みに使用する所属関係だけを、`milestone`・`epic`へ記録する。
 
 ## 5. Frontmatter例
 
