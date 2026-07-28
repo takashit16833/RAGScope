@@ -15,7 +15,7 @@ note_type: reference
 | 文書の配置、責務、参照関係 | [RAGScope文書管理規約](./rules/RAGScope文書管理規約.md) |
 | Frontmatterのプロパティ、型、許容値 | [Obsidianメタデータ規約](./rules/Obsidianメタデータ規約.md) |
 | バージョン全体の計画 | [RAGScopeロードマップ](./project-management/ロードマップ.md) |
-| ノートへ挿入する実際の雛形 | [Milestoneテンプレート](./templates/Milestoneテンプレート.md)・[Epicテンプレート](./templates/Epicテンプレート.md)・[Ticketテンプレート](./templates/Ticketテンプレート.md) |
+| ノートへ挿入する実際の雛形 | [設計書テンプレート](./templates/設計書テンプレート.md)・[ADRテンプレート](./templates/ADRテンプレート.md)・[Milestoneテンプレート](./templates/Milestoneテンプレート.md)・[Epicテンプレート](./templates/Epicテンプレート.md)・[Ticketテンプレート](./templates/Ticketテンプレート.md) |
 | Pull Requestへ挿入する実際の雛形 | [Pull Requestテンプレート](../.github/pull_request_template.md) |
 
 > [!important] 正本との分離
@@ -24,7 +24,7 @@ note_type: reference
 
 ## 2. 初回セットアップ
 
-### 2.1 Obsidian Templatesを設定する
+### 2.1 Obsidianのテンプレート機能を設定する
 
 1. ObsidianでVaultを開く。
 2. **Settings → Core plugins**で`Templates`を有効にする。
@@ -48,12 +48,12 @@ flowchart TD
     Review["Epic全体をレビュー"]
     Ticket["Ticketを詳細化"]
     Start["Ticketへ着手"]
-    Branch["Branchを作成"]
+    Branch["ブランチを作成"]
     Work["実装・文書更新・確認"]
     PR["Pull Requestを作成"]
     Done["Ticketを完了"]
     EpicDone["Epicを完了"]
-    Release["Milestoneを完了し<br>Git tagを付与"]
+    Release["Milestoneを完了し<br>Gitタグを付与"]
 
     Roadmap --> Milestone --> Epic --> Plan --> Review --> Ticket --> Start --> Branch --> Work --> PR --> Done
     Done -->|未完了Ticketあり| Start
@@ -97,7 +97,7 @@ Epicの所属Ticketを作成すると、MilestoneノートのEpic別Ticketビュ
 1. Epicの能力、Milestoneでの役割、完了条件を確認する。
 2. Epicの完了に必要な変更結果を、Ticket候補として列挙する。
 3. 各Ticket候補について、仮のタイトル、主な成果物、前提となる成果、確認方法を整理する。
-4. 作成または更新する要求、機能設計書、ADR、Experiment、OpenAPI、migrationなどを確認する。
+4. 作成または更新する要求、機能設計書、ADR、実験記録（Experiment）、OpenAPI、DB変更定義（migration）などを確認する。
 5. Ticket間の依存関係と、自然な実行順序を整理する。
 6. 複数の実装Ticketが共通の機能設計を前提とする場合は、Epicの冒頭に初期設計を作成または更新するTicketを含める。
 
@@ -110,7 +110,7 @@ Ticket構成案は、個別Ticketを詳細化する前の作業用の整理で�
 3. 後続Ticketで初めて作成する成果物を、先行Ticketが暗黙に必要としていないことを確認する。
 4. 最初の実装Ticketへ着手するために必要な要求、設計、判断、検証結果が揃っていることを確認する。
 5. 共通する機能設計が必要な場合は、初期設計Ticketが実装Ticketより先に配置されていることを確認する。
-6. Markdownの設計書と、コード、OpenAPI、migration、テストなどの機械可読な正本の責務が重複していないことを確認する。
+6. Markdownの設計書と、コード、OpenAPI、DB変更定義、テストなどの機械可読な正本の責務が重複していないことを確認する。
 7. Epic全体として能力を確認する方法が、いずれかのTicketまたはEpicの完了確認に含まれていることを確認する。
 8. 問題がある場合はTicket構成案を見直し、問題がなければ各Ticketノートを詳細化する。
 
@@ -134,18 +134,18 @@ Ticketの粒度と採番規則は[プロジェクト管理規約の第3.4節](<.
 ## 5. Ticketへ着手する
 
 1. Ticketの目的、完了条件、対象外、関連文書を確認する。
-2. Ticketが前提とする先行Ticketの成果、初期設計、要求、ADR、Experimentが反映されていることを確認する。
+2. Ticketが前提とする先行Ticketの成果、初期設計、要求、ADR、実験記録（Experiment）が反映されていることを確認する。
 3. 所属EpicとMilestoneの状態を確認する。
 4. [親子状態の整合](<./rules/RAGScopeプロジェクト管理規約.md#6.1 親子状態の整合>)に従い、必要なノートを`in_progress`へ変更する。
 5. Ticket自身を`in_progress`へ変更する。
-6. Ticket IDを含むBranchを作成する。
+6. Ticket IDを含むブランチを作成する。
 
 ```bash
 # 例
 git switch -c feat/RS-0001-read-fixed-markdown
 ```
 
-Branch名のprefixと形式は[プロジェクト管理規約の第9.2節](<./rules/RAGScopeプロジェクト管理規約.md#9.2 ブランチ名>)を確認する。
+ブランチ名の接頭辞と形式は[プロジェクト管理規約の第9.2節](<./rules/RAGScopeプロジェクト管理規約.md#9.2 ブランチ名>)を確認する。
 
 ## 6. 実装・文書更新・確認を行う
 
@@ -165,7 +165,7 @@ Branch名のprefixと形式は[プロジェクト管理規約の第9.2節](<./ru
 2. 既存の機能設計書で現在設計を自然に説明できる場合は、その設計書を更新する。
 3. 既存の設計書とは異なる機能・責務を扱う場合だけ、新しい機能設計書を作成する。
 4. 今回だけの作業内容や実施結果はTicketへ残し、機能設計書には現在有効な設計を記載する。
-5. 重要な判断理由がある場合はADR、実測や比較を伴う場合はExperimentを作成または更新する。
+5. 重要な判断理由がある場合はADR、実測や比較を伴う場合は実験記録（Experiment）を作成または更新する。
 6. 作業上参照する必要がある場合は、Epic・Ticketの`関連文書`から該当文書へリンクする。
 
 Epic冒頭の初期設計Ticketで作成した設計書も、後続の実装Ticketで具体化した内容に合わせて更新する。初期設計と現在の実装が不一致のまま残らないことを確認する。
@@ -177,13 +177,13 @@ Epic冒頭の初期設計Ticketで作成した設計書も、後続の実装Tick
 1. [RAGScope文書管理規約](./rules/RAGScope文書管理規約.md)で、その情報の正本、配置先、文書の責務を確認する。
 2. [Obsidianメタデータ規約](./rules/Obsidianメタデータ規約.md)に従ってFrontmatterを設定する。
 3. 既存文書または機械可読な正本と重複しないことを確認し、既存の正本で扱える場合は新しい文書を作らず更新する。
-4. 関連する要求、設計、ADR、Experiment、Ticketを必要な範囲で更新し、リンク、Frontmatter、配置の整合を確認する。
+4. 関連する要求、設計、ADR、実験記録（Experiment）、Ticketを必要な範囲で更新し、リンク、Frontmatter、配置の整合を確認する。
 5. 解消できない矛盾がある場合は、その内容と影響を明示してから作業を進める。
 
 ## 7. Pull Requestを作成してTicketを完了する
 
 1. Ticketの`結果`を記入し、完了用の変更として`status: done`を含める。
-2. 変更をcommitし、Branchをremoteへpushする。
+2. 変更をコミットし、ブランチをリモートへ送信（push）する。
 3. Pull Requestを作成する。
 4. 自動挿入されたPull Requestテンプレートへ、目的、主な変更、確認方法、関連Ticketを記入する。
 5. テンプレートの完了確認を埋める。
@@ -208,7 +208,7 @@ Ticketを`done`にできる条件は、[プロジェクト管理規約の第8.1�
 4. Milestoneの`リリース結果`へ、実現した内容、確認方法、既知の制約を記入する。
 5. Milestoneを`done`へ変更する。
 6. 変更をデフォルトブランチへ反映する。
-7. 反映されたcommitへ、Milestone名と同じGit tagを付ける。
+7. 反映されたコミットへ、Milestone名と同じGitタグを付ける。
 8. 必要な場合だけGitHub Releaseを作成し、Milestoneノートの対象要求IDとリンクを必要な範囲で再利用する。
 
 ```bash
