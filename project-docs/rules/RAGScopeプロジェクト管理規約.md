@@ -293,9 +293,9 @@ Roadmapには、`RAGScopeロードマップ`をH1として置き、バージョ�
 - `目標`、`対象要求`、`成功条件`、`リリース結果`は必須とする。
 - `対象要求`には、要求IDから要求定義の該当節への相対リンクと、このMilestoneで実現する範囲を記載する。
 - 複数のMilestoneにまたがる要求について、要求全体を完了したように記載せず、このMilestoneが担当する範囲だけを書く。
-- Epic一覧は、Milestoneノートへ埋め込んだBasesから`note_type`と`milestone`を使って導出する。
-- Epicへのリンク一覧を手作業で記載・更新しない。
-- Ticket一覧も手作業では記載せず、フォルダ表示、検索、必要に応じて追加したBasesから確認する。
+- Milestoneノートでは、所属Ticketを`epic`でグループ化した埋め込みBasesを表示する。
+- 埋め込みBasesには、すべての状態を表示する`すべて`をデフォルトビューとして設け、`planned`と`in_progress`を表示する`未完了`も設ける。
+- EpicまたはTicketへのリンク一覧を手作業で記載・更新しない。
 
 ### 7.3 Epic
 
@@ -427,8 +427,8 @@ GitHub Releaseには、実現した能力、対象要求、確認方法、利用
 Basesは、Markdownノート、Frontmatter、フォルダ階層から生成する派生表示として扱う。
 
 - Ticket追加や状態変更のたびに、別の手作業一覧を更新しない。
-- Milestoneノートでは、所属Epicを埋め込みBasesによって表示する。
+- Milestoneノートでは、所属Ticketを`epic`でグループ化した埋め込みBasesによって表示する。
 - Milestone用Basesは`project-management/milestones/`配下だけを対象とし、テンプレートファイルを一覧へ含めない。
 - Ticketや状態に関するその他の一覧は、具体的な利用目的が生じた場合だけ追加する。
 
-Epicの追加、移動、改名、状態変更に伴う手作業の一覧更新は行わない。
+Epic・Ticketの追加、移動、改名、状態変更に伴う手作業の一覧更新は行わない。

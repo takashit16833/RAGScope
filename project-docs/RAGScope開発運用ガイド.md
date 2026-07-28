@@ -90,7 +90,7 @@ flowchart TD
 6. Frontmatterの`milestone`を、所属Milestoneへの内部リンクへ置き換える。
 7. 能力、Milestoneでの役割、完了条件を記入する。
 
-Epic一覧はMilestoneノートのBasesへ反映されるため、手作業の一覧は更新しない。
+Epicの所属Ticketを作成すると、MilestoneノートのEpic別Ticketビューへ`epic`ごとのグループとして反映される。Epic単独の手作業一覧は更新しない。
 
 ### 4.3 EpicのTicket構成案を作成する
 

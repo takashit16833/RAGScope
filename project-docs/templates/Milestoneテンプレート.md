@@ -31,19 +31,36 @@ status: planned
 
 - [ ] 実際に実行または検証できる条件
 
-## Epic
+## Epic別Ticket
 
 ```base
 filters:
   and:
     - 'file.inFolder("project-management/milestones")'
-    - 'note_type == "epic"'
+    - 'note_type == "ticket"'
     - 'milestone == this'
 views:
   - type: table
-    name: Epic
+    name: すべて
+    groupBy:
+      property: epic
+      direction: ASC
     order:
       - file.name
+      - epic
+      - status
+  - type: table
+    name: 未完了
+    filters:
+      or:
+        - 'status == "planned"'
+        - 'status == "in_progress"'
+    groupBy:
+      property: epic
+      direction: ASC
+    order:
+      - file.name
+      - epic
       - status
 ```
 
