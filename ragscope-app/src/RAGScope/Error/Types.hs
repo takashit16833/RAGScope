@@ -1,3 +1,4 @@
+-- | RAGScopeアプリケーションで共通利用するエラー型を定義する
 module RAGScope.Error.Types (ErrorCategory (..)) where
 
 -- | エラー分類
