@@ -60,7 +60,7 @@
       "if": {
         "properties": {
           "event": {
-            "pattern": "\\.failed$"
+            "const": "failed"
           }
         },
         "required": [
@@ -103,7 +103,7 @@
     },
     "eventName": {
       "type": "string",
-      "pattern": "^([a-z][a-z0-9_]*\\.){2,}(started|succeeded|failed)$"
+      "pattern": "^[a-z][a-z0-9_]*$"
     },
     "errorCode": {
       "type": "string",
