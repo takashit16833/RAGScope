@@ -1,5 +1,5 @@
 -- | RAGScopeアプリケーションにおける構造化ログの型を定義する
-module RAGScope.Logging.Types where
+module RAGScope.Logging.Types (LogLevel (..)) where
 
 -- | 処理への影響の大きさ
 data LogLevel
