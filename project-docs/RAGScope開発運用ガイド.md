@@ -14,6 +14,7 @@ note_type: reference
 | Milestone・Epic・Ticketの定義、状態遷移、完了条件 | [RAGScopeプロジェクト管理規約](./rules/RAGScopeプロジェクト管理規約.md) |
 | 文書の配置、責務、参照関係 | [RAGScope文書管理規約](./rules/RAGScope文書管理規約.md) |
 | Frontmatterのプロパティ、型、許容値 | [Obsidianメタデータ規約](./rules/Obsidianメタデータ規約.md) |
+| コードに共通する規約と言語別規約 | [RAGScopeコーディング規約](./rules/RAGScopeコーディング規約.md)・[Haskellコーディング規約](./rules/Haskellコーディング規約.md) |
 | バージョン全体の計画 | [RAGScopeロードマップ](./project-management/ロードマップ.md) |
 | ノートへ挿入する実際の雛形 | [設計書テンプレート](./templates/設計書テンプレート.md)・[ADRテンプレート](./templates/ADRテンプレート.md)・[Milestoneテンプレート](./templates/Milestoneテンプレート.md)・[Epicテンプレート](./templates/Epicテンプレート.md)・[Ticketテンプレート](./templates/Ticketテンプレート.md) |
 | Pull Requestへ挿入する実際の雛形 | [Pull Requestテンプレート](../.github/pull_request_template.md) |
@@ -154,6 +155,8 @@ git switch -c feat/RS-0001-read-fixed-markdown
 3. 変更によって、完了後も有効な要求・設計・判断・実験結果が生じたかを確認する。
 4. 対応する正本がある場合は更新し、必要な正本がまだない場合だけ新しく作成する。
 5. Ticketの`結果`へ、実装内容、確認方法、既知の制約、関連PRを記入する。
+
+コードの実装とレビューは[RAGScopeコーディング規約](./rules/RAGScopeコーディング規約.md)と、対象言語のコーディング規約に従う。
 
 文書の記載先は[RAGScope文書管理規約](./rules/RAGScope文書管理規約.md)に従う。
 

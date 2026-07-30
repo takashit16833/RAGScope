@@ -16,6 +16,7 @@ note_type: reference
 | 各文書に何を記載するか | 第4章 |
 | 設計書の粒度と読みやすい構成 | 第4.5節 |
 | ADR・実験記録を作成する条件 | 第4.6節・第4.7節 |
+| コードに共通する規約と言語別規約 | [RAGScopeコーディング規約](./RAGScopeコーディング規約.md)・[Haskellコーディング規約](./Haskellコーディング規約.md) |
 | 文書間で確認する整合 | 第5章 |
 | ファイル名、本文、リンク、Markdown表記 | 第6章 |
 | Frontmatterの定義 | [Obsidianメタデータ規約](./Obsidianメタデータ規約.md) |
@@ -120,7 +121,9 @@ RAGScope/
     ├── RAGScope要求定義.md
     ├── RAGScope開発運用ガイド.md
     ├── rules/
+    │   ├── Haskellコーディング規約.md
     │   ├── Obsidianメタデータ規約.md
+    │   ├── RAGScopeコーディング規約.md
     │   ├── RAGScope文書管理規約.md
     │   └── RAGScopeプロジェクト管理規約.md
     ├── design/
@@ -361,13 +364,17 @@ ADRを新規作成する場合は、原則として[`templates/ADRテンプレ�
 
 ### 4.8 `rules/`
 
-RAGScopeの文書管理、Obsidianメタデータ、プロジェクト管理に関する規約を置く。
+RAGScopeの文書管理、Obsidianメタデータ、プロジェクト管理、コーディングに関する規約を置く。
 
 | 規約 | 定義する内容 |
 |---|---|
 | `RAGScope文書管理規約.md` | 文書の配置、責務、正本、参照関係 |
 | `Obsidianメタデータ規約.md` | Frontmatterのプロパティ、型、許容値 |
 | `RAGScopeプロジェクト管理規約.md` | Roadmap、Milestone、Epic、Ticketの運用 |
+| `RAGScopeコーディング規約.md` | 言語に共通するコード品質、コメント、構成、命名、検証の原則 |
+| `Haskellコーディング規約.md` | RAGScopeアプリケーションのHaskell固有規約 |
+
+コーディング規約は、設定ファイルやソースコードで表現できる正確な値と定義を複製せず、設定だけでは表せない意図と判断基準を扱う。言語固有の実装が始まり、共通規約だけでは判断できない内容が生じた時点で、対応する言語別規約を作成する。
 
 ### 4.9 `project-management/`
 

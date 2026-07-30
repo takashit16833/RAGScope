@@ -1,0 +1,41 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.{hs,lhs}]
+indent_size = 2
+
+[*.{py,pyi}]
+indent_size = 4
+
+[*.cabal]
+indent_size = 2
+
+[cabal.project]
+indent_size = 2
+
+[cabal.project.freeze]
+indent_size = 2
+
+[*.{json,jsonc,yaml,yml}]
+indent_size = 2
+
+[*.sh]
+indent_size = 4
+
+[Dockerfile]
+indent_size = 4
+
+[Makefile]
+indent_style = tab
+indent_size = tab
+tab_width = 4
+
+[*.md]
+trim_trailing_whitespace = false
