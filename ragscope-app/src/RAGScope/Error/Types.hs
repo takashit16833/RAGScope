@@ -1,4 +1,4 @@
-module RAGScope.Error.Types where
+module RAGScope.Error.Types (ErrorCategory (..)) where
 
 -- | エラー分類
 --
@@ -16,4 +16,4 @@ data ErrorCategory
     Timeout
   | -- | ほかの分類では表せない、RAGScope内部の予期しない失敗
     Internal
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Show)
