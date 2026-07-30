@@ -3,7 +3,7 @@
   "event_id": "550e8400-e29b-41d4-a716-446655440000",
   "timestamp": "2026-07-28T19:00:00.123+09:00",
   "level": "info",
-  "event": "document.read.succeeded",
+  "event": "succeeded",
   "component": "ragscope_app",
   "operation": "document.read",
   "context": {
