@@ -2,8 +2,6 @@
 module RAGScope.Error.Types (ErrorCategory (..)) where
 
 -- | エラー分類
---
--- 失敗の大まかな種類
 data ErrorCategory
   = -- | 入力内容または指定方法に問題がある
     Input
