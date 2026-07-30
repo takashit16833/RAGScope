@@ -224,7 +224,7 @@ git tag v0.0
 git push origin v0.0
 ```
 
-リリース順序は[プロジェクト管理規約の第9.6節](<./rules/RAGScopeプロジェクト管理規約.md#9.5 Git tag・GitHub Release>)を正本とする。
+リリース順序は[プロジェクト管理規約の第9.6節](<./rules/RAGScopeプロジェクト管理規約.md#9.6 Git tag・GitHub Release>)を正本とする。
 
 ## 10. Ticketを移動・中止する
 
