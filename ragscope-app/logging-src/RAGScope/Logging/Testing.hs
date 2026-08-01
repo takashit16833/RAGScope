@@ -1,6 +1,4 @@
 module RAGScope.Logging.Testing (
-  test,
-  LogEvent,
   mkLogger,
   LogLevel (Debug),
   Component (RAGScopeApp),
@@ -8,11 +6,16 @@ module RAGScope.Logging.Testing (
   fixedClock,
   fixedEventIdSource,
   fixedExecutionId,
-  TestEventType (..),
   emit,
   LogEvent (..),
   EventId (EventId),
-  fixedUuid2,
+  fixedEvenUuid,
+  ToEventSpec (toEventSpec),
+  debugEventSpec,
+  OperationName (..),
+  EventName (..),
+  emptyPayload,
+  newMemorySink,
 ) where
 
 import Data.IORef (modifyIORef', newIORef, readIORef)
@@ -23,7 +26,6 @@ import RAGScope.Logging.Core (
   EventContext (ExecutionContext),
   EventId (EventId),
   EventName (EventName),
-  EventSpec (level),
   ExecutionId (ExecutionId),
   LogEvent (..),
   LogLevel (Debug),
@@ -32,7 +34,6 @@ import RAGScope.Logging.Core (
   ToEventSpec (toEventSpec),
   debugEventSpec,
   emptyPayload,
-  failedEventSpec,
  )
 import RAGScope.Logging.Runtime (
   Clock,
@@ -42,19 +43,19 @@ import RAGScope.Logging.Runtime (
   mkLogger,
  )
 
-fixedUuid1 :: UUID.UUID
-fixedUuid1 = UUID.fromWords 0x12345678 0x9abcdef0 0x12345678 0x9abcdef0
+fixedExecutionUuid :: UUID.UUID
+fixedExecutionUuid = UUID.fromWords 0x12345678 0x9abcdef0 0x12345678 0x9abcdef0
 
-fixedUuid2 :: UUID.UUID
-fixedUuid2 = UUID.fromWords 0x9abcdef0 0x12345678 0x9abcdef0 0x12345678
+fixedEvenUuid :: UUID.UUID
+fixedEvenUuid = UUID.fromWords 0x9abcdef0 0x12345678 0x9abcdef0 0x12345678
 
 fixedExecutionId :: ExecutionId
-fixedExecutionId = ExecutionId fixedUuid1
+fixedExecutionId = ExecutionId fixedExecutionUuid
 
 -- | 固定のEventIdを供給する処理
 fixedEventIdSource :: EventIdSource
 fixedEventIdSource =
-  pure $ EventId fixedUuid2
+  pure $ EventId fixedEvenUuid
 
 fixedTime :: UTCTime
 fixedTime =
@@ -66,37 +67,17 @@ fixedTime =
 fixedClock :: Clock
 fixedClock = pure $ Timestamp fixedTime
 
-newtype TestEventType = TestEventType String
-
-instance ToEventSpec TestEventType where
-  toEventSpec (TestEventType level) =
-    case level of
-      _ ->
-        debugEventSpec
-          (OperationName "operation")
-          (EventName "event")
-          emptyPayload
-
-test :: IO [LogEvent]
-test = do
-  ref <- newIORef ([] :: [LogEvent])
+newMemorySink :: IO (Sink, IO [LogEvent])
+newMemorySink = do
+  eventsRef <- newIORef []
 
   let
-    memorySink :: Sink
-    memorySink logEvent = do
-      modifyIORef' ref (logEvent :)
+    sink :: Sink
+    sink logEvent = do
+      modifyIORef' eventsRef (logEvent :)
       pure (Right ())
-    logger =
-      mkLogger
-        Debug
-        RAGScopeApp
-        (ExecutionContext fixedExecutionId)
-        fixedEventIdSource
-        fixedClock
-        memorySink
 
-  result <- emit logger (TestEventType "debug")
+    readEvents =
+      reverse <$> readIORef eventsRef
 
-  case result of
-    Right () -> reverse <$> readIORef ref
-    Left _ -> pure []
+  pure (sink, readEvents)

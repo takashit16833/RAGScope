@@ -143,3 +143,4 @@ test-suite ragscope-test
 
   default-extensions:
     OverloadedRecordDot
+    OverloadedStrings
