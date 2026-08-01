@@ -1,6 +1,6 @@
 -- | LogEventを契約どおりのJSONへ変換し、標準エラーへ1行で出力する。
 module RAGScope.Logging.Backend.AesonStderr (
-  aesonStderrWriter,
+  aesonStderrSink,
   encodeLogEvent,
 ) where
 
@@ -27,16 +27,16 @@ import Data.UUID qualified as UUID
 import RAGScope.Logging.Core
 import RAGScope.Logging.Runtime (
   LoggingFailure (..),
-  Writer,
+  Sink,
  )
 import System.IO (
   hFlush,
   stderr,
  )
 
--- | AesonでJSON化したLogEventを、標準エラーへ1行で出力するWriter。
-aesonStderrWriter :: Writer
-aesonStderrWriter logEvent = do
+-- | AesonでJSON化したLogEventを、標準エラーへ1行で出力するSink。
+aesonStderrSink :: Sink
+aesonStderrSink logEvent = do
   -- JSONのValueをByteStringへ変換して出力する。
   result <- tryWrite (encode (encodeLogEvent logEvent))
 
