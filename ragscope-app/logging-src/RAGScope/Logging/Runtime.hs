@@ -1,5 +1,13 @@
 -- | ログイベントへID・時刻・contextを付加し、filter後にWriterへ渡す
-module RAGScope.Logging.Runtime where
+module RAGScope.Logging.Runtime (
+  Logger,
+  LoggingFailure (..),
+  EventIdSource,
+  Clock,
+  Writer,
+  mkLogger,
+  emit,
+) where
 
 import RAGScope.Logging.Core
 
