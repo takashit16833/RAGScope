@@ -33,12 +33,15 @@ spec = do
                 memorySink
 
         result <- emit logger (TestEventType "debug")
-        logEvents <- readEvents
-
         result `shouldBe` Right ()
 
-        length logEvents `shouldBe` 1
-
-        let (EventId actualId) = (head logEvents).eventId
-
-        actualId `shouldBe` fixedEvenUuid
+        logEvents <- readEvents
+        case logEvents of
+          [logEvent] -> do
+            let (EventId actualId) = logEvent.eventId
+            actualId `shouldBe` fixedEvenUuid
+          _ -> do
+            expectationFailure $
+              "ログイベントが1件であることを期待しましたが、"
+                <> show (length logEvents)
+                <> "件でした"
