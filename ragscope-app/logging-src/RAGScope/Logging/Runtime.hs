@@ -1,10 +1,10 @@
--- | ログイベントへID・時刻・contextを付加し、filter後にWriterへ渡す
+-- | ログイベントへID・時刻・contextを付加し、filter後にSinkへ渡す
 module RAGScope.Logging.Runtime (
   Logger,
   LoggingFailure (..),
   EventIdSource,
   Clock,
-  Writer,
+  Sink,
   mkLogger,
   emit,
 ) where
@@ -38,7 +38,7 @@ type EventIdSource = IO EventId
 type Clock = IO Timestamp
 
 -- | 完成済みLogEventを最終的な出力先へ渡す処理
-type Writer = LogEvent -> IO (Either LoggingFailure ())
+type Sink = LogEvent -> IO (Either LoggingFailure ())
 
 -- | Logging Runtimeの依存と設定
 data Logger = Logger
@@ -52,7 +52,7 @@ data Logger = Logger
   -- ^ イベントIDの生成元
   , clock :: Clock
   -- ^ 記録時刻の取得元
-  , writer :: Writer
+  , sink :: Sink
   -- ^ 完成したログイベントの出力処理
   }
 
@@ -63,19 +63,19 @@ mkLogger ::
   EventContext ->
   EventIdSource ->
   Clock ->
-  Writer ->
+  Sink ->
   Logger
-mkLogger minimumLevel component context eventIdSource clock writer =
+mkLogger minimumLevel component context eventIdSource clock sink =
   Logger
     { minimumLevel
     , component
     , context
     , eventIdSource
     , clock
-    , writer
+    , sink
     }
 
--- | 型付き機能イベントを受け付け、設定されたWriterへ出力する
+-- | 型付き機能イベントを受け付け、設定されたSinkへ出力する
 --
 -- 最低ログレベル未満なら何も出力せず成功とする
 emit ::
@@ -105,5 +105,5 @@ emit logger eventValue =
                   , spec = eventSpec
                   }
 
-          -- 完成したログイベントをWriterへ渡す
-          logger.writer logEvent
+          -- 完成したログイベントをSinkへ渡す
+          logger.sink logEvent
