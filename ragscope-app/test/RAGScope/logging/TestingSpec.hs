@@ -2,11 +2,14 @@ module RAGScope.Logging.TestingSpec (
   spec,
 ) where
 
+import RAGScope.Logging.Testing
 import Test.Hspec
 
 spec :: Spec
 spec = do
   describe "emit" $ do
-    context "minimumLevel未満の場合" $ do
-      it "Sinkを呼ばず成功する" $ do
-        pendingWith "未実装"
+    context "とりあえずなんかテスト" $ do
+      it "EventIdのテスト" $ do
+        [logEvent] <- test :: IO [LogEvent]
+        let (EventId actualId) = logEvent.eventId
+        actualId `shouldBe` fixedUuid2

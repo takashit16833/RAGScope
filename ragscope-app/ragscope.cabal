@@ -47,12 +47,12 @@ library ragscope-logging
     RAGScope.Logging
     RAGScope.Logging.EventSpec
     RAGScope.Logging.Setup
+    RAGScope.Logging.Testing
 
   other-modules:
     RAGScope.Logging.Backend.AesonStderr
     RAGScope.Logging.Core
     RAGScope.Logging.Runtime
-    RAGScope.Logging.Testing
 
   hs-source-dirs:
     logging-src
@@ -140,3 +140,5 @@ test-suite ragscope-test
     hspec ^>=2.11.16,
     ragscope,
     ragscope:ragscope-logging,
+  default-extensions:
+    OverloadedRecordDot
