@@ -52,6 +52,7 @@ library ragscope-logging
     RAGScope.Logging.Backend.AesonStderr
     RAGScope.Logging.Core
     RAGScope.Logging.Runtime
+    RAGScope.Logging.Testing
 
   hs-source-dirs:
     logging-src
@@ -122,7 +123,9 @@ test-suite ragscope-test
   -- Base language which the package is written in.
   default-language: GHC2021
   -- Modules included in this executable, other than Main.
-  -- other-modules:
+  other-modules:
+    RAGScope.Logging.TestingSpec
+
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:
   -- The interface type and version of the test suite.
@@ -134,5 +137,6 @@ test-suite ragscope-test
   -- Test dependencies.
   build-depends:
     base ^>=4.21.2.0,
+    hspec ^>=2.11.16,
     ragscope,
     ragscope:ragscope-logging,
