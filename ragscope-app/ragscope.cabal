@@ -40,17 +40,53 @@ extra-doc-files: CHANGELOG.md
 common warnings
   ghc-options: -Wall
 
+library ragscope-logging
+  import: warnings
+  visibility: private
+  exposed-modules:
+    RAGScope.Logging
+    RAGScope.Logging.EventSpec
+    RAGScope.Logging.Setup
+
+  other-modules:
+    RAGScope.Logging.Core
+    RAGScope.Logging.Runtime
+
+  hs-source-dirs:
+    logging-src
+
+  build-depends:
+    base ^>=4.21.2.0,
+    containers ^>=0.8,
+    scientific ^>=0.3.8.1,
+    text ^>=2.1.4,
+    time ^>=1.16.0.1,
+    uuid-types ^>=1.0.6.1,
+
+  default-language: GHC2021
+  default-extensions:
+    DuplicateRecordFields
+    LambdaCase
+    NoFieldSelectors
+    OverloadedRecordDot
+    OverloadedStrings
+
 library
   -- Import common warning flags.
   import: warnings
   -- Modules exported by the library.
   exposed-modules:
+    RAGScope.Error.Types
+
   -- Modules included in this library but not exported.
   -- other-modules:
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:
   -- Other library packages from which modules are imported.
-  build-depends: base ^>=4.21.2.0
+  build-depends:
+    base ^>=4.21.2.0,
+    ragscope:ragscope-logging,
+
   -- Directories containing source files.
   hs-source-dirs: src
   -- Base language which the package is written in.
@@ -69,6 +105,7 @@ executable ragscope
   build-depends:
     base ^>=4.21.2.0,
     ragscope,
+    ragscope:ragscope-logging,
 
   -- Directories containing source files.
   hs-source-dirs: app
@@ -94,3 +131,4 @@ test-suite ragscope-test
   build-depends:
     base ^>=4.21.2.0,
     ragscope,
+    ragscope:ragscope-logging,
