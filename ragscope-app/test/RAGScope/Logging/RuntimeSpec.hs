@@ -37,10 +37,9 @@ spec = do
 
         logEvents <- readEvents
         case logEvents of
-          [logEvent] -> do
-            let (EventId actualId) = logEvent.eventId
-            actualId `shouldBe` fixedEvenUuid
-          _ -> do
+          [logEvent] ->
+            logEvent.eventId `shouldBe` EventId fixedEvenUuid
+          _ ->
             expectationFailure $
               "ログイベントが1件であることを期待しましたが、"
                 <> show (length logEvents)
