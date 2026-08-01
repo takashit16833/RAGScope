@@ -124,7 +124,7 @@ test-suite ragscope-test
   default-language: GHC2021
   -- Modules included in this executable, other than Main.
   other-modules:
-    RAGScope.Logging.TestingSpec
+    RAGScope.Logging.RuntimeSpec
 
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:
@@ -140,5 +140,6 @@ test-suite ragscope-test
     hspec ^>=2.11.16,
     ragscope,
     ragscope:ragscope-logging,
+
   default-extensions:
     OverloadedRecordDot

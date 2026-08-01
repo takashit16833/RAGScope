@@ -11,5 +11,5 @@ spec = do
     context "とりあえずなんかテスト" $ do
       it "EventIdのテスト" $ do
         [logEvent] <- test :: IO [LogEvent]
-        let (EventId actualId) = logEvent . eventId
+        let (EventId actualId) = logEvent.eventId
         actualId `shouldBe` fixedUuid2
