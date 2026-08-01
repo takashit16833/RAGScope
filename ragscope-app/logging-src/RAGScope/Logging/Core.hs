@@ -283,6 +283,6 @@ data LogEvent = LogEvent
   }
   deriving (Eq, Show)
 
--- | 機能固有の閉じたイベント型を、共通のEventSpecへ変換する。
+-- | 機能固有の閉じたイベント型を、共通のEventSpecへ変換する
 class ToEventSpec eventType where
   toEventSpec :: eventType -> EventSpec
