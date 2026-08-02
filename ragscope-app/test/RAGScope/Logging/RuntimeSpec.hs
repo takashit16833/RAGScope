@@ -21,16 +21,13 @@ spec = do
   describe "emit" $ do
     context "とりあえずなんかテスト" $ do
       it "EventIdのテスト" $ do
-        (memorySink, readEvents) <- newMemorySink
-
-        let logger =
-              mkLogger
-                Debug
-                RAGScopeApp
-                (ExecutionContext fixedExecutionId)
-                fixedEventIdSource
-                fixedClock
-                memorySink
+        (logger, readEvents) <-
+          newMemoryLogger
+            Debug
+            RAGScopeApp
+            (ExecutionContext fixedExecutionId)
+            fixedEventIdSource
+            fixedClock
 
         result <- emit logger (TestEventType "debug")
         result `shouldBe` Right ()

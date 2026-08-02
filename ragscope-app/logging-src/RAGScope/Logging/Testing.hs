@@ -1,5 +1,4 @@
 module RAGScope.Logging.Testing (
-  mkLogger,
   LogLevel (Debug),
   Component (RAGScopeApp),
   EventContext (ExecutionContext),
@@ -15,7 +14,7 @@ module RAGScope.Logging.Testing (
   OperationName (..),
   EventName (..),
   emptyPayload,
-  newMemorySink,
+  newMemoryLogger,
 ) where
 
 import Data.IORef (modifyIORef', newIORef, readIORef)
@@ -38,6 +37,7 @@ import RAGScope.Logging.Core (
 import RAGScope.Logging.Runtime (
   Clock,
   EventIdSource,
+  Logger,
   Sink,
   emit,
   mkLogger,
@@ -81,3 +81,24 @@ newMemorySink = do
       reverse <$> readIORef eventsRef
 
   pure (sink, readEvents)
+
+newMemoryLogger ::
+  LogLevel ->
+  Component ->
+  EventContext ->
+  EventIdSource ->
+  Clock ->
+  IO (Logger, IO [LogEvent])
+newMemoryLogger minimumLevel component context eventIdSource clock = do
+  (memorySink, readEvents) <- newMemorySink
+
+  let logger =
+        mkLogger
+          minimumLevel
+          component
+          context
+          eventIdSource
+          clock
+          memorySink
+
+  pure (logger, readEvents)
