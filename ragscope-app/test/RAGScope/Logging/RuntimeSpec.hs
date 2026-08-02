@@ -27,9 +27,9 @@ import Test.Hspec (
 spec :: Spec
 spec = do
   describe "emit" $ do
-    context "とりあえずなんかテスト" $ do
-      it "EventIdのテスト" $ do
-        (logger, readEvents) <-
+    context "出力対象のイベントの場合" $ do
+      it "EventIdSourceが返したEventIdをLogEventへ設定する" $ do
+        (logger, readCapturedEvents) <-
           newMemoryLogger
             Debug
             RAGScopeApp
@@ -40,12 +40,12 @@ spec = do
         result <- emit logger TestDebugEvent
         result `shouldBe` Right ()
 
-        logEvents <- readEvents
-        case logEvents of
+        capturedEvents <- readCapturedEvents
+        case capturedEvents of
           [logEvent] ->
             logEvent.eventId `shouldBe` fixedEventId
           _ ->
             expectationFailure $
               "ログイベントが1件であることを期待しましたが、"
-                <> show (length logEvents)
+                <> show (length capturedEvents)
                 <> "件でした"

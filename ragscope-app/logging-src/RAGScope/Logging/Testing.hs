@@ -71,10 +71,10 @@ newMemorySink = do
       modifyIORef' eventsRef (logEvent :)
       pure (Right ())
 
-    readEvents =
+    readCapturedEvents =
       reverse <$> readIORef eventsRef
 
-  pure (sink, readEvents)
+  pure (sink, readCapturedEvents)
 
 newMemoryLogger ::
   LogLevel ->
@@ -84,7 +84,7 @@ newMemoryLogger ::
   Clock ->
   IO (Logger, IO [LogEvent])
 newMemoryLogger minimumLevel component context eventIdSource clock = do
-  (memorySink, readEvents) <- newMemorySink
+  (memorySink, readCapturedEvents) <- newMemorySink
 
   let logger =
         mkLogger
@@ -95,7 +95,7 @@ newMemoryLogger minimumLevel component context eventIdSource clock = do
           clock
           memorySink
 
-  pure (logger, readEvents)
+  pure (logger, readCapturedEvents)
 
 data TestEvent = TestDebugEvent
 
