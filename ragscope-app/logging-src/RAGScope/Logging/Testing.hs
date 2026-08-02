@@ -92,7 +92,7 @@ newMemorySink = do
 
   pure (sink, readCapturedEvents)
 
--- | メモリ出力へ接続したLoggerと記録済みイベントの読み出し処理を構築する
+-- | メモリ出力へ接続したロガーと記録済みイベントの読み出し処理を構築する
 -- イベントの記録と期待値の検査は行わない
 newMemoryLogger ::
   LogLevel ->
