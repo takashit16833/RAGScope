@@ -1,12 +1,12 @@
 -- | 構造化ログ基盤を検査するためのテスト支援API
--- 固定値、メモリ出力、検査用イベントを提供する
+-- 固定値、メモリSink、Runtime検査用イベントを提供する
 module RAGScope.Logging.Testing (
-  -- * 実行処理の入力
+  -- * Runtimeの入力
   LogLevel (Debug),
   Component (RAGScopeApp),
   EventContext (ExecutionContext),
 
-  -- * 記録済みイベントの確認
+  -- * 捕捉したLogEventの確認
   LogEvent (eventId),
 
   -- * 固定値
@@ -15,7 +15,7 @@ module RAGScope.Logging.Testing (
   fixedEventIdSource,
   fixedClock,
 
-  -- * テスト用ロガー
+  -- * テスト用Logger
   newMemoryLogger,
 
   -- * テスト用イベント
@@ -47,19 +47,19 @@ import RAGScope.Logging.Runtime (
   mkLogger,
  )
 
--- | 期待値に使う固定のイベントID
+-- | 期待値に使う固定のEventId
 fixedEventId :: EventId
 fixedEventId =
   EventId $
     UUID.fromWords 0x9abcdef0 0x12345678 0x9abcdef0 0x12345678
 
--- | 実行単位のテストに使う固定の実行ID
+-- | 実行単位のテストに使う固定のExecutionId
 fixedExecutionId :: ExecutionId
 fixedExecutionId =
   ExecutionId $
     UUID.fromWords 0x12345678 0x9abcdef0 0x12345678 0x9abcdef0
 
--- | 固定のイベントIDを供給する処理
+-- | 固定のEventIdを供給する処理
 fixedEventIdSource :: EventIdSource
 fixedEventIdSource =
   pure fixedEventId
@@ -71,11 +71,11 @@ fixedTime =
     (fromGregorian 2026 8 1)
     (secondsToDiffTime (12 * 60 * 60 + 34 * 60 + 56))
 
--- | 固定時刻を供給する処理
+-- | 固定時刻をTimestampとして供給する処理
 fixedClock :: Clock
 fixedClock = pure $ Timestamp fixedTime
 
--- ログイベントを保存し、記録順で読み出せる出力処理を構築する
+-- LogEventを保存し、記録順で読み出せるSinkを構築する
 -- 保存時は先頭へ追加し、読み出し時に反転する
 newMemorySink :: IO (Sink, IO [LogEvent])
 newMemorySink = do
@@ -92,8 +92,8 @@ newMemorySink = do
 
   pure (sink, readCapturedEvents)
 
--- | メモリ出力へ接続したロガーと記録済みイベントの読み出し処理を構築する
--- イベントの記録と期待値の検査は行わない
+-- | メモリSinkへ接続したLoggerと捕捉したLogEventの読み出し処理を構築する
+-- イベントのemitと期待値の検査は行わない
 newMemoryLogger ::
   LogLevel ->
   Component ->
@@ -115,9 +115,9 @@ newMemoryLogger minimumLevel component context eventIdSource clock = do
 
   pure (logger, readCapturedEvents)
 
--- | ログ出力処理のテストに使う閉じたイベント型
+-- | Logging Runtimeのテストに使う閉じたイベント型
 data TestEvent
-  = -- | 付加情報を持たないデバッグ用イベント
+  = -- | Payloadを持たないdebug levelの通常イベント
     TestDebugEvent
 
 instance ToEventSpec TestEvent where
