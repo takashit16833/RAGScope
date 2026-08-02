@@ -1,10 +1,5 @@
--- | 構造化ログ基盤を検査するためのテスト支援API。
---
--- 固定ID・固定時刻、メモリへ完成済みイベントを保存する 'Logger'、
--- Runtime検査用の閉じたイベント型を提供する。
---
--- このモジュールはテスト環境の準備と観測手段だけを担当する。
--- @emit@の呼び出しと期待値の検査はtest-suite側へ置く。
+-- | 構造化ログ基盤を検査するためのテスト支援API
+-- 固定値、メモリ出力、Runtime検査用イベントを提供する
 module RAGScope.Logging.Testing (
   -- * Runtimeの入力
   LogLevel (Debug),
@@ -52,43 +47,36 @@ import RAGScope.Logging.Runtime (
   mkLogger,
  )
 
--- | Runtimeテストで期待値として使用する固定のEventId。
---
--- 'fixedEventIdSource'も同じ値を返す。
+-- | Runtimeテストで期待値に使う固定のEventId
 fixedEventId :: EventId
 fixedEventId =
   EventId $
     UUID.fromWords 0x9abcdef0 0x12345678 0x9abcdef0 0x12345678
 
--- | execution scopeのテストで使用する固定のExecutionId。
+-- | execution scopeのテストで使う固定のExecutionId
 fixedExecutionId :: ExecutionId
 fixedExecutionId =
   ExecutionId $
     UUID.fromWords 0x12345678 0x9abcdef0 0x12345678 0x9abcdef0
 
--- | 呼び出すたびに 'fixedEventId' を返すEventIdSource。
---
--- ID生成の非決定性を排除し、完成したLogEventを安定して検査できるようにする。
+-- | 常に 'fixedEventId' を返すEventIdSource
 fixedEventIdSource :: EventIdSource
 fixedEventIdSource =
   pure fixedEventId
 
--- 'fixedClock'が返す固定UTC時刻（2026-08-01 12:34:56 UTC）。
+-- 'fixedClock'が返す固定UTC時刻（2026-08-01 12:34:56 UTC）
 fixedTime :: UTCTime
 fixedTime =
   UTCTime
     (fromGregorian 2026 8 1)
     (secondsToDiffTime (12 * 60 * 60 + 34 * 60 + 56))
 
--- | 呼び出すたびに固定時刻を返すClock。
---
--- 時刻取得の非決定性を排除し、完成したLogEventを安定して検査できるようにする。
+-- | 常に固定時刻を返すClock
 fixedClock :: Clock
 fixedClock = pure $ Timestamp fixedTime
 
--- メモリへLogEventを保存し、emitされた順序で読み出すSinkを構築する。
---
--- 書き込み時はリストの先頭へ追加し、読み出し時に反転してemit順へ戻す。
+-- LogEventを保存し、emit順で読み出せるSinkを構築する
+-- 保存時は先頭へ追加し、読み出し時に反転する
 newMemorySink :: IO (Sink, IO [LogEvent])
 newMemorySink = do
   eventsRef <- newIORef []
@@ -104,10 +92,8 @@ newMemorySink = do
 
   pure (sink, readCapturedEvents)
 
--- | 指定したRuntime設定と依存を使い、メモリSinkへ接続したLoggerを構築する。
---
--- 戻り値の第2要素は、捕捉済みのLogEventをemit順で読み出すIOアクションである。
--- この関数自身はイベントをemitせず、期待値も検査しない。
+-- | メモリSinkへ接続したLoggerと捕捉イベントの読出処理を構築する
+-- イベントのemitと期待値の検査は行わない
 newMemoryLogger ::
   LogLevel ->
   Component ->
@@ -129,9 +115,9 @@ newMemoryLogger minimumLevel component context eventIdSource clock = do
 
   pure (logger, readCapturedEvents)
 
--- | Logging Runtimeのテストで使用する閉じたイベント型。
+-- | Logging Runtimeのテストで使用する閉じたイベント型
 data TestEvent
-  = -- | Payloadを持たないdebug levelの通常イベント。
+  = -- | Payloadを持たないdebug levelの通常イベント
     TestDebugEvent
 
 instance ToEventSpec TestEvent where
