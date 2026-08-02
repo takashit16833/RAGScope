@@ -7,7 +7,7 @@ module RAGScope.Logging.Testing (
   EventContext (ExecutionContext),
 
   -- * 捕捉したLogEventの確認
-  LogEvent (eventId),
+  LogEvent (..),
 
   -- * 固定値
   fixedEventId,
@@ -20,6 +20,7 @@ module RAGScope.Logging.Testing (
 
   -- * テスト用イベント
   TestEvent (TestDebugEvent),
+  testDebugEventSpec,
 ) where
 
 import Data.IORef (modifyIORef', newIORef, readIORef)
@@ -30,8 +31,9 @@ import RAGScope.Logging.Core (
   EventContext (ExecutionContext),
   EventId (EventId),
   EventName (EventName),
+  EventSpec,
   ExecutionId (ExecutionId),
-  LogEvent (eventId),
+  LogEvent (..),
   LogLevel (Debug),
   OperationName (OperationName),
   Timestamp (Timestamp),
@@ -120,9 +122,13 @@ data TestEvent
   = -- | Payloadを持たないdebug levelの通常イベント
     TestDebugEvent
 
+testDebugEventSpec :: EventSpec
+testDebugEventSpec =
+  debugEventSpec
+    (OperationName "test.operation")
+    (EventName "test")
+    emptyPayload
+
 instance ToEventSpec TestEvent where
-  toEventSpec TestDebugEvent =
-    debugEventSpec
-      (OperationName "test.operation")
-      (EventName "test")
-      emptyPayload
+  toEventSpec :: TestEvent -> EventSpec
+  toEventSpec TestDebugEvent = testDebugEventSpec

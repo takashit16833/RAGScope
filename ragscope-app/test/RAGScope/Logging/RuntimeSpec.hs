@@ -7,7 +7,7 @@ import RAGScope.Logging (emit)
 import RAGScope.Logging.Testing (
   Component (RAGScopeApp),
   EventContext (ExecutionContext),
-  LogEvent (eventId),
+  LogEvent (..),
   LogLevel (Debug),
   TestEvent (TestDebugEvent),
   fixedClock,
@@ -15,6 +15,7 @@ import RAGScope.Logging.Testing (
   fixedEventIdSource,
   fixedExecutionId,
   newMemoryLogger,
+  testDebugEventSpec,
  )
 import Test.Hspec (
   Spec,
@@ -46,8 +47,12 @@ spec = do
         -- 捕捉したLogEventのEventIdを検査する
         capturedEvents <- readCapturedEvents
         case capturedEvents of
-          [logEvent] ->
+          [logEvent] -> do
             logEvent.eventId `shouldBe` fixedEventId
+            (logEvent.timestamp `shouldBe`) =<< fixedClock
+            logEvent.component `shouldBe` RAGScopeApp
+            logEvent.context `shouldBe` ExecutionContext fixedExecutionId
+            logEvent.spec `shouldBe` testDebugEventSpec
           _ ->
             expectationFailure $
               "ログイベントが1件であることを期待しましたが、"
