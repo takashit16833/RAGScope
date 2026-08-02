@@ -124,6 +124,7 @@ data TestEvent
   = -- | Payloadを持たないdebug levelの通常イベント
     TestDebugEvent
 
+-- | 'TestDebugEvent'を変換したEventSpec
 testDebugEventSpec :: EventSpec
 testDebugEventSpec =
   debugEventSpec
