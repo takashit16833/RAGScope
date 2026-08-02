@@ -1,2 +1,2 @@
--- | composition rootで構造化ログの実行環境を初期化するFacade
+-- | 構造化ログの実行環境を初期化するAPI
 module RAGScope.Logging.Setup () where
