@@ -18,14 +18,12 @@ import RAGScope.Logging.Core (
   Component (RAGScopeApp),
   EventContext (ExecutionContext),
   EventId (EventId),
+  EventName (EventName),
   ExecutionId (ExecutionId),
   LogEvent (eventId),
   LogLevel (Debug),
-  Timestamp (Timestamp),
- )
-import RAGScope.Logging.EventSpec (
-  EventName (EventName),
   OperationName (OperationName),
+  Timestamp (Timestamp),
   ToEventSpec (toEventSpec),
   debugEventSpec,
   emptyPayload,
