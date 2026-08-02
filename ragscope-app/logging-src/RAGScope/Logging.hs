@@ -1,5 +1,4 @@
--- | 型付きログイベントを記録する通常利用Facade
--- ログ基盤自身の失敗は 'LoggingFailure' として返す
+-- | 型付きログイベントを記録する通常利用API
 module RAGScope.Logging (
   Logger,
   LoggingFailure (..),
