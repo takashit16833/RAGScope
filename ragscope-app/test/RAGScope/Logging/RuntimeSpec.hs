@@ -45,7 +45,7 @@ spec = do
         result <- emit logger TestDebugEvent
         result `shouldBe` Right ()
 
-        -- 捕捉したLogEventのEventIdを検査する
+        -- 捕捉したLogEventの各項目を検査する
         capturedEvents <- readCapturedEvents
         case capturedEvents of
           [logEvent] -> do
