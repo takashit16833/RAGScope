@@ -7,7 +7,7 @@ module RAGScope.Logging.Testing (
   EventContext (ExecutionContext),
 
   -- * 捕捉したLogEventの確認
-  LogEvent (..),
+  LogEvent (schemaVersion, eventId, timestamp, component, context, spec),
 
   -- * 固定値
   fixedEventId,
@@ -20,6 +20,7 @@ module RAGScope.Logging.Testing (
 
   -- * テスト用イベント
   TestEvent (TestDebugEvent),
+  SchemaVersion (SchemaV1),
   testDebugEventSpec,
 ) where
 
@@ -33,9 +34,10 @@ import RAGScope.Logging.Core (
   EventName (EventName),
   EventSpec,
   ExecutionId (ExecutionId),
-  LogEvent (..),
+  LogEvent (component, context, eventId, schemaVersion, spec, timestamp),
   LogLevel (Debug),
   OperationName (OperationName),
+  SchemaVersion (SchemaV1),
   Timestamp (Timestamp),
   ToEventSpec (toEventSpec),
   debugEventSpec,
@@ -67,15 +69,15 @@ fixedEventIdSource =
   pure fixedEventId
 
 -- 固定時刻（2026-08-01 12:34:56 UTC）
-fixedTime :: UTCTime
-fixedTime =
+fixedTimestamp :: UTCTime
+fixedTimestamp =
   UTCTime
     (fromGregorian 2026 8 1)
     (secondsToDiffTime (12 * 60 * 60 + 34 * 60 + 56))
 
 -- | 固定時刻をTimestampとして供給する処理
 fixedClock :: Clock
-fixedClock = pure $ Timestamp fixedTime
+fixedClock = pure $ Timestamp fixedTimestamp
 
 -- LogEventを保存し、記録順で読み出せるSinkを構築する
 -- 保存時は先頭へ追加し、読み出し時に反転する

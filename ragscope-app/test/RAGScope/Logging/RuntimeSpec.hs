@@ -9,6 +9,7 @@ import RAGScope.Logging.Testing (
   EventContext (ExecutionContext),
   LogEvent (..),
   LogLevel (Debug),
+  SchemaVersion (SchemaV1),
   TestEvent (TestDebugEvent),
   fixedClock,
   fixedEventId,
@@ -30,7 +31,7 @@ spec :: Spec
 spec = do
   describe "emit" $ do
     context "出力対象のイベントの場合" $ do
-      it "EventIdSourceが返したEventIdをLogEventへ設定する" $ do
+      it "共通情報とEventSpecからLogEventを組み立てる" $ do
         -- メモリSinkへ接続したLoggerと読み出し処理を準備する
         (logger, readCapturedEvents) <-
           newMemoryLogger
@@ -48,6 +49,7 @@ spec = do
         capturedEvents <- readCapturedEvents
         case capturedEvents of
           [logEvent] -> do
+            logEvent.schemaVersion `shouldBe` SchemaV1
             logEvent.eventId `shouldBe` fixedEventId
             (logEvent.timestamp `shouldBe`) =<< fixedClock
             logEvent.component `shouldBe` RAGScopeApp
