@@ -2,12 +2,13 @@ module RAGScope.Logging.Testing (
   LogLevel (Debug),
   Component (RAGScopeApp),
   EventContext (ExecutionContext),
-  LogEvent (..),
+  LogEvent (eventId),
   fixedClock,
   fixedEventIdSource,
   fixedExecutionId,
   fixedEventId,
   newMemoryLogger,
+  TestEvent (TestDebugEvent),
 ) where
 
 import Data.IORef (modifyIORef', newIORef, readIORef)
@@ -21,6 +22,13 @@ import RAGScope.Logging.Core (
   LogEvent (eventId),
   LogLevel (Debug),
   Timestamp (Timestamp),
+ )
+import RAGScope.Logging.EventSpec (
+  EventName (EventName),
+  OperationName (OperationName),
+  ToEventSpec (toEventSpec),
+  debugEventSpec,
+  emptyPayload,
  )
 import RAGScope.Logging.Runtime (
   Clock,
@@ -90,3 +98,12 @@ newMemoryLogger minimumLevel component context eventIdSource clock = do
           memorySink
 
   pure (logger, readEvents)
+
+data TestEvent = TestDebugEvent
+
+instance ToEventSpec TestEvent where
+  toEventSpec TestDebugEvent =
+    debugEventSpec
+      (OperationName "test.operation")
+      (EventName "test")
+      emptyPayload

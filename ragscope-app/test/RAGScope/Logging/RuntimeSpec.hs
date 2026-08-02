@@ -3,18 +3,12 @@ module RAGScope.Logging.RuntimeSpec (
 ) where
 
 import RAGScope.Logging (emit)
-import RAGScope.Logging.EventSpec (
-  EventName (EventName),
-  OperationName (OperationName),
-  ToEventSpec (..),
-  debugEventSpec,
-  emptyPayload,
- )
 import RAGScope.Logging.Testing (
   Component (RAGScopeApp),
   EventContext (ExecutionContext),
   LogEvent (eventId),
   LogLevel (Debug),
+  TestEvent (TestDebugEvent),
   fixedClock,
   fixedEventId,
   fixedEventIdSource,
@@ -30,17 +24,6 @@ import Test.Hspec (
   shouldBe,
  )
 
-newtype TestEventType = TestEventType String
-
-instance ToEventSpec TestEventType where
-  toEventSpec (TestEventType level) =
-    case level of
-      _ ->
-        debugEventSpec
-          (OperationName "operation")
-          (EventName "event")
-          emptyPayload
-
 spec :: Spec
 spec = do
   describe "emit" $ do
@@ -54,7 +37,7 @@ spec = do
             fixedEventIdSource
             fixedClock
 
-        result <- emit logger (TestEventType "debug")
+        result <- emit logger TestDebugEvent
         result `shouldBe` Right ()
 
         logEvents <- readEvents
