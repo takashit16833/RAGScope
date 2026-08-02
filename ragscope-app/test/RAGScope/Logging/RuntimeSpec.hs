@@ -2,8 +2,33 @@ module RAGScope.Logging.RuntimeSpec (
   spec,
 ) where
 
-import RAGScope.Logging.Testing
-import Test.Hspec
+import RAGScope.Logging (emit)
+import RAGScope.Logging.EventSpec (
+  EventName (EventName),
+  OperationName (OperationName),
+  ToEventSpec (..),
+  debugEventSpec,
+  emptyPayload,
+ )
+import RAGScope.Logging.Testing (
+  Component (RAGScopeApp),
+  EventContext (ExecutionContext),
+  LogEvent (eventId),
+  LogLevel (Debug),
+  fixedClock,
+  fixedEventId,
+  fixedEventIdSource,
+  fixedExecutionId,
+  newMemoryLogger,
+ )
+import Test.Hspec (
+  Spec,
+  context,
+  describe,
+  expectationFailure,
+  it,
+  shouldBe,
+ )
 
 newtype TestEventType = TestEventType String
 
@@ -35,7 +60,7 @@ spec = do
         logEvents <- readEvents
         case logEvents of
           [logEvent] ->
-            logEvent.eventId `shouldBe` EventId fixedEvenUuid
+            logEvent.eventId `shouldBe` fixedEventId
           _ ->
             expectationFailure $
               "ログイベントが1件であることを期待しましたが、"

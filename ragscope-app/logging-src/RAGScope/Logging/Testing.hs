@@ -2,18 +2,11 @@ module RAGScope.Logging.Testing (
   LogLevel (Debug),
   Component (RAGScopeApp),
   EventContext (ExecutionContext),
+  LogEvent (..),
   fixedClock,
   fixedEventIdSource,
   fixedExecutionId,
-  emit,
-  LogEvent (..),
-  EventId (EventId),
-  fixedEvenUuid,
-  ToEventSpec (toEventSpec),
-  debugEventSpec,
-  OperationName (..),
-  EventName (..),
-  emptyPayload,
+  fixedEventId,
   newMemoryLogger,
 ) where
 
@@ -24,38 +17,33 @@ import RAGScope.Logging.Core (
   Component (RAGScopeApp),
   EventContext (ExecutionContext),
   EventId (EventId),
-  EventName (EventName),
   ExecutionId (ExecutionId),
-  LogEvent (..),
+  LogEvent (eventId),
   LogLevel (Debug),
-  OperationName (OperationName),
   Timestamp (Timestamp),
-  ToEventSpec (toEventSpec),
-  debugEventSpec,
-  emptyPayload,
  )
 import RAGScope.Logging.Runtime (
   Clock,
   EventIdSource,
   Logger,
   Sink,
-  emit,
   mkLogger,
  )
 
-fixedExecutionUuid :: UUID.UUID
-fixedExecutionUuid = UUID.fromWords 0x12345678 0x9abcdef0 0x12345678 0x9abcdef0
-
-fixedEvenUuid :: UUID.UUID
-fixedEvenUuid = UUID.fromWords 0x9abcdef0 0x12345678 0x9abcdef0 0x12345678
+fixedEventId :: EventId
+fixedEventId =
+  EventId $
+    UUID.fromWords 0x9abcdef0 0x12345678 0x9abcdef0 0x12345678
 
 fixedExecutionId :: ExecutionId
-fixedExecutionId = ExecutionId fixedExecutionUuid
+fixedExecutionId =
+  ExecutionId $
+    UUID.fromWords 0x12345678 0x9abcdef0 0x12345678 0x9abcdef0
 
 -- | 固定のEventIdを供給する処理
 fixedEventIdSource :: EventIdSource
 fixedEventIdSource =
-  pure $ EventId fixedEvenUuid
+  pure fixedEventId
 
 fixedTime :: UTCTime
 fixedTime =
