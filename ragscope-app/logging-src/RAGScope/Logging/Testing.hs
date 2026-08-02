@@ -1,12 +1,12 @@
 -- | 構造化ログ基盤を検査するためのテスト支援API
--- 固定値、メモリ出力、Runtime検査用イベントを提供する
+-- 固定値、メモリ出力、検査用イベントを提供する
 module RAGScope.Logging.Testing (
-  -- * Runtimeの入力
+  -- * 実行処理の入力
   LogLevel (Debug),
   Component (RAGScopeApp),
   EventContext (ExecutionContext),
 
-  -- * 捕捉したイベントの観測
+  -- * 記録済みイベントの確認
   LogEvent (eventId),
 
   -- * 固定値
@@ -15,7 +15,7 @@ module RAGScope.Logging.Testing (
   fixedEventIdSource,
   fixedClock,
 
-  -- * テスト用Logger
+  -- * テスト用ロガー
   newMemoryLogger,
 
   -- * テスト用イベント
@@ -47,35 +47,35 @@ import RAGScope.Logging.Runtime (
   mkLogger,
  )
 
--- | Runtimeテストで期待値に使う固定のEventId
+-- | 期待値に使う固定のイベントID
 fixedEventId :: EventId
 fixedEventId =
   EventId $
     UUID.fromWords 0x9abcdef0 0x12345678 0x9abcdef0 0x12345678
 
--- | execution scopeのテストで使う固定のExecutionId
+-- | 実行単位のテストに使う固定の実行ID
 fixedExecutionId :: ExecutionId
 fixedExecutionId =
   ExecutionId $
     UUID.fromWords 0x12345678 0x9abcdef0 0x12345678 0x9abcdef0
 
--- | 常に 'fixedEventId' を返すEventIdSource
+-- | 固定のイベントIDを供給する処理
 fixedEventIdSource :: EventIdSource
 fixedEventIdSource =
   pure fixedEventId
 
--- 'fixedClock'が返す固定UTC時刻（2026-08-01 12:34:56 UTC）
+-- 固定時刻（2026-08-01 12:34:56 UTC）
 fixedTime :: UTCTime
 fixedTime =
   UTCTime
     (fromGregorian 2026 8 1)
     (secondsToDiffTime (12 * 60 * 60 + 34 * 60 + 56))
 
--- | 常に固定時刻を返すClock
+-- | 固定時刻を供給する処理
 fixedClock :: Clock
 fixedClock = pure $ Timestamp fixedTime
 
--- LogEventを保存し、emit順で読み出せるSinkを構築する
+-- ログイベントを保存し、記録順で読み出せる出力処理を構築する
 -- 保存時は先頭へ追加し、読み出し時に反転する
 newMemorySink :: IO (Sink, IO [LogEvent])
 newMemorySink = do
@@ -92,8 +92,8 @@ newMemorySink = do
 
   pure (sink, readCapturedEvents)
 
--- | メモリSinkへ接続したLoggerと捕捉イベントの読出処理を構築する
--- イベントのemitと期待値の検査は行わない
+-- | メモリ出力へ接続したLoggerと記録済みイベントの読み出し処理を構築する
+-- イベントの記録と期待値の検査は行わない
 newMemoryLogger ::
   LogLevel ->
   Component ->
@@ -115,9 +115,9 @@ newMemoryLogger minimumLevel component context eventIdSource clock = do
 
   pure (logger, readCapturedEvents)
 
--- | Logging Runtimeのテストで使用する閉じたイベント型
+-- | ログ出力処理のテストに使う閉じたイベント型
 data TestEvent
-  = -- | Payloadを持たないdebug levelの通常イベント
+  = -- | 付加情報を持たないデバッグ用イベント
     TestDebugEvent
 
 instance ToEventSpec TestEvent where
