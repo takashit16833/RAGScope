@@ -7,6 +7,7 @@ ARG CABAL_VERSION=3.16.1.0
 ARG HLS_VERSION=2.14.0.0
 ARG CABAL_GILD_VERSION=1.7.0.2
 ARG FOURMOLU_VERSION=0.19.0.1
+ARG DELTA_VERSION=0.19.2
 
 # パイプ途中の失敗もDockerビルドの失敗として扱う。
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -17,13 +18,14 @@ ENV LANG=C.UTF-8 \
 
 USER root
 
-# GHCとHaskellパッケージのビルドに必要なOS依存を導入する。
+# 開発とHaskellパッケージのビルドに必要なOS依存を導入する。
 RUN apt-get update \
     && export DEBIAN_FRONTEND=noninteractive \
     && apt-get install -y --no-install-recommends \
         build-essential \
         ca-certificates \
         curl \
+        fd-find \
         libffi-dev \
         libgmp-dev \
         libncurses-dev \
@@ -31,6 +33,15 @@ RUN apt-get update \
         pkg-config \
         xz-utils \
         zlib1g-dev \
+    && ln -sf /usr/bin/fdfind /usr/local/bin/fd \
+    && architecture="$(dpkg --print-architecture)" \
+    && curl -fsSL \
+        "https://github.com/dandavison/delta/releases/download/${DELTA_VERSION}/git-delta_${DELTA_VERSION}_${architecture}.deb" \
+        -o /tmp/git-delta.deb \
+    && apt-get install -y --no-install-recommends /tmp/git-delta.deb \
+    && fd --version \
+    && delta --version \
+    && rm -f /tmp/git-delta.deb \
     && rm -rf /var/lib/apt/lists/*
 
 USER vscode
