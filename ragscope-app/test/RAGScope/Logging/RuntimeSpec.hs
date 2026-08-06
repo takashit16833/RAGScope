@@ -76,6 +76,6 @@ spec = do
         result <- emit logger TestDebugEvent
         result `shouldBe` Right ()
 
-        -- 捕捉したLogEventの各項目を検査する
+        -- LogEventが捕捉されないことを検査する
         capturedEvents <- readCapturedEvents
         capturedEvents `shouldBe` []
