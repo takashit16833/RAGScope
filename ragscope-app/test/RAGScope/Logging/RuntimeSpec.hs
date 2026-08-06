@@ -61,6 +61,7 @@ spec = do
                 <> show (length capturedEvents)
                 <> "件でした"
 
+    context "最低ログレベル未満のイベントの場合" $ do
       it "最低ログレベル未満を出力しない" $ do
         -- メモリSinkへ接続したLoggerと読み出し処理を準備する
         (logger, readCapturedEvents) <-
@@ -77,4 +78,4 @@ spec = do
 
         -- 捕捉したLogEventの各項目を検査する
         capturedEvents <- readCapturedEvents
-        length capturedEvents `shouldBe` 0
+        capturedEvents `shouldBe` []
