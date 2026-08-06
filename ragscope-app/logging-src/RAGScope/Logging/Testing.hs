@@ -2,7 +2,7 @@
 -- 固定値、メモリSink、Runtime検査用イベントを提供する
 module RAGScope.Logging.Testing (
   -- * Runtimeの入力
-  LogLevel (Debug),
+  LogLevel (Debug, Info),
   Component (RAGScopeApp),
   EventContext (ExecutionContext),
 
@@ -35,7 +35,7 @@ import RAGScope.Logging.Core (
   EventSpec,
   ExecutionId (ExecutionId),
   LogEvent (component, context, eventId, schemaVersion, spec, timestamp),
-  LogLevel (Debug),
+  LogLevel (Debug, Info),
   OperationName (OperationName),
   SchemaVersion (SchemaV1),
   Timestamp (Timestamp),
