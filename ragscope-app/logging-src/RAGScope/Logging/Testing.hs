@@ -69,15 +69,15 @@ fixedEventIdSource =
   pure fixedEventId
 
 -- 固定時刻（2026-08-01 12:34:56 UTC）
-fixedTimestamp :: UTCTime
-fixedTimestamp =
+fixedTime :: UTCTime
+fixedTime =
   UTCTime
     (fromGregorian 2026 8 1)
     (secondsToDiffTime (12 * 60 * 60 + 34 * 60 + 56))
 
 -- | 固定時刻をTimestampとして供給する処理
 fixedClock :: Clock
-fixedClock = pure $ Timestamp fixedTimestamp
+fixedClock = pure $ Timestamp fixedTime
 
 -- LogEventを保存し、記録順で読み出せるSinkを構築する
 -- 保存時は先頭へ追加し、読み出し時に反転する
