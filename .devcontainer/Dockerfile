@@ -31,6 +31,7 @@ RUN apt-get update \
         libncurses-dev \
         libnuma-dev \
         pkg-config \
+        ripgrep \
         xz-utils \
         zlib1g-dev \
     && ln -sf /usr/bin/fdfind /usr/local/bin/fd \
@@ -40,6 +41,7 @@ RUN apt-get update \
         -o /tmp/git-delta.deb \
     && apt-get install -y --no-install-recommends /tmp/git-delta.deb \
     && fd --version \
+    && rg --version \
     && delta --version \
     && rm -f /tmp/git-delta.deb \
     && rm -rf /var/lib/apt/lists/*
