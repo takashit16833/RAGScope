@@ -84,13 +84,13 @@ spec = do
     context "ロガーがエラーを返す場合" $ do
       it "変換済みログの出力に失敗した" $ do
         -- 失敗するSinkへ接続したLoggerを準備する
-        logger <-
-          newFailureLogger
-            Debug
-            RAGScopeApp
-            (ExecutionContext fixedExecutionId)
-            fixedEventIdSource
-            fixedClock
+        let logger =
+              newFailureLogger
+                Debug
+                RAGScopeApp
+                (ExecutionContext fixedExecutionId)
+                fixedEventIdSource
+                fixedClock
 
         -- テスト用イベントをemitする
         result <- emit logger TestDebugEvent

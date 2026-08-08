@@ -98,6 +98,7 @@ newMemorySink = do
 
   pure (sink, readCapturedEvents)
 
+-- 変換済みログの出力に失敗するSinkを構築する
 failureSink :: Sink
 failureSink _ = pure $ Left LoggingSinkFailure
 
@@ -124,24 +125,23 @@ newMemoryLogger minimumLevel component context eventIdSource clock = do
 
   pure (logger, readCapturedEvents)
 
+-- | 失敗するSinkへ接続したLoggerを構築する
+-- イベントのemitと期待値の検査は行わない
 newFailureLogger ::
   LogLevel ->
   Component ->
   EventContext ->
   EventIdSource ->
   Clock ->
-  IO Logger
-newFailureLogger minimumLevel component context eventIdSource clock = do
-  let logger =
-        mkLogger
-          minimumLevel
-          component
-          context
-          eventIdSource
-          clock
-          failureSink
-
-  pure logger
+  Logger
+newFailureLogger minimumLevel component context eventIdSource clock =
+  mkLogger
+    minimumLevel
+    component
+    context
+    eventIdSource
+    clock
+    failureSink
 
 -- | Logging Runtimeのテストに使う閉じたイベント型
 data TestEvent
