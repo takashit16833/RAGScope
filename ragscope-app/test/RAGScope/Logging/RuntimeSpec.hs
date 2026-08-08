@@ -3,7 +3,7 @@ module RAGScope.Logging.RuntimeSpec (
   spec,
 ) where
 
-import RAGScope.Logging (emit)
+import RAGScope.Logging (LoggingFailure (LoggingSinkFailure), emit)
 import RAGScope.Logging.Testing (
   Component (RAGScopeApp),
   EventContext (ExecutionContext),
@@ -15,6 +15,7 @@ import RAGScope.Logging.Testing (
   fixedEventId,
   fixedEventIdSource,
   fixedExecutionId,
+  newFailureLogger,
   newMemoryLogger,
   testDebugEventSpec,
  )
@@ -79,3 +80,18 @@ spec = do
         -- LogEventが捕捉されないことを検査する
         capturedEvents <- readCapturedEvents
         capturedEvents `shouldBe` []
+
+    context "ロガーがエラーを返す場合" $ do
+      it "変換済みログの出力に失敗した" $ do
+        -- メモリSinkへ接続したLoggerと読み出し処理を準備する
+        logger <-
+          newFailureLogger
+            Info
+            RAGScopeApp
+            (ExecutionContext fixedExecutionId)
+            fixedEventIdSource
+            fixedClock
+
+        -- テスト用イベントをemitする
+        result <- emit logger TestDebugEvent
+        result `shouldBe` Left LoggingSinkFailure

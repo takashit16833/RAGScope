@@ -17,6 +17,7 @@ module RAGScope.Logging.Testing (
 
   -- * テスト用Logger
   newMemoryLogger,
+  newFailureLogger,
 
   -- * テスト用イベント
   TestEvent (TestDebugEvent),
@@ -47,6 +48,7 @@ import RAGScope.Logging.Runtime (
   Clock,
   EventIdSource,
   Logger,
+  LoggingFailure (LoggingSinkFailure),
   Sink,
   mkLogger,
  )
@@ -96,6 +98,9 @@ newMemorySink = do
 
   pure (sink, readCapturedEvents)
 
+failureSink :: Sink
+failureSink _ = pure $ Left LoggingSinkFailure
+
 -- | メモリSinkへ接続したLoggerと捕捉したLogEventの読み出し処理を構築する
 -- イベントのemitと期待値の検査は行わない
 newMemoryLogger ::
@@ -118,6 +123,25 @@ newMemoryLogger minimumLevel component context eventIdSource clock = do
           memorySink
 
   pure (logger, readCapturedEvents)
+
+newFailureLogger ::
+  LogLevel ->
+  Component ->
+  EventContext ->
+  EventIdSource ->
+  Clock ->
+  IO Logger
+newFailureLogger minimumLevel component context eventIdSource clock = do
+  let logger =
+        mkLogger
+          minimumLevel
+          component
+          context
+          eventIdSource
+          clock
+          failureSink
+
+  pure logger
 
 -- | Logging Runtimeのテストに使う閉じたイベント型
 data TestEvent
