@@ -14,8 +14,10 @@ note_type: reference
 | Milestone・Epic・Ticketの定義、状態遷移、完了条件 | [RAGScopeプロジェクト管理規約](./rules/RAGScopeプロジェクト管理規約.md) |
 | 文書の配置、責務、参照関係 | [RAGScope文書管理規約](./rules/RAGScope文書管理規約.md) |
 | Frontmatterのプロパティ、型、許容値 | [Obsidianメタデータ規約](./rules/Obsidianメタデータ規約.md) |
+| コードに共通する規約と言語別規約 | [RAGScopeコーディング規約](./rules/RAGScopeコーディング規約.md)・[Haskellコーディング規約](./rules/Haskellコーディング規約.md) |
 | バージョン全体の計画 | [RAGScopeロードマップ](./project-management/ロードマップ.md) |
-| ノートへ挿入する実際の雛形 | [設計書テンプレート](./templates/設計書テンプレート.md)・[ADRテンプレート](./templates/ADRテンプレート.md)・[Milestoneテンプレート](./templates/Milestoneテンプレート.md)・[Epicテンプレート](./templates/Epicテンプレート.md)・[Ticketテンプレート](./templates/Ticketテンプレート.md) |
+| 機能設計書に使用する雛形 | [設計書テンプレートの選択](./templates/設計書テンプレート.md) |
+| ADR・Milestone・Epic・Ticketへ挿入する雛形 | [ADRテンプレート](./templates/ADRテンプレート.md)・[Milestoneテンプレート](./templates/Milestoneテンプレート.md)・[Epicテンプレート](./templates/Epicテンプレート.md)・[Ticketテンプレート](./templates/Ticketテンプレート.md) |
 | Pull Requestへ挿入する実際の雛形 | [Pull Requestテンプレート](../.github/pull_request_template.md) |
 
 > [!important] 正本との分離
@@ -155,18 +157,21 @@ git switch -c feat/RS-0001-read-fixed-markdown
 4. 対応する正本がある場合は更新し、必要な正本がまだない場合だけ新しく作成する。
 5. Ticketの`結果`へ、実装内容、確認方法、既知の制約、関連PRを記入する。
 
+コードの実装とレビューは[RAGScopeコーディング規約](./rules/RAGScopeコーディング規約.md)と、対象言語のコーディング規約に従う。
+
 文書の記載先は[RAGScope文書管理規約](./rules/RAGScope文書管理規約.md)に従う。
 
 ### 6.1 機能設計書を作成・更新する
 
-変更によって完了後も有効な設計情報が生じる場合は、[文書管理規約の`design/`](<./rules/RAGScope文書管理規約.md#4.4 design/>)と[機能設計の粒度と作業記録との分離](<./rules/RAGScope文書管理規約.md#4.5 機能設計の粒度と作業記録との分離>)に従う。
+変更によって完了後も有効な設計情報が生じる場合は、[文書管理規約の`design/`](<./rules/RAGScope文書管理規約.md#4.4 design/>)と[機能設計の種類と構成](<./rules/RAGScope文書管理規約.md#4.5 機能設計の種類と構成>)に従う。
 
 1. 変更が、機能の責務、入出力、処理フロー、コンポーネント間の関係、データ構造、不変条件、エラー処理、境界条件などへ影響するか確認する。
 2. 既存の機能設計書で現在設計を自然に説明できる場合は、その設計書を更新する。
-3. 既存の設計書とは異なる機能・責務を扱う場合だけ、新しい機能設計書を作成する。
-4. 今回だけの作業内容や実施結果はTicketへ残し、機能設計書には現在有効な設計を記載する。
-5. 重要な判断理由がある場合はADR、実測や比較を伴う場合は実験記録（Experiment）を作成または更新する。
-6. 作業上参照する必要がある場合は、Epic・Ticketの`関連文書`から該当文書へリンクする。
+3. 新しい機能設計書が必要な場合は、[設計書テンプレートの選択](./templates/設計書テンプレート.md)で、処理・振る舞い型または構造・契約型の主となるテンプレートを1つ選ぶ。
+4. 既存の設計書とは異なる機能・責務を扱う場合だけ、新しい機能設計書を作成する。
+5. 今回だけの作業内容や実施結果はTicketへ残し、機能設計書には現在有効な設計を記載する。
+6. 重要な判断理由がある場合はADR、実測や比較を伴う場合は実験記録（Experiment）を作成または更新する。
+7. 作業上参照する必要がある場合は、Epic・Ticketの`関連文書`から該当文書へリンクする。
 
 Epic冒頭の初期設計Ticketで作成した設計書も、後続の実装Ticketで具体化した内容に合わせて更新する。初期設計と現在の実装が不一致のまま残らないことを確認する。
 
@@ -219,7 +224,7 @@ git tag v0.0
 git push origin v0.0
 ```
 
-リリース順序は[プロジェクト管理規約の第9.5節](<./rules/RAGScopeプロジェクト管理規約.md#9.5 Git tag・GitHub Release>)を正本とする。
+リリース順序は[プロジェクト管理規約の第9.6節](<./rules/RAGScopeプロジェクト管理規約.md#9.6 Git tag・GitHub Release>)を正本とする。
 
 ## 10. Ticketを移動・中止する
 

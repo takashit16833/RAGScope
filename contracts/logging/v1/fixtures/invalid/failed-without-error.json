@@ -3,7 +3,7 @@
   "event_id": "4d53ecb2-4221-45bf-bfa9-ec25cb553f4d",
   "timestamp": "2026-07-28T10:00:01.456Z",
   "level": "error",
-  "event": "embedding.generate.failed",
+  "event": "failed",
   "component": "ai_service",
   "operation": "embedding.generate",
   "context": {

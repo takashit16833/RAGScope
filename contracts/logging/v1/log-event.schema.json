@@ -26,13 +26,21 @@
       "$ref": "#/$defs/utcTimestamp"
     },
     "level": {
-      "enum": ["debug", "info", "warn", "error"]
+      "enum": [
+        "debug",
+        "info",
+        "warn",
+        "error"
+      ]
     },
     "event": {
       "$ref": "#/$defs/eventName"
     },
     "component": {
-      "enum": ["ragscope_app", "ai_service"]
+      "enum": [
+        "ragscope_app",
+        "ai_service"
+      ]
     },
     "operation": {
       "$ref": "#/$defs/operationName"
@@ -52,13 +60,17 @@
       "if": {
         "properties": {
           "event": {
-            "pattern": "\\.failed$"
+            "const": "failed"
           }
         },
-        "required": ["event"]
+        "required": [
+          "event"
+        ]
       },
       "then": {
-        "required": ["error"],
+        "required": [
+          "error"
+        ],
         "properties": {
           "level": {
             "const": "error"
@@ -67,7 +79,9 @@
       },
       "else": {
         "not": {
-          "required": ["error"]
+          "required": [
+            "error"
+          ]
         }
       }
     }
@@ -89,7 +103,7 @@
     },
     "eventName": {
       "type": "string",
-      "pattern": "^([a-z][a-z0-9_]*\\.){2,}(started|succeeded|failed)$"
+      "pattern": "^[a-z][a-z0-9_]*$"
     },
     "errorCode": {
       "type": "string",
@@ -99,7 +113,10 @@
       "oneOf": [
         {
           "type": "object",
-          "required": ["scope", "execution_id"],
+          "required": [
+            "scope",
+            "execution_id"
+          ],
           "additionalProperties": false,
           "properties": {
             "scope": {
@@ -112,7 +129,9 @@
         },
         {
           "type": "object",
-          "required": ["scope"],
+          "required": [
+            "scope"
+          ],
           "additionalProperties": false,
           "properties": {
             "scope": {
@@ -124,11 +143,22 @@
     },
     "error": {
       "type": "object",
-      "required": ["category", "code", "message"],
+      "required": [
+        "category",
+        "code",
+        "message"
+      ],
       "additionalProperties": false,
       "properties": {
         "category": {
-          "enum": ["input", "resource", "data", "dependency", "timeout", "internal"]
+          "enum": [
+            "input",
+            "resource",
+            "data",
+            "dependency",
+            "timeout",
+            "internal"
+          ]
         },
         "code": {
           "$ref": "#/$defs/errorCode"

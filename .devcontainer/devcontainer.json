@@ -1,0 +1,37 @@
+{
+  "name": "RAGScope",
+  "dockerComposeFile": "../compose.yaml",
+  "service": "workspace",
+  "workspaceFolder": "/workspaces/RAGScope/ragscope-app",
+  "shutdownAction": "stopCompose",
+  "remoteUser": "vscode",
+  "postCreateCommand": "bash /workspaces/RAGScope/.devcontainer/post-create.sh",
+  "postStartCommand": "sudo chmod 666 /run/host-services/ssh-auth.sock",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "haskell.manageHLS": "PATH",
+        "haskell.formattingProvider": "fourmolu",
+        "haskell.cabalFormattingProvider": "cabal-gild",
+        "[haskell]": {
+          "editor.formatOnSave": true
+        },
+        "[cabal]": {
+          "editor.detectIndentation": false,
+          "editor.formatOnSave": true,
+          "editor.insertSpaces": true,
+          "editor.tabSize": 2
+        },
+        "[json][jsonc]": {
+          "editor.defaultFormatter": "vscode.json-language-features",
+          "editor.formatOnSave": true
+        }
+      },
+      "extensions": [
+        "haskell.haskell",
+        "editorconfig.editorconfig",
+        "redhat.vscode-yaml"
+      ]
+    }
+  }
+}

@@ -1,0 +1,30 @@
+services:
+  workspace:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+      args:
+        GHC_VERSION: 9.12.4
+        CABAL_VERSION: 3.16.1.0
+        HLS_VERSION: 2.14.0.0
+        CABAL_GILD_VERSION: 1.7.0.2
+        FOURMOLU_VERSION: 0.19.0.1
+
+    init: true
+    command: sleep infinity
+    working_dir: /workspaces/RAGScope
+
+    environment:
+      SSH_AUTH_SOCK: /run/host-services/ssh-auth.sock
+
+    volumes:
+      - .:/workspaces/RAGScope:cached
+      - cabal-cache:/home/vscode/.cabal
+
+      # MacのSSH Agentをコンテナから利用する
+      - type: bind
+        source: /run/host-services/ssh-auth.sock
+        target: /run/host-services/ssh-auth.sock
+
+volumes:
+  cabal-cache:
