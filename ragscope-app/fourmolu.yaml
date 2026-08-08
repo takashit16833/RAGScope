@@ -1,0 +1,8 @@
+indentation: 2
+column-limit: none
+import-export-style: diff-friendly
+import-grouping: by-scope
+let-style: mixed
+newlines-between-decls: 1
+haddock-style: single-line
+respectful: true
