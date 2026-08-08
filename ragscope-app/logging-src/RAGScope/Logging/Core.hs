@@ -55,7 +55,7 @@ data SchemaVersion
   = SchemaV1
   deriving (Eq, Show)
 
--- \| 1回のCLIコマンドを識別するUUID
+-- | 1回のCLIコマンドを識別するUUID
 newtype ExecutionId
   = ExecutionId UUID
   deriving (Eq, Show)
@@ -78,7 +78,7 @@ data Component
     AIService
   deriving (Eq, Show)
 
--- \| ログイベントが属する実行上の文脈
+-- | ログイベントが属する実行上の文脈
 data EventContext
   = -- | 1回のCLIコマンドに属するログイベント
     ExecutionContext ExecutionId

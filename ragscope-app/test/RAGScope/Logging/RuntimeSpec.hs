@@ -3,6 +3,15 @@ module RAGScope.Logging.RuntimeSpec (
   spec,
 ) where
 
+import Test.Hspec (
+  Spec,
+  context,
+  describe,
+  expectationFailure,
+  it,
+  shouldBe,
+ )
+
 import RAGScope.Logging (LoggingFailure (LoggingSinkFailure), emit)
 import RAGScope.Logging.Testing (
   Component (RAGScopeApp),
@@ -18,14 +27,6 @@ import RAGScope.Logging.Testing (
   newFailureLogger,
   newMemoryLogger,
   testDebugEventSpec,
- )
-import Test.Hspec (
-  Spec,
-  context,
-  describe,
-  expectationFailure,
-  it,
-  shouldBe,
  )
 
 spec :: Spec

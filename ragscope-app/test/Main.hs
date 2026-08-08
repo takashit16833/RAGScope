@@ -1,7 +1,8 @@
 module Main (main) where
 
-import RAGScope.Logging.RuntimeSpec qualified as RuntimeSpec
 import Test.Hspec
+
+import RAGScope.Logging.RuntimeSpec qualified as RuntimeSpec
 
 main :: IO ()
 main =
