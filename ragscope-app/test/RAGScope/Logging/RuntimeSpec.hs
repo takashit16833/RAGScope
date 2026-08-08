@@ -83,10 +83,10 @@ spec = do
 
     context "ロガーがエラーを返す場合" $ do
       it "変換済みログの出力に失敗した" $ do
-        -- メモリSinkへ接続したLoggerと読み出し処理を準備する
+        -- 失敗するSinkへ接続したLoggerを準備する
         logger <-
           newFailureLogger
-            Info
+            Debug
             RAGScopeApp
             (ExecutionContext fixedExecutionId)
             fixedEventIdSource
