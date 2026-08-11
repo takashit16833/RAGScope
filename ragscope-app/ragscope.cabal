@@ -90,7 +90,10 @@ library
   -- Other library packages from which modules are imported.
   build-depends:
     base ^>=4.21.2.0,
+    containers ^>=0.8,
     ragscope:ragscope-logging,
+    scientific ^>=0.3.8.1,
+    text ^>=2.1.4,
 
   -- Directories containing source files.
   hs-source-dirs: src
