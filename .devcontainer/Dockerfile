@@ -8,6 +8,7 @@ ARG HLS_VERSION=2.14.0.0
 ARG CABAL_GILD_VERSION=1.7.0.2
 ARG FOURMOLU_VERSION=0.19.0.1
 ARG DELTA_VERSION=0.19.2
+ARG LAZYGIT_VERSION=0.64.0
 
 # パイプ途中の失敗もDockerビルドの失敗として扱う。
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -40,10 +41,17 @@ RUN apt-get update \
         "https://github.com/dandavison/delta/releases/download/${DELTA_VERSION}/git-delta_${DELTA_VERSION}_${architecture}.deb" \
         -o /tmp/git-delta.deb \
     && apt-get install -y --no-install-recommends /tmp/git-delta.deb \
+    && lazygit_architecture="$(uname -m | sed -e 's/aarch64/arm64/')" \
+    && curl -fsSL \
+        "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_${lazygit_architecture}.tar.gz" \
+        -o /tmp/lazygit.tar.gz \
+    && tar -xzf /tmp/lazygit.tar.gz -C /tmp lazygit \
+    && install /tmp/lazygit -D -t /usr/local/bin/ \
     && fd --version \
     && rg --version \
     && delta --version \
-    && rm -f /tmp/git-delta.deb \
+    && lazygit --version \
+    && rm -f /tmp/git-delta.deb /tmp/lazygit.tar.gz /tmp/lazygit \
     && rm -rf /var/lib/apt/lists/*
 
 USER vscode
