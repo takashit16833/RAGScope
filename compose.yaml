@@ -18,7 +18,9 @@ services:
       SSH_AUTH_SOCK: /run/host-services/ssh-auth.sock
 
     volumes:
-      - .:/workspaces/RAGScope:cached
+      # mainとlinked worktreeを同じ相対配置で参照できるよう、
+      # 現在のworktreeではなく共通の親ディレクトリをマウントする。
+      - ..:/workspaces/RAGScope:cached
       - cabal-cache:/home/vscode/.cabal
 
       # MacのSSH Agentをコンテナから利用する
