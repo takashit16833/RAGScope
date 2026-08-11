@@ -25,9 +25,7 @@ import RAGScope.Logging.Core (
 --
 -- 同じ失敗したログ経路へ再帰的に記録せず、呼び出し元へ返す
 data LoggingFailure
-  = -- | ログイベントのJSON変換に失敗
-    LoggingEncodingFailure
-  | -- | 変換済みログの出力に失敗
+  = -- | 変換済みログの出力に失敗
     LoggingSinkFailure
   deriving (Eq, Show)
 
