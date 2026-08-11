@@ -30,6 +30,7 @@
       "extensions": [
         "haskell.haskell",
         "editorconfig.editorconfig",
+        "TomPollak.lazygit-vscode",
         "redhat.vscode-yaml"
       ]
     }
