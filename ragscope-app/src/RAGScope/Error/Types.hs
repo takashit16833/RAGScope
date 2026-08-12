@@ -69,10 +69,15 @@ type ErrorCause = SomeException
 -- | アプリ共通エラー
 data AppError = AppError
   { category :: ErrorCategory
+  -- ^ エラー分類
   , code :: ErrorCode
+  -- ^ 判定・検索に使用する安定した識別子
   , message :: ErrorMessage
+  -- ^ 利用者へ見せてもよい説明
   , context :: Maybe ErrorContext
+  -- ^ イベント固有情報またはエラー固有の安全な補助情報
   , cause :: Maybe ErrorCause
+  -- ^ 元の技術的な例外
   }
   deriving (Show)
 
