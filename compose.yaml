@@ -14,19 +14,15 @@ services:
     command: sleep infinity
     working_dir: /workspaces/RAGScope
 
-    environment:
-      SSH_AUTH_SOCK: /run/host-services/ssh-auth.sock
-
     volumes:
       # mainとlinked worktreeを同じ相対配置で参照できるよう、
       # 現在のworktreeではなく共通の親ディレクトリをマウントする。
       - ..:/workspaces/RAGScope:cached
-      - cabal-cache:/home/vscode/.cabal
 
-      # MacのSSH Agentをコンテナから利用する
-      - type: bind
-        source: /run/host-services/ssh-auth.sock
-        target: /run/host-services/ssh-auth.sock
+      # MacごとのGit identityはrepository管理せず、read-onlyでコンテナへ渡す。
+      - ${HOME}/.gitconfig.local:/home/vscode/.gitconfig.local:ro
+
+      - cabal-cache:/home/vscode/.cabal
 
 volumes:
   cabal-cache:
