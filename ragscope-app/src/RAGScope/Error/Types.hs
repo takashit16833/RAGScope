@@ -63,7 +63,7 @@ data ErrorValue
     ErrorObject ErrorContext
   deriving (Eq, Show)
 
--- | 元の例外や下位エラー
+-- | 元の技術的な例外
 type ErrorCause = SomeException
 
 -- | アプリ共通エラー
