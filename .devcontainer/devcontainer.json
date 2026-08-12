@@ -2,11 +2,15 @@
   "name": "RAGScope",
   "dockerComposeFile": "../compose.yaml",
   "service": "workspace",
-  "workspaceFolder": "/workspaces/RAGScope/ragscope-app",
+  "workspaceFolder": "/workspaces/RAGScope/${localWorkspaceFolderBasename}/ragscope-app",
   "shutdownAction": "stopCompose",
   "remoteUser": "vscode",
-  "postCreateCommand": "bash /workspaces/RAGScope/.devcontainer/post-create.sh",
-  "postStartCommand": "sudo chmod 666 /run/host-services/ssh-auth.sock",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "2.55.0"
+    }
+  },
+  "postCreateCommand": "bash /workspaces/RAGScope/${localWorkspaceFolderBasename}/.devcontainer/post-create.sh",
   "customizations": {
     "vscode": {
       "settings": {
