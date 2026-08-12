@@ -7,9 +7,12 @@ module RAGScope.Error.Types (
   ErrorContext (..),
   ErrorValue (..),
   ErrorCause,
+  AppError (..),
+  AppResult,
 ) where
 
 import Control.Exception (SomeException)
+import Control.Monad.Trans.Except
 import Data.Map.Strict (Map)
 import Data.Scientific (Scientific)
 import Data.Text (Text)
@@ -39,7 +42,7 @@ newtype ErrorMessage = ErrorMessage Text deriving (Show)
 -- | 調査や判断に使う安全な情報
 newtype FieldName
   = FieldName Text
-  deriving (Eq, Show)
+  deriving (Eq, Show, Ord)
 
 -- | イベント固有情報またはエラー固有の安全な補助情報
 newtype ErrorContext
@@ -49,16 +52,29 @@ newtype ErrorContext
 -- | 構造化ログへ記録可能な、@null@を含まないJSON値
 data ErrorValue
   = -- | JSONの文字列値
-    LogText Text
+    ErrorText Text
   | -- | JSONの数値
-    LogNumber Scientific
+    ErrorNumber Scientific
   | -- | JSONの真偽値
-    LogBool Bool
+    ErrorBool Bool
   | -- | JSONの配列
-    LogArray [ErrorValue]
+    ErrorArray [ErrorValue]
   | -- | JSONのオブジェクト
-    LogObject ErrorContext
+    ErrorObject ErrorContext
   deriving (Eq, Show)
 
 -- | 元の例外や下位エラー
 type ErrorCause = SomeException
+
+-- | アプリ共通エラー
+data AppError = AppError
+  { category :: ErrorCategory
+  , code :: ErrorCode
+  , message :: ErrorMessage
+  , context :: Maybe ErrorContext
+  , cause :: Maybe ErrorCause
+  }
+  deriving (Show)
+
+-- | アプリの実行結果（正常／失敗）
+type AppResult a = ExceptT AppError IO a
