@@ -2,7 +2,7 @@
 -- 固定値、メモリSink、Runtime検査用イベントを提供する
 module RAGScope.Logging.Testing (
   -- * Runtimeの入力
-  LogLevel (Debug, Info),
+  LogLevel (Debug, Info, Warn, Error),
   Component (RAGScopeApp),
   EventContext (ExecutionContext),
   EventId,
@@ -17,6 +17,10 @@ module RAGScope.Logging.Testing (
   -- * 固定値
   fixedEventId,
   fixedExecutionId,
+  fixedOperationName,
+  fixedEventName,
+  fixedErrorCode,
+  fixedSafeMessage,
   fixedEventIdSource,
   fixedClock,
 
@@ -33,17 +37,19 @@ module RAGScope.Logging.Testing (
 import Data.IORef (modifyIORef', newIORef, readIORef)
 import Data.Time (UTCTime (..), fromGregorian, secondsToDiffTime)
 import Data.UUID qualified as UUID
-
+import RAGScope.Logging.Backend.Aeson ()
 import RAGScope.Logging.Core (
   Component (RAGScopeApp),
+  ErrorCode (ErrorCode),
   EventContext (ExecutionContext),
   EventId (EventId),
   EventName (EventName),
   EventSpec,
   ExecutionId (ExecutionId),
   LogEvent (component, context, eventId, schemaVersion, spec, timestamp),
-  LogLevel (Debug, Info),
+  LogLevel (Debug, Error, Info, Warn),
   OperationName (OperationName),
+  SafeMessage (SafeMessage),
   SchemaVersion (SchemaV1),
   Timestamp (Timestamp),
   ToEventSpec (toEventSpec),
@@ -70,6 +76,22 @@ fixedExecutionId :: ExecutionId
 fixedExecutionId =
   ExecutionId $
     UUID.fromWords 0x12345678 0x9abcdef0 0x12345678 0x9abcdef0
+
+-- | JSON変換のテストに使う固定のOperationName
+fixedOperationName :: OperationName
+fixedOperationName = OperationName "test.operation"
+
+-- | JSON変換のテストに使う固定のEventName
+fixedEventName :: EventName
+fixedEventName = EventName "test"
+
+-- | JSON変換のテストに使う固定のErrorCode
+fixedErrorCode :: ErrorCode
+fixedErrorCode = ErrorCode "test.error"
+
+-- | JSON変換のテストに使う固定のSafeMessage
+fixedSafeMessage :: SafeMessage
+fixedSafeMessage = SafeMessage "safe message"
 
 -- | 固定のEventIdを供給する処理
 fixedEventIdSource :: EventIdSource
@@ -158,8 +180,8 @@ data TestEvent
 testDebugEventSpec :: EventSpec
 testDebugEventSpec =
   debugEventSpec
-    (OperationName "test.operation")
-    (EventName "test")
+    fixedOperationName
+    fixedEventName
     emptyPayload
 
 instance ToEventSpec TestEvent where

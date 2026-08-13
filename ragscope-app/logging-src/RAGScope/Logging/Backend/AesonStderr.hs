@@ -24,15 +24,14 @@ import Data.Time (
   utctDayTime,
  )
 import Data.UUID qualified as UUID
-import System.IO (
-  hFlush,
-  stderr,
- )
-
 import RAGScope.Logging.Core
 import RAGScope.Logging.Runtime (
   LoggingFailure (..),
   Sink,
+ )
+import System.IO (
+  hFlush,
+  stderr,
  )
 
 -- | AesonでJSON化したLogEventを、標準エラーへ1行で出力するSink。

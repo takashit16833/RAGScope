@@ -45,6 +45,7 @@ import Data.Scientific (Scientific)
 import Data.Text (Text)
 import Data.Time.Clock (UTCTime)
 import Data.UUID.Types (UUID)
+import GHC.Generics (Generic)
 
 ----------------------------------------------------------
 -- 共通Envelope
@@ -100,7 +101,7 @@ data LogLevel
     Warn
   | -- | 処理種別が失敗した
     Error
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Generic)
 
 -- | 追跡する意味のある処理種別
 newtype OperationName
