@@ -1,8 +1,9 @@
 module Main (main) where
 
+import Test.Hspec (describe, hspec)
+
 import RAGScope.Logging.Backend.JsonSpec qualified as AesonSpec
 import RAGScope.Logging.RuntimeSpec qualified as RuntimeSpec
-import Test.Hspec (describe, hspec)
 
 main :: IO ()
 main =

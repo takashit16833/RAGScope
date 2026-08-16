@@ -51,7 +51,7 @@ library ragscope-logging
 
   other-modules:
     RAGScope.Logging.Backend.Json
-    RAGScope.Logging.Backend.JsonStderr
+    RAGScope.Logging.Backend.Stderr
     RAGScope.Logging.Core
     RAGScope.Logging.Runtime
 

@@ -11,9 +11,9 @@ module RAGScope.Logging.Setup (
 
 import Data.Time (getCurrentTime)
 import Data.UUID.V4 qualified as UUIDv4
-import RAGScope.Logging.Backend.JsonStderr (
-  aesonStderrSink,
- )
+
+import RAGScope.Logging.Backend.Json qualified as Json
+import RAGScope.Logging.Backend.Stderr qualified as Stderr
 import RAGScope.Logging.Core (
   Component (RAGScopeApp),
   EventContext (..),
@@ -24,8 +24,14 @@ import RAGScope.Logging.Core (
  )
 import RAGScope.Logging.Runtime (
   Logger,
+  Sink,
   mkLogger,
  )
+
+-- | JSON化したLogEventを、標準エラーへ1行で出力するSink。
+stderrSink :: Sink
+stderrSink logEvent =
+  Stderr.writeLine (Json.encodeLogEvent logEvent)
 
 -- | Loggerの出力設定。
 newtype LoggingConfig = LoggingConfig
@@ -51,7 +57,7 @@ newExecutionLogger config executionId =
       (ExecutionContext executionId)
       newEventId
       currentTimestamp
-      aesonStderrSink
+      stderrSink
 
 -- | service scopeのLoggerを構築する。
 newServiceLogger ::
@@ -65,7 +71,7 @@ newServiceLogger config =
       ServiceContext
       newEventId
       currentTimestamp
-      aesonStderrSink
+      stderrSink
 
 newEventId :: IO EventId
 newEventId =

@@ -6,6 +6,14 @@ module RAGScope.Logging.Backend.JsonSpec (
 import Data.Aeson (ToJSON (toJSON), Value (Bool, Number, String), eitherDecode, encode, object, (.=))
 import Data.Map.Strict qualified as Map
 import Data.Text (Text)
+import Test.Hspec (
+  Expectation,
+  Spec,
+  describe,
+  it,
+  shouldBe,
+ )
+
 import RAGScope.Logging.Testing (
   Component (AIService, RAGScopeApp),
   EventContext (ExecutionContext, ServiceContext),
@@ -29,13 +37,6 @@ import RAGScope.Logging.Testing (
   fixedSafeMessage,
   fixedTimestamp,
   logError,
- )
-import Test.Hspec (
-  Expectation,
-  Spec,
-  describe,
-  it,
-  shouldBe,
  )
 
 shouldSerializeAs :: (ToJSON a) => a -> Value -> Expectation

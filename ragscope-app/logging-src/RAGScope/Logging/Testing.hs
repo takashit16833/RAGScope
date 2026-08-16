@@ -54,6 +54,7 @@ import Data.IORef (modifyIORef', newIORef, readIORef)
 import Data.Map qualified as Map
 import Data.Time (UTCTime (..), fromGregorian, picosecondsToDiffTime, secondsToDiffTime)
 import Data.UUID qualified as UUID
+
 import RAGScope.Logging.Backend.Json ()
 import RAGScope.Logging.Core (
   Component (AIService, RAGScopeApp),

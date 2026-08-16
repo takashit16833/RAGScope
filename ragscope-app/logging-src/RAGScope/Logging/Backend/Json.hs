@@ -4,7 +4,7 @@
 --
 -- CoreをAeson非依存に保ち、JSON instanceをこのモジュールへ集中させるため
 -- 意図的にorphan instanceとする
-module RAGScope.Logging.Backend.Json () where
+module RAGScope.Logging.Backend.Json (encodeLogEvent) where
 
 import Data.Aeson (
   Encoding,
@@ -15,6 +15,7 @@ import Data.Aeson (
   ToJSONKeyFunction,
   Value (..),
   defaultOptions,
+  encode,
   genericToEncoding,
   genericToJSON,
   object,
@@ -22,8 +23,10 @@ import Data.Aeson (
   (.=),
  )
 import Data.Aeson.Types (toJSONKeyText)
+import Data.ByteString.Lazy qualified as LazyByteString
 import Data.Char (toLower)
 import Data.Text (Text)
+
 import RAGScope.Logging.Core (
   Component (AIService, RAGScopeApp),
   ErrorCode (..),
@@ -242,3 +245,7 @@ instance ToJSON LogEvent where
 
   toEncoding :: LogEvent -> Encoding
   toEncoding = genericToEncoding logEventOptions
+
+-- | productionコードはAesonを直接使用せずこの関数でencodeする
+encodeLogEvent :: LogEvent -> LazyByteString.ByteString
+encodeLogEvent = encode
