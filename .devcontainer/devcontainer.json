@@ -16,6 +16,7 @@
       "settings": {
         "haskell.manageHLS": "PATH",
         "haskell.formattingProvider": "fourmolu",
+        "haskell.plugin.fourmolu.config.external": true,
         "haskell.cabalFormattingProvider": "cabal-gild",
         "[haskell]": {
           "editor.formatOnSave": true
