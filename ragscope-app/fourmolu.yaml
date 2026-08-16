@@ -1,7 +1,13 @@
 indentation: 2
 column-limit: none
 import-export-style: diff-friendly
-import-grouping: by-scope
+import-grouping:
+  - name: dependencies
+    rules:
+      - match: all
+  - name: ragscope
+    rules:
+      - glob: RAGScope.**
 let-style: mixed
 newlines-between-decls: 1
 haddock-style: single-line
