@@ -1,5 +1,5 @@
 -- | LogEventを契約どおりのJSONへ変換し、標準エラーへ1行で出力する。
-module RAGScope.Logging.Backend.AesonStderr (
+module RAGScope.Logging.Backend.JsonStderr (
   aesonStderrSink,
   encodeLogEvent,
 ) where

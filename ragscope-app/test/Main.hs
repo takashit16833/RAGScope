@@ -1,6 +1,6 @@
 module Main (main) where
 
-import RAGScope.Logging.Backend.AesonSpec qualified as AesonSpec
+import RAGScope.Logging.Backend.JsonSpec qualified as AesonSpec
 import RAGScope.Logging.RuntimeSpec qualified as RuntimeSpec
 import Test.Hspec (describe, hspec)
 
@@ -8,4 +8,4 @@ main :: IO ()
 main =
   hspec $ do
     describe "RAGScope.Logging.Runtime" RuntimeSpec.spec
-    describe "RAGScope.Logging.Backend.Aeson" AesonSpec.spec
+    describe "RAGScope.Logging.Backend.Json" AesonSpec.spec

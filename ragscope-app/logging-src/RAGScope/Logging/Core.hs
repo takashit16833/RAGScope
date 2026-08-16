@@ -134,12 +134,12 @@ data LogValue
     LogArray [LogValue]
   | -- | JSONのオブジェクト
     LogObject Payload
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic)
 
 -- | イベント固有情報またはエラー固有の安全な補助情報
 newtype Payload
   = Payload (Map FieldName LogValue)
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic)
 
 -- | 情報を持たない空のPayload
 emptyPayload :: Payload
@@ -226,7 +226,7 @@ data EventSpec = EventSpec
   , errorInfo :: Maybe LogError
   -- ^ 失敗時に記録する安全なエラー情報
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic)
 
 -- | debug levelの通常イベントを構築する
 debugEventSpec :: OperationName -> EventName -> Payload -> EventSpec
@@ -282,7 +282,7 @@ data LogEvent = LogEvent
   , spec :: EventSpec
   -- ^ 機能側で意味が確定したイベント
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic)
 
 -- | 機能固有の閉じたイベント型を、共通のEventSpecへ変換する
 class ToEventSpec eventType where

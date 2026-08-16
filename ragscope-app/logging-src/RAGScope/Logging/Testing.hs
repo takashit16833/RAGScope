@@ -3,8 +3,8 @@
 module RAGScope.Logging.Testing (
   -- * Runtimeの入力
   LogLevel (Debug, Info, Warn, Error),
-  Component (RAGScopeApp),
-  EventContext (ExecutionContext),
+  Component (RAGScopeApp, AIService),
+  EventContext (ExecutionContext, ServiceContext),
   EventId,
   Timestamp,
   ExecutionId,
@@ -17,12 +17,19 @@ module RAGScope.Logging.Testing (
   -- * 固定値
   fixedEventId,
   fixedExecutionId,
+  fixedTimestamp,
+  fixedFractionalTimestamp,
   fixedOperationName,
   fixedEventName,
+  fixedFieldName,
   fixedErrorCode,
   fixedSafeMessage,
   fixedEventIdSource,
   fixedClock,
+  fixedErrorContext,
+  fixedNormalEventSpec,
+  fixedFailedEventSpec,
+  fixedLogEvent,
 
   -- * テスト用Logger
   newMemoryLogger,
@@ -32,29 +39,45 @@ module RAGScope.Logging.Testing (
   TestEvent (TestDebugEvent),
   SchemaVersion (SchemaV1),
   testDebugEventSpec,
+
+  -- * テスト用エラーカテゴリ
+  LogErrorCategory (LogData, LogDependency, LogInput, LogInternal, LogResource, LogTimeout),
+  LogValue (LogArray, LogBool, LogNumber, LogObject, LogText),
+  logError,
+
+  -- * テスト用JSON
+  Payload (Payload),
+  FieldName (FieldName),
 ) where
 
 import Data.IORef (modifyIORef', newIORef, readIORef)
-import Data.Time (UTCTime (..), fromGregorian, secondsToDiffTime)
+import Data.Map qualified as Map
+import Data.Time (UTCTime (..), fromGregorian, picosecondsToDiffTime, secondsToDiffTime)
 import Data.UUID qualified as UUID
-import RAGScope.Logging.Backend.Aeson ()
+import RAGScope.Logging.Backend.Json ()
 import RAGScope.Logging.Core (
-  Component (RAGScopeApp),
+  Component (AIService, RAGScopeApp),
   ErrorCode (ErrorCode),
-  EventContext (ExecutionContext),
+  EventContext (ExecutionContext, ServiceContext),
   EventId (EventId),
   EventName (EventName),
   EventSpec,
   ExecutionId (ExecutionId),
-  LogEvent (component, context, eventId, schemaVersion, spec, timestamp),
+  FieldName (FieldName),
+  LogErrorCategory (LogData, LogDependency, LogInput, LogInternal, LogResource, LogTimeout),
+  LogEvent (LogEvent, component, context, eventId, schemaVersion, spec, timestamp),
   LogLevel (Debug, Error, Info, Warn),
+  LogValue (LogArray, LogBool, LogNumber, LogObject, LogText),
   OperationName (OperationName),
+  Payload (Payload),
   SafeMessage (SafeMessage),
   SchemaVersion (SchemaV1),
   Timestamp (Timestamp),
   ToEventSpec (toEventSpec),
   debugEventSpec,
   emptyPayload,
+  failedEventSpec,
+  logError,
  )
 import RAGScope.Logging.Runtime (
   Clock,
@@ -69,13 +92,32 @@ import RAGScope.Logging.Runtime (
 fixedEventId :: EventId
 fixedEventId =
   EventId $
-    UUID.fromWords 0x9abcdef0 0x12345678 0x9abcdef0 0x12345678
+    UUID.fromWords 0x9abcdef0 0x12344678 0x9abcdef0 0x12345678
 
 -- | 実行単位のテストに使う固定のExecutionId
 fixedExecutionId :: ExecutionId
 fixedExecutionId =
   ExecutionId $
-    UUID.fromWords 0x12345678 0x9abcdef0 0x12345678 0x9abcdef0
+    UUID.fromWords 0x12345678 0x9abc4ef0 0x82345678 0x9abcdef0
+
+-- 固定時刻（2026-08-01 12:34:56 UTC）
+fixedTime :: UTCTime
+fixedTime =
+  UTCTime
+    (fromGregorian 2026 8 1)
+    (secondsToDiffTime (12 * 60 * 60 + 34 * 60 + 56))
+
+-- | JSON変換のテストに使う固定のTimestamp
+fixedTimestamp :: Timestamp
+fixedTimestamp = Timestamp fixedTime
+
+-- | 小数秒を含むJSON変換のテストに使う固定のTimestamp
+fixedFractionalTimestamp :: Timestamp
+fixedFractionalTimestamp =
+  Timestamp $
+    UTCTime
+      (fromGregorian 2026 8 1)
+      (picosecondsToDiffTime ((12 * 60 * 60 + 34 * 60 + 56) * 1000000000000 + 123000000000))
 
 -- | JSON変換のテストに使う固定のOperationName
 fixedOperationName :: OperationName
@@ -84,6 +126,10 @@ fixedOperationName = OperationName "test.operation"
 -- | JSON変換のテストに使う固定のEventName
 fixedEventName :: EventName
 fixedEventName = EventName "test"
+
+-- | JSON変換のテストに使う固定のFieldName
+fixedFieldName :: FieldName
+fixedFieldName = FieldName "test_field"
 
 -- | JSON変換のテストに使う固定のErrorCode
 fixedErrorCode :: ErrorCode
@@ -98,16 +144,44 @@ fixedEventIdSource :: EventIdSource
 fixedEventIdSource =
   pure fixedEventId
 
--- 固定時刻（2026-08-01 12:34:56 UTC）
-fixedTime :: UTCTime
-fixedTime =
-  UTCTime
-    (fromGregorian 2026 8 1)
-    (secondsToDiffTime (12 * 60 * 60 + 34 * 60 + 56))
-
 -- | 固定時刻をTimestampとして供給する処理
 fixedClock :: Clock
-fixedClock = pure $ Timestamp fixedTime
+fixedClock = pure fixedTimestamp
+
+-- | 固定ErrorContextをPayloadとして供給する処理
+fixedErrorContext :: Payload
+fixedErrorContext =
+  Payload $
+    Map.fromList [(FieldName "model_id", LogText "example-embedding-model")]
+
+-- | 通常イベントを供給する処理
+fixedNormalEventSpec :: EventSpec
+fixedNormalEventSpec =
+  debugEventSpec fixedOperationName fixedEventName $
+    Payload $
+      Map.fromList
+        [ (FieldName "byte_count", LogNumber 2048)
+        , (FieldName "duration_ms", LogNumber 12)
+        ]
+
+-- | 失敗イベントを供給する処理
+fixedFailedEventSpec :: EventSpec
+fixedFailedEventSpec =
+  failedEventSpec
+    fixedOperationName
+    (Payload $ Map.fromList [(FieldName "duration_ms", LogNumber 12)])
+    (logError LogInput fixedErrorCode fixedSafeMessage Nothing)
+
+fixedLogEvent :: LogEvent
+fixedLogEvent =
+  LogEvent
+    { schemaVersion = SchemaV1
+    , eventId = fixedEventId
+    , timestamp = fixedTimestamp
+    , component = RAGScopeApp
+    , context = ServiceContext
+    , spec = fixedNormalEventSpec
+    }
 
 -- LogEventを保存し、記録順で読み出せるSinkを構築する
 -- 保存時は先頭へ追加し、読み出し時に反転する

@@ -11,7 +11,7 @@ module RAGScope.Logging.Setup (
 
 import Data.Time (getCurrentTime)
 import Data.UUID.V4 qualified as UUIDv4
-import RAGScope.Logging.Backend.AesonStderr (
+import RAGScope.Logging.Backend.JsonStderr (
   aesonStderrSink,
  )
 import RAGScope.Logging.Core (
