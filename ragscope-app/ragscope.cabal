@@ -59,7 +59,7 @@ library ragscope-logging
     logging-src
 
   build-depends:
-    aeson ^>=2.3.1.0,
+    aeson >=2.2 && <2.3,
     base ^>=4.21.2.0,
     bytestring ^>=0.12.2.0,
     containers ^>=0.8,
@@ -131,6 +131,7 @@ test-suite ragscope-test
   other-modules:
     RAGScope.Logging.Backend.JsonSpec
     RAGScope.Logging.RuntimeSpec
+    RAGScope.Logging.SchemaSpec
 
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:
@@ -142,10 +143,11 @@ test-suite ragscope-test
   main-is: Main.hs
   -- Test dependencies.
   build-depends:
-    aeson ^>=2.3.1.0,
+    aeson >=2.2 && <2.3,
     base ^>=4.21.2.0,
     containers ^>=0.8,
     hspec ^>=2.11.16,
+    jsonschema ^>=0.2.0.1,
     ragscope,
     ragscope:ragscope-logging,
     text ^>=2.1.4,

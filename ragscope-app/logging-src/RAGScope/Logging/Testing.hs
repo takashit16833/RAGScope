@@ -30,6 +30,9 @@ module RAGScope.Logging.Testing (
   fixedNormalEventSpec,
   fixedFailedEventSpec,
   fixedLogEvent,
+  fixedExecutionLogEvent,
+  fixedExecutionFailedLogEvent,
+  fixedPayloadTypesEvent,
 
   -- * テスト用Logger
   newMemoryLogger,
@@ -173,6 +176,7 @@ fixedFailedEventSpec =
     (Payload $ Map.fromList [(FieldName "duration_ms", LogNumber 12)])
     (logError LogInput fixedErrorCode fixedSafeMessage Nothing)
 
+-- | service scopeの通常イベントをテストで使う固定LogEvent
 fixedLogEvent :: LogEvent
 fixedLogEvent =
   LogEvent
@@ -183,6 +187,45 @@ fixedLogEvent =
     , context = ServiceContext
     , spec = fixedNormalEventSpec
     }
+
+-- | execution scopeの通常イベントをテストで使う固定LogEvent
+fixedExecutionLogEvent :: LogEvent
+fixedExecutionLogEvent =
+  fixedLogEvent
+    { context = ExecutionContext fixedExecutionId
+    }
+
+-- | execution scopeの失敗イベントをテストで使う固定LogEvent
+fixedExecutionFailedLogEvent :: LogEvent
+fixedExecutionFailedLogEvent =
+  fixedExecutionLogEvent
+    { spec = fixedFailedEventSpec
+    }
+
+-- | 全てのLogValue型を含むPayloadを使う固定EventSpec
+fixedPayloadTypesEventSpec :: EventSpec
+fixedPayloadTypesEventSpec =
+  debugEventSpec fixedOperationName fixedEventName $
+    Payload $
+      Map.fromList
+        [ (FieldName "text_value", LogText "text")
+        , (FieldName "number_value", LogNumber 42)
+        , (FieldName "bool_value", LogBool True)
+        ,
+          ( FieldName "array_value"
+          , LogArray [LogText "item", LogNumber 1, LogBool False]
+          )
+        ,
+          ( FieldName "object_value"
+          , LogObject $
+              Payload $
+                Map.fromList [(FieldName "nested_value", LogText "nested")]
+          )
+        ]
+
+-- | すべてのLogValue型をSchema検証で使う固定LogEvent
+fixedPayloadTypesEvent :: LogEvent
+fixedPayloadTypesEvent = fixedLogEvent{spec = fixedPayloadTypesEventSpec}
 
 -- LogEventを保存し、記録順で読み出せるSinkを構築する
 -- 保存時は先頭へ追加し、読み出し時に反転する
