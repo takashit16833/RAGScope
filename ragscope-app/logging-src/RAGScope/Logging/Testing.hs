@@ -1,5 +1,5 @@
 -- | 構造化ログ基盤を検査するためのテスト支援API
--- 固定値、メモリSink、Runtime検査用イベントを提供する
+-- 固定値、メモリSink、失敗Sink、Runtime検査用イベントを提供する
 module RAGScope.Logging.Testing (
   -- * Runtimeの入力
   LogLevel (Debug, Info, Warn, Error),
@@ -37,6 +37,7 @@ module RAGScope.Logging.Testing (
   -- * テスト用Logger
   newMemoryLogger,
   newFailureLogger,
+  newCountingFailureLogger,
 
   -- * テスト用イベント
   TestEvent (TestDebugEvent),
@@ -104,7 +105,7 @@ fixedExecutionId =
   ExecutionId $
     UUID.fromWords 0x12345678 0x9abc4ef0 0x82345678 0x9abcdef0
 
--- 固定時刻（2026-08-01 12:34:56 UTC）
+-- JSON変換の期待値に使う固定時刻（2026-08-01 12:34:56 UTC）。
 fixedTime :: UTCTime
 fixedTime =
   UTCTime
@@ -202,7 +203,7 @@ fixedExecutionFailedLogEvent =
     { spec = fixedFailedEventSpec
     }
 
--- | 全てのLogValue型を含むPayloadを使う固定EventSpec
+-- | すべてのLogValue型を含むPayloadを使う固定EventSpec
 fixedPayloadTypesEventSpec :: EventSpec
 fixedPayloadTypesEventSpec =
   debugEventSpec fixedOperationName fixedEventName $
@@ -227,8 +228,7 @@ fixedPayloadTypesEventSpec =
 fixedPayloadTypesEvent :: LogEvent
 fixedPayloadTypesEvent = fixedLogEvent{spec = fixedPayloadTypesEventSpec}
 
--- LogEventを保存し、記録順で読み出せるSinkを構築する
--- 保存時は先頭へ追加し、読み出し時に反転する
+-- LogEventを呼び出し順で捕捉するテスト用Sinkを構築する。
 newMemorySink :: IO (Sink, IO [LogEvent])
 newMemorySink = do
   eventsRef <- newIORef []
@@ -244,12 +244,24 @@ newMemorySink = do
 
   pure (sink, readCapturedEvents)
 
--- 変換済みログの出力に失敗するSinkを構築する
+-- 常にLoggingSinkFailureを返すテスト用Sink。
 failureSink :: Sink
 failureSink _ = pure $ Left LoggingSinkFailure
 
--- | メモリSinkへ接続したLoggerと捕捉したLogEventの読み出し処理を構築する
--- イベントのemitと期待値の検査は行わない
+-- 任意のSinkを、呼び出し回数を計測するSinkへ変換する。
+countingSink :: Sink -> IO (Sink, IO Int)
+countingSink originalSink = do
+  countRef <- newIORef (0 :: Int)
+
+  let
+    sink :: Sink
+    sink logEvent = do
+      modifyIORef' countRef (+ 1)
+      originalSink logEvent
+
+  pure (sink, readIORef countRef)
+
+-- | LogEventをメモリへ捕捉するLoggerと、捕捉結果を記録順で読み出す処理を構築する
 newMemoryLogger ::
   LogLevel ->
   Component ->
@@ -271,8 +283,7 @@ newMemoryLogger minimumLevel component context eventIdSource clock = do
 
   pure (logger, readCapturedEvents)
 
--- | 失敗するSinkへ接続したLoggerを構築する
--- イベントのemitと期待値の検査は行わない
+-- | 常にLoggingSinkFailureを返すSinkへ接続したLoggerを構築する
 newFailureLogger ::
   LogLevel ->
   Component ->
@@ -288,6 +299,28 @@ newFailureLogger minimumLevel component context eventIdSource clock =
     eventIdSource
     clock
     failureSink
+
+-- | 失敗Sinkへの呼び出し回数を計測するLoggerと、回数の読み出し処理を構築する
+newCountingFailureLogger ::
+  LogLevel ->
+  Component ->
+  EventContext ->
+  EventIdSource ->
+  Clock ->
+  IO (Logger, IO Int)
+newCountingFailureLogger minimumLevel component context eventIdSource clock = do
+  (countingFailureSink, readSinkCallCount) <- countingSink failureSink
+
+  let logger =
+        mkLogger
+          minimumLevel
+          component
+          context
+          eventIdSource
+          clock
+          countingFailureSink
+
+  pure (logger, readSinkCallCount)
 
 -- | Logging Runtimeのテストに使う閉じたイベント型
 data TestEvent

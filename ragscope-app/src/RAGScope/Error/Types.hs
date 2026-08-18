@@ -8,11 +8,9 @@ module RAGScope.Error.Types (
   ErrorValue (..),
   ErrorCause,
   AppError (..),
-  AppResult,
 ) where
 
 import Control.Exception (SomeException)
-import Control.Monad.Trans.Except
 import Data.Map.Strict (Map)
 import Data.Scientific (Scientific)
 import Data.Text (Text)
@@ -80,6 +78,3 @@ data AppError = AppError
   -- ^ 元の技術的な例外
   }
   deriving (Show)
-
--- | アプリの実行結果（正常／失敗）
-type AppResult a = ExceptT AppError IO a

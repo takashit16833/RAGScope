@@ -1,12 +1,12 @@
--- | 構造化ログの実行環境を初期化するAPI
+-- | production用の構造化ログ実行環境を組み立てるAPI
 module RAGScope.Logging.Setup (
   Logger,
   ExecutionId,
   LoggingConfig (LoggingConfig, minimumLevel),
   LogLevel (..),
   newExecutionId,
-  newExecutionLogger,
-  newServiceLogger,
+  mkExecutionLogger,
+  mkServiceLogger,
 ) where
 
 import Data.Time (getCurrentTime)
@@ -28,7 +28,7 @@ import RAGScope.Logging.Runtime (
   mkLogger,
  )
 
--- | JSON化したLogEventを、標準エラーへ1行で出力するSink。
+-- | LogEventをJSONへ変換し、標準エラーへ1行で出力するproduction用Sink。
 stderrSink :: Sink
 stderrSink logEvent =
   Stderr.writeLine (Json.encodeLogEvent logEvent)
@@ -44,34 +44,30 @@ newExecutionId :: IO ExecutionId
 newExecutionId =
   ExecutionId <$> UUIDv4.nextRandom
 
--- | execution scopeのLoggerを構築する。
-newExecutionLogger ::
+-- 設定とcontextからproduction用Loggerを純粋に組み立てる。
+-- EventId生成と現在時刻取得は、emit時に実行されるIOアクションとして注入する。
+mkConfiguredLogger ::
   LoggingConfig ->
-  ExecutionId ->
-  IO Logger
-newExecutionLogger config executionId =
-  pure $
-    mkLogger
-      config.minimumLevel
-      RAGScopeApp
-      (ExecutionContext executionId)
-      newEventId
-      currentTimestamp
-      stderrSink
+  EventContext ->
+  Logger
+mkConfiguredLogger config context =
+  mkLogger
+    config.minimumLevel
+    RAGScopeApp
+    context
+    newEventId
+    currentTimestamp
+    stderrSink
+
+-- | execution scopeのLoggerを構築する。
+mkExecutionLogger :: LoggingConfig -> ExecutionId -> Logger
+mkExecutionLogger config executionId =
+  mkConfiguredLogger config (ExecutionContext executionId)
 
 -- | service scopeのLoggerを構築する。
-newServiceLogger ::
-  LoggingConfig ->
-  IO Logger
-newServiceLogger config =
-  pure $
-    mkLogger
-      config.minimumLevel
-      RAGScopeApp
-      ServiceContext
-      newEventId
-      currentTimestamp
-      stderrSink
+mkServiceLogger :: LoggingConfig -> Logger
+mkServiceLogger config =
+  mkConfiguredLogger config ServiceContext
 
 newEventId :: IO EventId
 newEventId =

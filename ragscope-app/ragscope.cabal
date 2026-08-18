@@ -83,6 +83,8 @@ library
   -- Modules exported by the library.
   exposed-modules:
     RAGScope.Error.Types
+    RAGScope.Execution.Observation
+    RAGScope.Execution.Result
 
   -- Modules included in this library but not exported.
   -- other-modules:
@@ -101,6 +103,9 @@ library
   hs-source-dirs: src
   -- Base language which the package is written in.
   default-language: GHC2021
+  default-extensions:
+    OverloadedRecordDot
+    OverloadedStrings
 
 executable ragscope
   -- Import common warning flags.
@@ -129,7 +134,11 @@ test-suite ragscope-test
   default-language: GHC2021
   -- Modules included in this executable, other than Main.
   other-modules:
+    RAGScope.Execution.ObservationSpec
+    RAGScope.Execution.ResultSpec
+    RAGScope.Execution.Testing
     RAGScope.Logging.Backend.JsonSpec
+    RAGScope.Logging.OutputBoundarySpec
     RAGScope.Logging.RuntimeSpec
     RAGScope.Logging.SchemaSpec
 
@@ -145,12 +154,15 @@ test-suite ragscope-test
   build-depends:
     aeson >=2.2 && <2.3,
     base ^>=4.21.2.0,
+    bytestring ^>=0.12.2.0,
     containers ^>=0.8,
     hspec ^>=2.11.16,
     jsonschema ^>=0.2.0.1,
     ragscope,
     ragscope:ragscope-logging,
+    temporary >=1.3 && <1.4,
     text ^>=2.1.4,
+    transformers ^>=0.6.3.0,
 
   default-extensions:
     OverloadedRecordDot
