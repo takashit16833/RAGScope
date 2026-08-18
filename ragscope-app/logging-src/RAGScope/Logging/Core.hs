@@ -45,6 +45,7 @@ import Data.Scientific (Scientific)
 import Data.Text (Text)
 import Data.Time.Clock (UTCTime)
 import Data.UUID.Types (UUID)
+import GHC.Generics (Generic)
 
 ----------------------------------------------------------
 -- 共通Envelope
@@ -100,7 +101,7 @@ data LogLevel
     Warn
   | -- | 処理種別が失敗した
     Error
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Generic)
 
 -- | 追跡する意味のある処理種別
 newtype OperationName
@@ -133,12 +134,12 @@ data LogValue
     LogArray [LogValue]
   | -- | JSONのオブジェクト
     LogObject Payload
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic)
 
 -- | イベント固有情報またはエラー固有の安全な補助情報
 newtype Payload
   = Payload (Map FieldName LogValue)
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic)
 
 -- | 情報を持たない空のPayload
 emptyPayload :: Payload
@@ -225,7 +226,7 @@ data EventSpec = EventSpec
   , errorInfo :: Maybe LogError
   -- ^ 失敗時に記録する安全なエラー情報
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic)
 
 -- | debug levelの通常イベントを構築する
 debugEventSpec :: OperationName -> EventName -> Payload -> EventSpec
@@ -281,7 +282,7 @@ data LogEvent = LogEvent
   , spec :: EventSpec
   -- ^ 機能側で意味が確定したイベント
   }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic)
 
 -- | 機能固有の閉じたイベント型を、共通のEventSpecへ変換する
 class ToEventSpec eventType where
