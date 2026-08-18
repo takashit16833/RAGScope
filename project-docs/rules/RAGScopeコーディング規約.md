@@ -18,12 +18,13 @@ note_type: reference
 | エラー、境界、依存関係の扱い | 第6章 |
 | テストとレビュー | 第7章・第8章 |
 | Haskell固有の規約 | [Haskellコーディング規約](./Haskellコーディング規約.md) |
+| Python固有の規約 | [Pythonコーディング規約](./Pythonコーディング規約.md) |
 
 ## 1. 適用範囲
 
 本規約は、RAGScope正本リポジトリのソースコード、テストコード、補助スクリプトへ適用する。
 
-Haskellには[Haskellコーディング規約](./Haskellコーディング規約.md)を併せて適用する。Pythonなど、別の言語で具体的な実装が始まった場合は、実際に採用したformatter、linter、型検査、テスト構成に基づいて言語別規約を追加する。
+Haskellには[Haskellコーディング規約](./Haskellコーディング規約.md)、Pythonには[Pythonコーディング規約](./Pythonコーディング規約.md)を併せて適用する。今後、別の言語で具体的な実装が始まった場合は、実際に採用したformatter、linter、型検査、テスト構成に基づいて言語別規約を追加する。
 
 ## 2. 基本原則と正本
 

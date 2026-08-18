@@ -1,6 +1,6 @@
 {
-  "name": "RAGScope",
-  "dockerComposeFile": "../compose.yaml",
+  "name": "RAGScope Application",
+  "dockerComposeFile": "../../compose.yaml",
   "service": "workspace",
   "workspaceFolder": "/workspaces/RAGScope/${localWorkspaceFolderBasename}/ragscope-app",
   "shutdownAction": "stopCompose",

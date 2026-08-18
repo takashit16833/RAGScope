@@ -24,5 +24,34 @@ services:
 
       - cabal-cache:/home/vscode/.cabal
 
+  ai-workspace:
+    build:
+      context: .
+      dockerfile: .devcontainer/ai-service/Dockerfile
+      args:
+        UV_VERSION: 0.12.0
+
+    init: true
+    command: sleep infinity
+    working_dir: /workspaces/RAGScope
+
+    environment:
+      UV_CACHE_DIR: /home/vscode/.cache/uv
+      UV_PROJECT_ENVIRONMENT: /home/vscode/.venvs/ragscope-ai-service
+      PYTHONDONTWRITEBYTECODE: "1"
+
+    volumes:
+      # RAGScopeアプリケーションと同じworktree配置を参照する。
+      - ..:/workspaces/RAGScope:cached
+
+      # MacごとのGit identityはrepository管理せず、read-onlyでコンテナへ渡す。
+      - ${HOME}/.gitconfig.local:/home/vscode/.gitconfig.local:ro
+
+      # Python依存と各ツールのキャッシュ、仮想環境をMac側のソースツリーへ作らない。
+      - ai-cache:/home/vscode/.cache
+      - ai-venvs:/home/vscode/.venvs
+
 volumes:
   cabal-cache:
+  ai-cache:
+  ai-venvs:

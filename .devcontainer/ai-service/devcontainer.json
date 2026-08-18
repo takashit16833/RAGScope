@@ -1,0 +1,41 @@
+{
+  "name": "RAGScope AI Service",
+  "dockerComposeFile": "../../compose.yaml",
+  "service": "ai-workspace",
+  "workspaceFolder": "/workspaces/RAGScope/${localWorkspaceFolderBasename}/ai-service",
+  "shutdownAction": "stopCompose",
+  "remoteUser": "vscode",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "2.55.0"
+    }
+  },
+  "postCreateCommand": "bash /workspaces/RAGScope/${localWorkspaceFolderBasename}/.devcontainer/ai-service/post-create.sh",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/home/vscode/.venvs/ragscope-ai-service/bin/python",
+        "ruff.interpreter": [
+          "/home/vscode/.venvs/ragscope-ai-service/bin/python"
+        ],
+        "ruff.nativeServer": "on",
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.formatOnSave": true
+        },
+        "[json][jsonc]": {
+          "editor.defaultFormatter": "vscode.json-language-features",
+          "editor.formatOnSave": true
+        }
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "editorconfig.editorconfig",
+        "TomPollak.lazygit-vscode",
+        "redhat.vscode-yaml"
+      ]
+    }
+  }
+}
