@@ -2,13 +2,15 @@
   "schema_version": 1,
   "event_id": "550e8400e29b41d4a716446655440000",
   "timestamp": "2026-07-28T10:00:00.123Z",
-  "level": "info",
-  "event": "succeeded",
   "component": "ragscope_app",
-  "operation": "document.read",
   "context": {
     "scope": "execution",
     "execution_id": "7d9c35b8-7980-4b20-a86c-7220e67276cc"
   },
-  "payload": {}
+  "spec": {
+    "operation": "document.read",
+    "event": "succeeded",
+    "level": "info",
+    "payload": {}
+  }
 }

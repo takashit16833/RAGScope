@@ -7,12 +7,9 @@
     "schema_version",
     "event_id",
     "timestamp",
-    "level",
-    "event",
     "component",
-    "operation",
     "context",
-    "payload"
+    "spec"
   ],
   "additionalProperties": false,
   "properties": {
@@ -25,67 +22,19 @@
     "timestamp": {
       "$ref": "#/$defs/utcTimestamp"
     },
-    "level": {
-      "enum": [
-        "debug",
-        "info",
-        "warn",
-        "error"
-      ]
-    },
-    "event": {
-      "$ref": "#/$defs/eventName"
-    },
     "component": {
       "enum": [
         "ragscope_app",
         "ai_service"
       ]
     },
-    "operation": {
-      "$ref": "#/$defs/operationName"
-    },
     "context": {
       "$ref": "#/$defs/eventContext"
     },
-    "payload": {
-      "$ref": "#/$defs/nonNullObject"
-    },
-    "error": {
-      "$ref": "#/$defs/error"
+    "spec": {
+      "$ref": "#/$defs/eventSpec"
     }
   },
-  "allOf": [
-    {
-      "if": {
-        "properties": {
-          "event": {
-            "const": "failed"
-          }
-        },
-        "required": [
-          "event"
-        ]
-      },
-      "then": {
-        "required": [
-          "error"
-        ],
-        "properties": {
-          "level": {
-            "const": "error"
-          }
-        }
-      },
-      "else": {
-        "not": {
-          "required": [
-            "error"
-          ]
-        }
-      }
-    }
-  ],
   "$defs": {
     "uuidV4": {
       "type": "string",
@@ -95,7 +44,7 @@
     "utcTimestamp": {
       "type": "string",
       "format": "date-time",
-      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}Z$"
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.[0-9]+)?Z$"
     },
     "operationName": {
       "type": "string",
@@ -136,6 +85,69 @@
           "properties": {
             "scope": {
               "const": "service"
+            }
+          }
+        }
+      ]
+    },
+    "eventSpec": {
+      "type": "object",
+      "required": [
+        "operation",
+        "event",
+        "level",
+        "payload"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "$ref": "#/$defs/operationName"
+        },
+        "event": {
+          "$ref": "#/$defs/eventName"
+        },
+        "level": {
+          "enum": [
+            "debug",
+            "info",
+            "warn",
+            "error"
+          ]
+        },
+        "payload": {
+          "$ref": "#/$defs/nonNullObject"
+        },
+        "error": {
+          "$ref": "#/$defs/error"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "event": {
+                "const": "failed"
+              }
+            },
+            "required": [
+              "event"
+            ]
+          },
+          "then": {
+            "required": [
+              "error"
+            ],
+            "properties": {
+              "level": {
+                "const": "error"
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "required": [
+                "error"
+              ]
             }
           }
         }
