@@ -141,4 +141,5 @@ RS-0014で定義した共通エラー契約と構造化ログを、文書処理�
 
 ### 関連Pull Request
 
-- main向けPull Requestは未作成。`RS-0015/finalize`を親ブランチへ反映した後、`feat/RS-0015-common-error-logging-completion`から作成する。
+- [Pull Request #2](https://github.com/takashit16833/RAGScope/pull/2) — 共通エラー・構造化ログ基盤の初期実装をmainへ統合した。
+- [Pull Request #6](https://github.com/takashit16833/RAGScope/pull/6) — RS-0015の残作業を完成させ、mainへ統合する最終Pull Request。
