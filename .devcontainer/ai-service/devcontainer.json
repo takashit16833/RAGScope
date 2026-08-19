@@ -21,7 +21,11 @@
         "ruff.nativeServer": "on",
         "[python]": {
           "editor.defaultFormatter": "charliermarsh.ruff",
-          "editor.formatOnSave": true
+          "editor.formatOnSave": true,
+          "editor.codeActionsOnSave": {
+            "source.fixAll.ruff": "explicit",
+            "source.organizeImports.ruff": "explicit"
+          }
         },
         "[json][jsonc]": {
           "editor.defaultFormatter": "vscode.json-language-features",
