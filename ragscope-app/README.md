@@ -17,7 +17,7 @@ Dev Container作成後は`post-create.sh`によってCabalの利用者設定を�
 リポジトリルートから実行します。
 
 ```bash
-make format
+make format-app
 ```
 
 FourmoluでHaskellコードを整形します。
@@ -25,7 +25,7 @@ FourmoluでHaskellコードを整形します。
 ### 整形状態の確認
 
 ```bash
-make format-check
+make format-check-app
 ```
 
 ファイルを書き換えず、Fourmoluの整形状態を確認します。
@@ -33,10 +33,10 @@ make format-check
 ### 品質検査
 
 ```bash
-make check
+make check-app
 ```
 
-`make check`では、整形状態の確認、ビルド、テスト、Haddock生成を順に実行します。
+`make check-app`では、整形状態の確認、ビルド、テスト、Haddock生成を順に実行します。
 
 ## Cabalコマンドを個別に実行する
 
