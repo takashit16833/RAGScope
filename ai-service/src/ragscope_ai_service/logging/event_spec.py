@@ -38,3 +38,23 @@ def log_error_from_app_error(error: AppError) -> LogError:
         message=error.message,
         context=error.context,
     )
+
+
+@dataclass(frozen=True)
+class EventSpec:
+    """機能側で意味が確定したログイベント。"""
+
+    operation: str
+    event: str
+    level: LogLevel
+    payload: Payload
+    error: LogError | None = None
+
+    def __post_init__(self) -> None:
+        """失敗イベントとエラー情報の不変条件を検証する。"""
+
+        if self.event == "failed":
+            if self.level is not LogLevel.ERROR or self.error is None:
+                raise ValueError("failedイベントにはERRORレベルとLogErrorが必要です")
+        elif self.error is not None:
+            raise ValueError("failed以外のイベントにはLogErrorを設定できません")
