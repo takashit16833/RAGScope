@@ -121,33 +121,38 @@
           "$ref": "#/$defs/error"
         }
       },
-      "allOf": [
+      "oneOf": [
         {
-          "if": {
-            "properties": {
-              "event": {
+          "properties": {
+            "event": {
+              "not": {
                 "const": "failed"
               }
             },
-            "required": [
-              "event"
-            ]
-          },
-          "then": {
-            "required": [
-              "error"
-            ],
-            "properties": {
-              "level": {
-                "const": "error"
-              }
+            "level": {
+              "enum": [
+                "debug",
+                "info",
+                "warn"
+              ]
             }
           },
-          "else": {
-            "not": {
-              "required": [
-                "error"
-              ]
+          "not": {
+            "required": [
+              "error"
+            ]
+          }
+        },
+        {
+          "required": [
+            "error"
+          ],
+          "properties": {
+            "event": {
+              "const": "failed"
+            },
+            "level": {
+              "const": "error"
             }
           }
         }

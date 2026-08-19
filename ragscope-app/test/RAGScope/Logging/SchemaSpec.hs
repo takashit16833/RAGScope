@@ -54,12 +54,15 @@ spec = do
 
   describe "invalid fixtures" $ do
     itRejectsInvalidFixture "execution-missing-execution-id.json"
+    itRejectsInvalidFixture "failed-non-error-level.json"
     itRejectsInvalidFixture "failed-without-error.json"
     itRejectsInvalidFixture "invalid-error-category.json"
     itRejectsInvalidFixture "invalid-error-code.json"
     itRejectsInvalidFixture "invalid-event-id.json"
     itRejectsInvalidFixture "invalid-timestamp.json"
     itRejectsInvalidFixture "missing-required-field.json"
+    itRejectsInvalidFixture "normal-error-level.json"
+    itRejectsInvalidFixture "normal-with-error.json"
     itRejectsInvalidFixture "null-payload-value.json"
     itRejectsInvalidFixture "service-with-execution-id.json"
     itRejectsInvalidFixture "unexpected-root-field.json"
