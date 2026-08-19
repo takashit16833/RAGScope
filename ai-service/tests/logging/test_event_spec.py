@@ -11,7 +11,7 @@ def test_LogLevelは共通契約の4種類を持つ() -> None:
     assert {level.value for level in LogLevel} == {"debug", "info", "warn", "error"}
 
 
-def test_Payloadはnullを含まないJSON相当値を保持できる() -> None:
+def test_Payloadはnullを含まないログ記録可能な値を保持できる() -> None:
     payload: Payload = {
         "model_id": "example-model",
         "token_count": 123,
