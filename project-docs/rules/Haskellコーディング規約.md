@@ -43,7 +43,7 @@ Fourmoluによる整形結果を正規形とする。手作業で特定のレイ
 
 `FOURMOLU_DISABLE`などで自動整形を無効化するのは、外部生成コードなど、整形すると目的を満たせない場合に限定する。使用する場合は、無効化する理由と最小範囲をコメントで説明する。
 
-整形と検証は、リポジトリルートの`Makefile`を再現可能な入口とする。`make format`で整形し、`make format-check`で差分を発生させずに整形状態を検査する。`make check`は、整形検査、ビルド、テスト、Haddock生成をまとめて実行する。
+整形と検証は、リポジトリルートの`Makefile`を再現可能な入口とする。`make format-app`で整形し、`make format-check-app`で差分を発生させずに整形状態を検査する。`make check-app`は、整形検査、ビルド、テスト、Haddock生成をまとめて実行する。
 
 ### 2.2 warningを放置しない
 
@@ -286,5 +286,5 @@ Haskellモジュールでは、次の場合に行数にかかわらず分割を�
 - トップレベル関数に型シグネチャがある
 - 純粋処理へ不要な`IO`や`IO`を内包する共通結果型を持ち込まず、副作用の境界が分かる
 - 部分関数を避け、失敗を`Maybe`、`Either`、共通エラーなどで表現している
-- `make check`を実行し、Fourmolu、GHC warning、ビルド、テスト、Haddock生成を確認している
+- `make check-app`を実行し、Fourmolu、GHC warning、ビルド、テスト、Haddock生成を確認している
 - Contract、Schema、設計とHaskell実装が矛盾していない
