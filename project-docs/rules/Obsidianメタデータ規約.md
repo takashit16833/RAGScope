@@ -28,7 +28,8 @@ note_type: reference
 次の場所にある、人が管理するMarkdownノートへ適用する。
 
 ```text
-- Vault直下の`RAGScope概要.md`、`RAGScope要求定義.md`、`RAGScope開発運用ガイド.md`
+- Vault直下の`RAGScope概要.md`、`RAGScope要求定義.md`
+- project-management直下の`RAGScopeプロジェクト運用ガイド.md`
 - `rules/`
 - `design/`
 - `adr/`
