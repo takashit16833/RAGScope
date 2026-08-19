@@ -35,7 +35,7 @@ note_type: reference
 
 - 文書の配置・責務・参照関係は[RAGScope文書管理規約](./RAGScope文書管理規約.md)に従う。
 - Frontmatterは[Obsidianメタデータ規約](./Obsidianメタデータ規約.md)に従う。
-- Milestone・Epic・Ticketの作成、Ticketへの着手、Pull Request、リリースなどの具体的な操作は[RAGScope開発運用ガイド](../RAGScope開発運用ガイド.md)に従う。
+- Milestone・Epic・Ticketの作成、Ticketへの着手、Pull Request、リリースなどの具体的な操作は[RAGScopeプロジェクト運用ガイド](../project-management/RAGScopeプロジェクト運用ガイド.md)に従う。
 - 規約間または規約と実装の矛盾を発見した場合は、影響範囲を確認し、解消または明示してから作業を進める。
 
 ## 2. 基本原則
@@ -352,7 +352,7 @@ stateDiagram-v2
 
 見出しの説明文は日本語を基本とし、コード上の識別子や技術用語は必要に応じて原表記を使用する。
 
-具体的な作成操作は[RAGScope開発運用ガイド](../RAGScope開発運用ガイド.md)を参照する。
+具体的な作成操作は[RAGScopeプロジェクト運用ガイド](../project-management/RAGScopeプロジェクト運用ガイド.md)を参照する。
 
 | ノート | 必須となる主な内容 |
 |---|---|
