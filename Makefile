@@ -3,15 +3,15 @@
 APP_DIR := ragscope-app
 AI_DIR := ai-service
 
-.PHONY: format format-check check format-ai format-check-ai check-ai
+.PHONY: format-app format-check-app check-app format-ai format-check-ai check-ai
 
-format:
+format-app:
 	cd "$(APP_DIR)" && find app src logging-src test -type f -name "*.hs" -print0 | xargs -0 -r fourmolu --mode inplace
 
-format-check:
+format-check-app:
 	cd "$(APP_DIR)" && find app src logging-src test -type f -name "*.hs" -print0 | xargs -0 -r fourmolu --mode check
 
-check: format-check
+check-app: format-check-app
 	cd "$(APP_DIR)" && cabal build all
 	cd "$(APP_DIR)" && cabal test all
 	cd "$(APP_DIR)" && cabal haddock all

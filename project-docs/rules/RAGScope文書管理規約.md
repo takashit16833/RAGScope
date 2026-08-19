@@ -29,7 +29,7 @@ note_type: reference
 主な対象は次のとおりとする。ここに列挙されていない文書でも、同じ性質を持つものには本規約を適用する。
 
 - リポジトリルートの`README.md`
-- `project-docs/`直下の概要、要求定義、開発運用ガイド
+- `project-docs/`直下の概要、要求定義
 - `project-docs/rules/`
 - `project-docs/design/`
 - `project-docs/adr/`
@@ -114,12 +114,12 @@ Markdownには、実装やSchemaだけでは分かりにくい責務、意味、
 |---|---|
 | リポジトリルート | `README.md` |
 | `.github/` | Pull RequestなどGitHubが直接利用するテンプレート |
-| `project-docs/`直下 | 概要、要求定義、開発運用ガイド |
+| `project-docs/`直下 | 概要、要求定義 |
 | `project-docs/rules/` | 文書、メタデータ、プロジェクト管理、コードに関する規約 |
 | `project-docs/design/` | システムアーキテクチャと機能別設計書 |
 | `project-docs/adr/` | 重要な設計判断 |
 | `project-docs/experiments/` | 実際に行った検証の記録 |
-| `project-docs/project-management/` | Roadmap、Milestone、Epic、Ticket |
+| `project-docs/project-management/` | プロジェクト運用ガイド、Roadmap、Milestone、Epic、Ticket |
 | `project-docs/templates/` | Obsidianへ挿入する文書の雛形 |
 
 配置では次を守る。
@@ -127,21 +127,22 @@ Markdownには、実装やSchemaだけでは分かりにくい責務、意味、
 - 機能別設計書は、技術要素ではなく設計対象となる機能・責務で分ける。
 - `experiments/`は、最初の実験記録が生じた時点で作成する。
 - Roadmap、Milestone、Epic、Ticketの配置と構成は、RAGScopeプロジェクト管理規約を正本とする。
-- テンプレートと`.github/pull_request_template.md`の具体的な利用手順は、`RAGScope開発運用ガイド.md`へ記載する。
+- テンプレートと`.github/pull_request_template.md`の具体的な利用手順は、`project-management/RAGScopeプロジェクト運用ガイド.md`へ記載する。
 
 ## 4. 文書ごとの責務
 
 ### 4.1 `README.md`
 
-READMEはリポジトリの入口として、次を簡潔に示す。
+READMEはリポジトリ全体の入口として、次を簡潔に示す。
 
-- RAGScopeの短い説明と主な能力
-- 現在利用できる機能と最新リリースの概要
-- 最小限のセットアップ・実行方法
-- 簡略化した構成と代表的な生成結果
-- 詳細文書への導線
+- RAGScopeの短い説明
+- RAGScopeについて知りたい読者を、概要と要求定義へ案内する導線
+- RAGScopeを開発したい読者を、システムアーキテクチャ、コンポーネントREADME、Roadmap、プロジェクト運用ガイド、コーディング規約へ案内する導線
+- リポジトリ内の主要コンポーネントと文書領域の概要
 
-目的、価値、対象範囲は`RAGScope概要.md`を要約し、詳細へリンクする。詳細な要求、設計、Ticket一覧、実験の生データは記載しない。
+目的、価値、対象範囲は`RAGScope概要.md`、詳細な要求は`RAGScope要求定義.md`を正本とし、READMEには必要な要約と導線だけを置く。
+
+コンポーネント固有の開発環境、実行、整形、テスト、品質検査の手順は各コンポーネントのREADMEへ記載し、リポジトリルートのREADMEへ重複させない。
 
 作業中のMilestone名や一時的な`status`を手作業で転記しない。開発予定はRoadmap、現在状態は各ノートのFrontmatterとBases・検索から確認する。
 
@@ -268,19 +269,19 @@ Experimentは、仮説、条件、手順、結果、失敗例、解釈、次の�
 
 一般知識の解説や単なる実装作業の記録は置かない。結果が重要な設計判断につながった場合は、ADRから該当する実験記録へリンクする。
 
-### 4.7 規約、プロジェクト管理、開発運用、テンプレート
+### 4.7 規約、プロジェクト管理、プロジェクト運用ガイド、テンプレート
 
-| 場所・文書 | 責務 |
-|---|---|
-| `rules/` | 文書管理、Obsidianメタデータ、プロジェクト管理、コードに関する判断基準を定義する |
-| `project-management/` | Roadmap、Milestone、Epic、Ticketによる計画と進行記録を管理する |
-| `RAGScope開発運用ガイド.md` | ノート作成、Ticket着手、ブランチ、Pull Request、リリースなどの具体的な操作手順を一元化する |
-| `templates/` | Obsidianへ挿入する設計書、ADR、Milestone、Epic、Ticketの雛形を置く |
-| `.github/pull_request_template.md` | Pull Request作成時に入力・確認する最小限の項目を置く |
+| 場所・文書                                       | 責務                                                     |
+| ------------------------------------------- | ------------------------------------------------------ |
+| `rules/`                                    | 文書管理、Obsidianメタデータ、プロジェクト管理、コードに関する判断基準を定義する           |
+| `project-management/`                       | Roadmap、Milestone、Epic、Ticketによる計画と進行記録を管理する           |
+| `project-management/RAGScopeプロジェクト運用ガイド.md` | ノート作成、Ticket着手、ブランチ、Pull Request、リリースなどの具体的な操作手順を一元化する |
+| `templates/`                                | Obsidianへ挿入する設計書、ADR、Milestone、Epic、Ticketの雛形を置く       |
+| `.github/pull_request_template.md`          | Pull Request作成時に入力・確認する最小限の項目を置く                       |
 
-規約には判断基準を記載し、操作手順は開発運用ガイドへ委ねる。要求や設計の現在内容をプロジェクト管理文書だけに記載しない。
+規約には判断基準を記載し、操作手順はプロジェクト運用ガイドへ委ねる。要求や設計の現在内容をプロジェクト管理文書だけに記載しない。
 
-テンプレートは記載漏れを防ぐ作業支援ファイルであり、実際の設計書、ADR、Milestone、Epic、Ticketとして扱わない。選択基準と使用規則は本規約、実際に挿入する雛形は各テンプレート、具体的な操作方法は開発運用ガイドを正本とする。
+テンプレートは記載漏れを防ぐ作業支援ファイルであり、実際の設計書、ADR、Milestone、Epic、Ticketとして扱わない。選択基準と使用規則は本規約、実際に挿入する雛形は各テンプレート、具体的な操作方法はプロジェクト運用ガイドを正本とする。
 
 Milestone・Epic・Ticketテンプレートの構成は、RAGScopeプロジェクト管理規約を正本とする。
 
