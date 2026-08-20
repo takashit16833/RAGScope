@@ -8,7 +8,24 @@ note_type: design
 >
 > `LogEvent`、`EventSpec`、`EventContext`の意味と共通規則は[構造化ログ設計](./構造化ログ設計.md)を正本とする。正確なPython型と具体的なテストケースはコードとテストを正本とする。
 
-## 1. 機能の出来事をEventSpecにする
+## 1. 全体像
+
+AI推論サービスでは、機能処理が生成したイベントを`EventSpec`へ変換し、ログ記録処理が`EventSpec`から`LogEvent`を作ってSinkへ渡す。
+
+```mermaid
+flowchart LR
+    Feature["機能処理"]
+    FeatureEvent["機能イベント"]
+    Convert["EventSpecへ変換"]
+    EventSpec["EventSpec"]
+    Record["ログ記録処理"]
+    LogEvent["LogEvent"]
+    Sink["Sink"]
+
+    Feature --> FeatureEvent --> Convert --> EventSpec --> Record --> LogEvent --> Sink
+```
+
+## 2. 機能イベントからEventSpecを作る
 
 機能処理がログを記録するときは、まずその機能で定義したイベント値を作る。このイベント値は、その機能で記録する出来事の種類を表す。
 
@@ -37,7 +54,7 @@ flowchart LR
 
 `Payload`と`LogError`には、[構造化ログ設計「4. 情報保護」](<./構造化ログ設計.md#4. 情報保護>)と[エラー設計](../エラー設計.md)で記録を許可された情報だけを渡す。
 
-## 2. EventSpecからLogEventを作ってSinkへ渡す
+## 3. EventSpecからLogEventを作ってSinkへ渡す
 
 ログ記録処理は`EventSpec`を受け取ると、次の順序で処理する。
 
@@ -68,7 +85,7 @@ flowchart TD
 
 Sinkは完成済み`LogEvent`を受け取り、ログ記録の成功または失敗を返す。必須ログを記録する箇所では、機能処理の結果とSink呼び出しの結果を別々に保持し、[構造化ログ設計「5. ログ記録が失敗した場合」](<./構造化ログ設計.md#5. ログ記録が失敗した場合>)に従って外側の実行結果を決める。
 
-## 3. ログ記録処理を構成する
+## 4. ログ記録処理を構成する
 
 ログ記録処理を構成するときに、次を渡す。
 
@@ -87,7 +104,7 @@ Service用では`execution_id`を持たない。1つの共有状態にnullable�
 
 本番用のSinkは標準エラー出力へ接続する。通常の機能結果や応答の出力は構造化ログ基盤では扱わない。
 
-## 4. Pythonでの表現
+## 5. Pythonでの表現
 
 Pythonでは、共通設計の区別を次の形で表現する。
 
