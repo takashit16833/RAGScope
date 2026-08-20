@@ -14,7 +14,7 @@ class ErrorCategory(StrEnum):
     INTERNAL = "internal"
 
 
-# 構造化ログへ記録可能な、nullを含まないJSON相当値。
+# エラーcontextへ保持する、安全性を確認済みの構造化値。
 type ErrorValue = (
     str | int | float | bool | tuple[ErrorValue, ...] | Mapping[str, ErrorValue]
 )

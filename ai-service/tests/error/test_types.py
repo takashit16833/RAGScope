@@ -2,7 +2,7 @@ from ragscope_ai_service.error.types import AppError, ErrorCategory
 
 
 def test_ErrorCategoryの値が共通契約と一致する() -> None:
-    # Enumの外部表現が増減・変更されても、共通エラー契約との差異を検出できるようにする。
+    # categoryの値が増減・変更されても、共通エラー契約との差異を検出できるようにする
     actual_values = {category.value for category in ErrorCategory}
 
     assert actual_values == {

@@ -10,13 +10,12 @@ type LogValue = str | int | float | bool | tuple[LogValue, ...] | Mapping[str, L
 type Payload = Mapping[str, LogValue]
 
 
-class LogLevel(StrEnum):
-    """処理への影響の大きさを表すログレベル"""
+class NormalLogLevel(StrEnum):
+    """通常イベントで指定できるログレベル"""
 
     DEBUG = "debug"
     INFO = "info"
     WARN = "warn"
-    ERROR = "error"
 
 
 @dataclass(frozen=True)
@@ -41,20 +40,27 @@ def log_error_from_app_error(error: AppError) -> LogError:
 
 
 @dataclass(frozen=True)
+class NormalEvent:
+    """通常イベントの名前とログレベル。"""
+
+    event_name: str
+    level: NormalLogLevel
+
+
+@dataclass(frozen=True)
+class FailedEvent:
+    """処理の失敗と安全なエラー情報。"""
+
+    error: LogError
+
+
+type EventKind = NormalEvent | FailedEvent
+
+
+@dataclass(frozen=True)
 class EventSpec:
     """機能側で意味が確定したログイベント。"""
 
     operation: str
-    event: str
-    level: LogLevel
     payload: Payload
-    error: LogError | None = None
-
-    def __post_init__(self) -> None:
-        """失敗イベントとエラー情報の不変条件を検証する。"""
-
-        if self.event == "failed":
-            if self.level is not LogLevel.ERROR or self.error is None:
-                raise ValueError("failedイベントにはERRORレベルとLogErrorが必要です")
-        elif self.error is not None:
-            raise ValueError("failed以外のイベントにはLogErrorを設定できません")
+    event_kind: EventKind
