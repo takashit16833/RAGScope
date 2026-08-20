@@ -6,7 +6,7 @@ note_type: design
 > [!abstract] この文書の役割
 > [構造化ログ設計](./構造化ログ設計.md)で定義した構造化ログの共通の意味を、v1 JSONのどの項目と値として表現するかを定義する。
 >
-> このJSON契約はRAGScopeアプリケーションとAI推論サービスで共通に使用する。正確なJSON項目、型、必須条件、列挙値、文字列形式は[`log-event.schema.json`](../../../contracts/logging/v1/log-event.schema.json)を正本とする。各コンポーネント内部の型、変換処理、出力IOの実装は本設計では定義しない。
+> このJSON契約はRAGScopeアプリケーションとAI推論サービスで共通に使用する。各コンポーネント内部の型、変換処理、出力IOの実装は本設計では定義しない。
 
 ## 1. v1 JSONの全体像
 
@@ -46,6 +46,8 @@ note_type: design
 | 出来事の安全な補助情報 | `spec.payload` |
 | 失敗時の安全なエラー情報 | `spec.error` |
 
+`component`は、RAGScopeアプリケーションを`ragscope_app`、AI推論サービスを`ai_service`として表現する。
+
 具体的な`operation`、通常イベント名、`payload`の内容は各機能設計を正本とする。失敗時に記録できる情報は[エラー設計](../エラー設計.md)と各機能設計に従う。
 
 ## 3. CLI実行との関連付け
@@ -53,8 +55,6 @@ note_type: design
 同じCLI実行に属する構造化ログは、`context.scope`を`execution`とし、`context.execution_id`へ同じCLI実行識別子を記録する。
 
 特定のCLI実行に属さない構造化ログは、`context.scope`を`service`とし、`execution_id`を含めない。
-
-`context`の正確な許可形と`execution_id`の形式はJSON Schemaを正本とする。
 
 ## 4. 通常イベントと失敗イベント
 
@@ -67,23 +67,31 @@ note_type: design
 
 通常イベントでは`failed`を通常イベント名として使用しない。失敗イベントでは、処理が失敗したことを`spec.event = failed`、失敗用ログレベルを`spec.level = error`として表し、安全なエラー情報を`spec.error`へ記録する。
 
-通常イベントと失敗イベントの許可形は相互排他的とし、JSON Schemaで機械的に検証する。
+通常イベントと失敗イベントの許可形は相互排他的とする。
 
-## 5. `payload`、`error`と`null`
+## 5. `payload`と`error`
 
 `spec.payload`には、各機能設計で記録を許可した安全な補助情報をJSON objectとして記録する。補助情報がない場合は空objectを使用する。
 
-通常イベントでは`spec.error`を含めない。失敗イベントの`spec.error`には安全なエラー情報を記録し、エラー固有の補助情報がある場合だけ`spec.error.context`を含める。
+失敗イベントの`spec.error`は、[エラー設計](../エラー設計.md)で構造化ログへの記録を許可した共通エラー情報を次のように表現する。
 
-`spec.payload`と`spec.error.context`の内部では`null`を使用せず、値を記録しない項目は含めない。正確な許可形はJSON Schemaを正本とする。
+| 共通エラーの情報 | v1 JSONでの表現 |
+|---|---|
+| エラー分類 | `spec.error.category` |
+| 安定したエラーコード | `spec.error.code` |
+| 安全なメッセージ | `spec.error.message` |
+| 記録を許可した補助情報 | `spec.error.context` |
+| 内部原因 | JSONへ含めない |
+
+通常イベントでは`spec.error`を含めない。失敗イベントでもエラー固有の補助情報がない場合は`spec.error.context`を含めない。
+
+`spec.payload`と`spec.error.context`の内部では`null`を使用せず、値を記録しない項目は含めない。
 
 ## 6. 各コンポーネントとの責務分担
 
 RAGScopeアプリケーションとAI推論サービスは、それぞれ自身が記録する構造化ログを本設計のv1 JSONへ変換する処理を実装する。
 
 本設計は変換後のJSON表現を共通契約として定義し、変換前の内部型、モジュール構造、変換関数、出力IOの構成は各コンポーネントの設計とコードへ委ねる。内部表現をv1 JSONと同じ構造にすることは要求しない。
-
-JSON契約への適合性は[`log-event.schema.json`](../../../contracts/logging/v1/log-event.schema.json)で検証する。
 
 ## 7. 出力単位
 
