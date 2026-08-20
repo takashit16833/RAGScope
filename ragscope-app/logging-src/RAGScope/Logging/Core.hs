@@ -10,6 +10,7 @@ module RAGScope.Logging.Core (
 
   -- * イベントの意味
   LogLevel (..),
+  NormalLogLevel (..),
   OperationName (..),
   EventName (..),
 
@@ -28,7 +29,9 @@ module RAGScope.Logging.Core (
   logError,
 
   -- * EventSpec
-  EventSpec (operation, event, level, payload, errorInfo),
+  EventKind (..),
+  EventSpec (operation, payload, eventKind),
+  effectiveLogLevel,
   debugEventSpec,
   infoEventSpec,
   warnEventSpec,
@@ -91,17 +94,23 @@ data EventContext
 -- イベントの意味
 ----------------------------------------------------------
 
--- | JSONへ出力する最終的なログレベル
-data LogLevel
+-- | 通常イベントで指定できるログレベル
+data NormalLogLevel
   = -- | 開発・調査時だけ必要な詳しい情報
     Debug
   | -- | 通常の処理進行と結果
     Info
   | -- | 処理は続けられるが注意が必要
     Warn
-  | -- | 処理種別が失敗した
-    Error
-  deriving (Eq, Ord, Show, Generic)
+  deriving (Eq, Ord, Show)
+
+-- | ログイベントの実効レベル
+data LogLevel
+  = -- | 通常イベントから導出した実効レベル
+    NormalLevel NormalLogLevel
+  | -- | 失敗イベントから導出した実効レベル
+    ErrorLevel
+  deriving (Eq, Ord, Show)
 
 -- | 追跡する意味のある処理種別
 newtype OperationName
@@ -122,17 +131,17 @@ newtype FieldName
   = FieldName Text
   deriving (Eq, Ord, Show)
 
--- | 構造化ログへ記録可能な、@null@を含まないJSON値
+-- | Payloadまたはerror contextへ記録できる値
 data LogValue
-  = -- | JSONの文字列値
+  = -- | 文字列値
     LogText Text
-  | -- | JSONの数値
+  | -- | 数値
     LogNumber Scientific
-  | -- | JSONの真偽値
+  | -- | 真偽値
     LogBool Bool
-  | -- | JSONの配列
+  | -- | 値の列
     LogArray [LogValue]
-  | -- | JSONのオブジェクト
+  | -- | 入れ子のPayload
     LogObject Payload
   deriving (Eq, Show, Generic)
 
@@ -181,7 +190,7 @@ newtype SafeMessage
   = SafeMessage Text
   deriving (Eq, Show)
 
--- | 構造化ログの @error@ へ記録する、安全なエラー情報
+-- | 失敗イベントへ記録する、安全なエラー情報
 data LogError = LogError
   { category :: LogErrorCategory
   -- ^ 失敗の大まかな分類
@@ -213,20 +222,24 @@ logError category code message context =
 -- EventSpec
 ----------------------------------------------------------
 
+-- | ログイベントで起きた出来事の種類
+data EventKind
+  = -- | 通常の出来事と、その重要度
+    NormalEvent EventName NormalLogLevel
+  | -- | 処理の失敗と、安全なエラー情報
+    FailedEvent LogError
+  deriving (Eq, Show)
+
 -- | 機能側で意味が確定したログイベント
 data EventSpec = EventSpec
   { operation :: OperationName
   -- ^ 処理種別
-  , event :: EventName
-  -- ^ 処理について起きた出来事
-  , level :: LogLevel
-  -- ^ ログレベル
   , payload :: Payload
   -- ^ イベント固有情報
-  , errorInfo :: Maybe LogError
-  -- ^ 失敗時に記録する安全なエラー情報
+  , eventKind :: EventKind
+  -- ^ 通常の出来事または処理の失敗
   }
-  deriving (Eq, Show, Generic)
+  deriving (Eq, Show)
 
 -- | debug levelの通常イベントを構築する
 debugEventSpec :: OperationName -> EventName -> Payload -> EventSpec
@@ -240,28 +253,29 @@ infoEventSpec = leveledEventSpec Info
 warnEventSpec :: OperationName -> EventName -> Payload -> EventSpec
 warnEventSpec = leveledEventSpec Warn
 
-leveledEventSpec :: LogLevel -> OperationName -> EventName -> Payload -> EventSpec
+leveledEventSpec :: NormalLogLevel -> OperationName -> EventName -> Payload -> EventSpec
 leveledEventSpec level operation event payload =
   EventSpec
     { operation
-    , event
-    , level
     , payload
-    , errorInfo = Nothing
+    , eventKind = NormalEvent event level
     }
 
 -- | 失敗イベントを構築する
---
--- eventをfailed、levelをerrorへ固定し、LogErrorを必須にする
 failedEventSpec :: OperationName -> Payload -> LogError -> EventSpec
 failedEventSpec operation payload logErrorValue =
   EventSpec
     { operation
-    , event = EventName "failed"
-    , level = Error
     , payload
-    , errorInfo = Just logErrorValue
+    , eventKind = FailedEvent logErrorValue
     }
+
+-- | イベントの種類から実効ログレベルを導出する
+effectiveLogLevel :: EventSpec -> LogLevel
+effectiveLogLevel eventSpec =
+  case eventSpec.eventKind of
+    NormalEvent _ level -> NormalLevel level
+    FailedEvent _ -> ErrorLevel
 
 ----------------------------------------------------------
 -- 完成済みイベント

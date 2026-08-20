@@ -2,7 +2,8 @@
 -- 固定値、メモリSink、失敗Sink、Runtime検査用イベントを提供する
 module RAGScope.Logging.Testing (
   -- * Runtimeの入力
-  LogLevel (Debug, Info, Warn, Error),
+  LogLevel (NormalLevel, ErrorLevel),
+  NormalLogLevel (Debug, Info, Warn),
   Component (RAGScopeApp, AIService),
   EventContext (ExecutionContext, ServiceContext),
   EventId,
@@ -71,8 +72,9 @@ import RAGScope.Logging.Core (
   FieldName (FieldName),
   LogErrorCategory (LogData, LogDependency, LogInput, LogInternal, LogResource, LogTimeout),
   LogEvent (LogEvent, component, context, eventId, schemaVersion, spec, timestamp),
-  LogLevel (Debug, Error, Info, Warn),
+  LogLevel (ErrorLevel, NormalLevel),
   LogValue (LogArray, LogBool, LogNumber, LogObject, LogText),
+  NormalLogLevel (Debug, Info, Warn),
   OperationName (OperationName),
   Payload (Payload),
   SafeMessage (SafeMessage),
