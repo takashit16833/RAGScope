@@ -1,8 +1,11 @@
 ---
 note_type: adr
-status: accepted
+status: superseded
 ---
 # ADR-0003 — 構造化ログのJSON構造をログモデルの型構造と整合させる
+
+> [!note] 後続ADR
+> 本判断は[ADR-0004 — 構造化ログの内部イベントモデルを通常イベントと失敗イベントの直和として表現する](<./ADR-0004 構造化ログの内部イベントモデルを通常イベントと失敗イベントの直和として表現する.md>)により置き換えられた。JSON上の`spec`への集約、外部表現をHaskellのconstructor名から独立させること、JSON SchemaをJSON契約の正本とすることはADR-0004で引き継ぐ一方、内部モデルを外部表現と同型にすること自体は設計目標としない。
 
 ## 背景
 
@@ -32,12 +35,13 @@ RS-0015でSchema適合テストを追加する前に、JSON契約も意味上の
 
 - `log-event.schema.json`とvalid / invalid fixtureを新しいJSON構造へ更新する。
 - RAGScopeアプリケーションのJSON変換を、Generic導出と必要最小限の型別変換を中心とした実装へ整理する。
-- `構造化ログ基本設計.md`と`構造化ログ詳細設計.md`を新しい契約と実装方針へ合わせる。
+- 現在設計を[構造化ログ設計](../design/structured-logging/構造化ログ設計.md)、[RAGScopeアプリケーション構造化ログ設計](../design/structured-logging/RAGScopeアプリケーション構造化ログ設計.md)、[構造化ログJSON表現設計](../design/structured-logging/構造化ログJSON表現設計.md)の責務へ分けて管理する。
 - RS-0015のSchema適合テストは、更新後のSchemaとfixtureを対象に実装する。
 
 ## 関連文書
 
 - [ADR-0002 — 共通実行基盤の契約とコンポーネント実装を分離する](<./ADR-0002 共通実行基盤の契約とコンポーネント実装を分離する.md>)
-- [構造化ログ基本設計](../design/構造化ログ基本設計.md)
-- [構造化ログ詳細設計](../design/構造化ログ詳細設計.md)
+- [構造化ログ設計](../design/structured-logging/構造化ログ設計.md)
+- [RAGScopeアプリケーション構造化ログ設計](../design/structured-logging/RAGScopeアプリケーション構造化ログ設計.md)
+- [構造化ログJSON表現設計](../design/structured-logging/構造化ログJSON表現設計.md)
 - [RS-0015 RAGScopeアプリケーションの共通エラー・構造化ログ基盤を実装する](<../project-management/milestones/v0.0/error-logging/RS-0015 RAGScopeアプリケーションの共通エラー・構造化ログ基盤を実装する.md>)

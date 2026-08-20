@@ -8,7 +8,7 @@ module RAGScope.Logging.Backend.Json (encodeLogEvent) where
 
 import Data.Aeson (
   Encoding,
-  Options (constructorTagModifier, fieldLabelModifier, omitNothingFields, sumEncoding),
+  Options (fieldLabelModifier, sumEncoding),
   SumEncoding (UntaggedValue),
   ToJSON (toEncoding),
   ToJSONKey (toJSONKey),
@@ -24,7 +24,6 @@ import Data.Aeson (
  )
 import Data.Aeson.Types (toJSONKeyText)
 import Data.ByteString.Lazy qualified as LazyByteString
-import Data.Char (toLower)
 import Data.Text (Text)
 
 import RAGScope.Logging.Core (
@@ -32,20 +31,30 @@ import RAGScope.Logging.Core (
   ErrorCode (..),
   EventContext (ExecutionContext, ServiceContext),
   EventId (..),
+  EventKind (FailedEvent, NormalEvent),
   EventName (..),
-  EventSpec,
+  EventSpec (eventKind, operation, payload),
   ExecutionId (..),
   FieldName (..),
   LogError (category, code, context, message),
-  LogErrorCategory (LogData, LogDependency, LogInput, LogInternal, LogResource, LogTimeout),
+  LogErrorCategory (
+    LogData,
+    LogDependency,
+    LogInput,
+    LogInternal,
+    LogResource,
+    LogTimeout
+  ),
   LogEvent,
-  LogLevel,
+  LogLevel (ErrorLevel, NormalLevel),
   LogValue,
+  NormalLogLevel (Debug, Info, Warn),
   OperationName (..),
   Payload,
   SafeMessage (..),
   SchemaVersion (SchemaV1),
   Timestamp (..),
+  effectiveLogLevel,
  )
 
 -- Schema v1は外部契約上のnumber 1として表現する。
@@ -56,19 +65,19 @@ instance ToJSON SchemaVersion where
   toEncoding :: SchemaVersion -> Encoding
   toEncoding SchemaV1 = toEncoding (1 :: Int)
 
--- constructor名を小文字化し、外部契約上のログレベル名へ合わせる。
-logLevelOptions :: Options
-logLevelOptions =
-  defaultOptions
-    { constructorTagModifier = map toLower
-    }
+-- 外部契約上のログレベル名を固定する。
+logLevelValue :: LogLevel -> Value
+logLevelValue (NormalLevel Debug) = String "debug"
+logLevelValue (NormalLevel Info) = String "info"
+logLevelValue (NormalLevel Warn) = String "warn"
+logLevelValue ErrorLevel = String "error"
 
 instance ToJSON LogLevel where
   toJSON :: LogLevel -> Value
-  toJSON = genericToJSON logLevelOptions
+  toJSON = logLevelValue
 
   toEncoding :: LogLevel -> Encoding
-  toEncoding = genericToEncoding logLevelOptions
+  toEncoding = toEncoding . logLevelValue
 
 instance ToJSON EventId where
   toJSON :: EventId -> Value
@@ -212,22 +221,31 @@ instance ToJSON LogError where
   toEncoding :: LogError -> Encoding
   toEncoding = toEncoding . logErrorObject
 
--- errorInfoがNothingならnullを出さず、errorキー自体を省略する。
-eventSpecOptions :: Options
-eventSpecOptions =
-  defaultOptions
-    { fieldLabelModifier = \case
-        "errorInfo" -> "error"
-        field -> field
-    , omitNothingFields = True
-    }
+eventSpecValue :: EventSpec -> Value
+eventSpecValue eventSpec =
+  case eventSpec.eventKind of
+    NormalEvent event _ ->
+      object
+        [ "operation" .= eventSpec.operation
+        , "event" .= event
+        , "level" .= effectiveLogLevel eventSpec
+        , "payload" .= eventSpec.payload
+        ]
+    FailedEvent logErrorValue ->
+      object
+        [ "operation" .= eventSpec.operation
+        , "event" .= ("failed" :: Text)
+        , "level" .= effectiveLogLevel eventSpec
+        , "payload" .= eventSpec.payload
+        , "error" .= logErrorValue
+        ]
 
 instance ToJSON EventSpec where
   toJSON :: EventSpec -> Value
-  toJSON = genericToJSON eventSpecOptions
+  toJSON = eventSpecValue
 
   toEncoding :: EventSpec -> Encoding
-  toEncoding = genericToEncoding eventSpecOptions
+  toEncoding = toEncoding . eventSpecValue
 
 -- HaskellのcamelCase field名を外部JSON契約のsnake_caseへ変換する。
 logEventOptions :: Options
