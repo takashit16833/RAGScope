@@ -77,25 +77,11 @@ Sinkは完成済み`LogEvent`を受け取り、ログ記録の成功または失
 - 時計
 - Sink
 
-[`EventContext`](<./構造化ログ設計.md#3. 実行との関連付け>)は、Execution用とService用を別に構成する。Execution用のログ記録処理には`ExecutionContext`、Service用には`ServiceContext`を渡し、実行中にContextの種類を切り替えない。
-
-Execution用では、呼び出し元から受け取った`execution_id`をそのまま保持する。同じCLIコマンドの処理でAI推論サービスが別の`execution_id`を生成しない。Service用では`execution_id`を持たない。
+ログ記録処理には、[構造化ログ設計「3. 実行との関連付け」](<./構造化ログ設計.md#3. 実行との関連付け>)に従って構成した`EventContext`を渡す。Executionに属するログでは、AI推論サービスは呼び出し元から受け取った`execution_id`を使用する。
 
 本番用のSinkは標準エラー出力へ接続する。通常の機能結果や応答の出力は構造化ログ基盤では扱わない。
 
-## 5. Pythonでの表現
-
-Pythonでは、共通設計の区別を次の形で表現する。
-
-| 対象 | Pythonでの表現 |
-|---|---|
-| 通常イベントと失敗イベント | 異なる構造を持つ型をunionでまとめる。失敗イベントへ通常イベント名や通常ログレベルを別入力として持たせない |
-| ExecutionとService | `execution_id`を持つ型と持たない型をunionでまとめる |
-| 機能イベントから`EventSpec`への変換 | 機能ごとの型付き関数で行う |
-| `Envelope` | `LogEvent`の共通情報として表現し、専用のPython型への分割は要求しない |
-| イベント識別子取得処理・時計・Sink | ログ記録処理の構成時に外から渡し、テストでは差し替えられるようにする |
-
-現在の`EventContext`の型は[`context.py`](../../../ai-service/src/ragscope_ai_service/logging/context.py)、`EventSpec`と通常・失敗イベントの型は[`event_spec.py`](../../../ai-service/src/ragscope_ai_service/logging/event_spec.py)を正本とする。具体的な検査内容は[`tests/logging/`](../../../ai-service/tests/logging/)を正本とする。
+正確な`EventContext`の型は[`context.py`](../../../ai-service/src/ragscope_ai_service/logging/context.py)、`EventSpec`と通常・失敗イベントの型は[`event_spec.py`](../../../ai-service/src/ragscope_ai_service/logging/event_spec.py)を正本とする。具体的な検査内容は[`tests/logging/`](../../../ai-service/tests/logging/)を正本とする。
 
 ## 関連文書
 
