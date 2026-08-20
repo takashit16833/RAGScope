@@ -26,21 +26,29 @@ note_type: design
     "operation": "document.load",
     "event": "completed",
     "level": "info",
-    "payload": {}
+    "payload": {
+      "byte_count": 2048,
+      "duration_ms": 12
+    }
   }
 }
 ```
 
-## 2. ルート項目
+この例の`operation`、通常イベント名、`payload`はJSONの形を示すための代表値であり、各機能で使用する具体値は各機能設計を正本とする。
 
-| 項目 | 構造化ログで表す意味 |
+## 2. 共通設計とJSON項目の対応
+
+| [構造化ログ設計](./構造化ログ設計.md)で記録する情報 | v1 JSONでの表現 |
 |---|---|
-| `schema_version` | どの構造化ログ契約に従うか |
-| `event_id` | どの記録か |
-| `timestamp` | いつ記録されたか |
-| `component` | どのコンポーネントで生成されたか |
-| `context` | どの処理に属するか |
-| `spec` | 何の処理で何が起き、どの補助情報または失敗情報を持つか |
+| 契約バージョン | `schema_version` |
+| 構造化ログ1件を識別する情報 | `event_id` |
+| 記録時刻 | `timestamp` |
+| 生成元を識別する情報 | `component` |
+| その処理を識別する情報 | `context` |
+| ログで追跡する処理種別 | `spec.operation` |
+| 通常イベントまたは失敗イベント | `spec.event`、`spec.level` |
+| 各機能で記録を許可した安全な補助情報 | `spec.payload` |
+| 失敗時だけ記録する安全なエラー情報 | `spec.error` |
 
 `context`と`spec`は複数項目の組み合わせに規則があるため、以降でその構造を定義する。
 
@@ -57,15 +65,7 @@ note_type: design
 
 ## 4. `spec`
 
-`spec`は、共通設計の「何の処理で起きたか」「何が起きたか」「補助情報」「失敗情報」を1つのJSON objectとして表す。
-
-| 項目 | 構造化ログで表す意味 |
-|---|---|
-| `spec.operation` | ログで追跡する処理種別 |
-| `spec.event` | 処理で起きた通常イベント、または処理が失敗したこと |
-| `spec.level` | イベントに対応するログレベル |
-| `spec.payload` | 出来事に付随する安全な補助情報 |
-| `spec.error` | 失敗時の安全なエラー情報 |
+`spec`は、処理種別を`operation`、出来事を`event`と`level`、安全な補助情報を`payload`、失敗時の安全なエラー情報を`error`としてまとめるJSON objectである。
 
 具体的な`operation`、通常イベント名、`payload`の内容は各機能設計を正本とする。
 
