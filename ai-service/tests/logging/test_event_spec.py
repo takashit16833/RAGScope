@@ -10,7 +10,7 @@ from ragscope_ai_service.logging.event_spec import (
 )
 
 
-def test_LogLevelは共通契約の4種類を持つ() -> None:
+def test_NormalLogLevelは通常イベントの3種類だけを持つ() -> None:
     assert {level.value for level in NormalLogLevel} == {"debug", "info", "warn"}
 
 
