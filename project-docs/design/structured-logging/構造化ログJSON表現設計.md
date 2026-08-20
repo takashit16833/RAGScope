@@ -4,13 +4,13 @@ note_type: design
 # 構造化ログJSON表現設計
 
 > [!abstract] この文書の役割
-> [構造化ログ設計](./構造化ログ設計.md)で定義した`LogEvent`の意味を、v1の外部JSONとしてどのように表現するかを定義する。
+> [構造化ログ設計](./構造化ログ設計.md)で定義した構造化ログの共通の意味を、v1 JSONのどの項目と値として表現するかを定義する。
 >
-> 本設計はJSON表現だけを扱い、各コンポーネントの内部型やモジュール構造を定義しない。正確なJSON項目、型、必須条件、形式は[`log-event.schema.json`](../../../contracts/logging/v1/log-event.schema.json)を正本とする。
+> このJSON契約はRAGScopeアプリケーションとAI推論サービスで共通に使用する。正確なJSON項目、型、必須条件、列挙値、文字列形式は[`log-event.schema.json`](../../../contracts/logging/v1/log-event.schema.json)を正本とする。各コンポーネント内部の型、変換処理、出力IOの実装は本設計では定義しない。
 
-## 1. JSON表現の全体像
+## 1. v1 JSONの全体像
 
-1つの`LogEvent`を1つのJSON objectとして表現し、イベントの意味を表す情報は`spec`へまとめる。
+構造化ログ1件を1つのJSON objectとして表現する。共通設計で区別した「何の処理で起きたか」「何が起きたか」「補助情報」「失敗情報」は`spec`へまとめる。
 
 ```json
 {
@@ -31,68 +31,76 @@ note_type: design
 }
 ```
 
-この階層はJSON上の表現であり、構造化ログの意味モデルや各コンポーネントの内部型を同じ構造にすることは要求しない。
+## 2. 共通設計の意味とJSON項目の対応
 
-## 2. 意味モデルからJSONへの対応
-
-| 構造化ログの意味 | JSON上の表現 |
+| 構造化ログで表す意味 | v1 JSONでの表現 |
 |---|---|
-| 契約バージョン | `schema_version` |
-| ログイベントの識別子 | `event_id` |
-| 記録時刻 | `timestamp` |
-| 生成コンポーネント | `component` |
-| 実行上の文脈 | `context` |
-| 処理種別 | `spec.operation` |
-| 実効イベント名 | `spec.event` |
-| 実効ログレベル | `spec.level` |
-| イベント固有情報 | `spec.payload` |
+| どの構造化ログ契約に従うか | `schema_version` |
+| どの記録か | `event_id` |
+| いつ記録されたか | `timestamp` |
+| どこで生成されたか | `component` |
+| どの処理に属するか | `context` |
+| 何の処理で起きたか | `spec.operation` |
+| 何が起きたか | `spec.event` |
+| ログレベル | `spec.level` |
+| 出来事の安全な補助情報 | `spec.payload` |
 | 失敗時の安全なエラー情報 | `spec.error` |
 
-正確な文字列表現、列挙値、形式、必須条件はJSON Schemaを正本とし、本設計へ重複して定義しない。
+具体的な`operation`、通常イベント名、`payload`の内容は各機能設計を正本とする。失敗時に記録できる情報は[エラー設計](../エラー設計.md)と各機能設計に従う。
 
-## 3. 通常イベントと失敗イベントの表現
+## 3. CLI実行との関連付け
 
-[ADR-0004](<../../adr/ADR-0004 構造化ログの内部イベントモデルを通常イベントと失敗イベントの直和として表現する.md>)に従い、意味モデル上のNormalEventとFailedEventを、JSONでは次の相互排他的な形として表現する。
+同じCLI実行に属する構造化ログは、`context.scope`を`execution`とし、`context.execution_id`へ同じCLI実行識別子を記録する。
+
+特定のCLI実行に属さない構造化ログは、`context.scope`を`service`とし、`execution_id`を含めない。
+
+`context`の正確な許可形と`execution_id`の形式はJSON Schemaを正本とする。
+
+## 4. 通常イベントと失敗イベント
+
+共通設計で定義した通常イベントと失敗イベントを、v1 JSONでは次の形として表現する。
 
 | 種類 | `spec.event` | `spec.level` | `spec.error` |
 |---|---|---|---|
-| 通常イベント | `failed`以外 | `debug` / `info` / `warn` | 含めない |
+| 通常イベント | 各機能設計で定めた通常イベント名 | `debug` / `info` / `warn` | 含めない |
 | 失敗イベント | `failed` | `error` | 必須 |
 
-失敗イベントの`event = failed`と`level = error`は、意味モデル上のFailedEventから導出した結果として表現する。外部表現にこれらの項目が存在することを理由に、各コンポーネントの内部モデルで独立した入力として保持しない。
+通常イベントでは`failed`を通常イベント名として使用しない。失敗イベントでは、処理が失敗したことを`spec.event = failed`、失敗用ログレベルを`spec.level = error`として表し、安全なエラー情報を`spec.error`へ記録する。
 
-## 4. 任意項目と`null`
+通常イベントと失敗イベントの許可形は相互排他的とし、JSON Schemaで機械的に検証する。
 
-- 通常イベントでは`spec.error`を`null`にせず、キー自体を省略する。
-- エラー固有の安全な補助情報がない場合は、`spec.error.context`を`null`にせず、キー自体を省略する。
-- `spec.payload`とエラーの`context`へ格納する値には`null`を使用しない。情報が不要な場合は項目自体を省略する。
+## 5. `payload`、`error`と`null`
 
-これらの許可形はJSON Schemaで機械的に検証する。
+`spec.payload`には、各機能設計で記録を許可した安全な補助情報をJSON objectとして記録する。補助情報がない場合は空objectを使用する。
 
-## 5. serialization境界
+通常イベントでは`spec.error`を含めない。失敗イベントの`spec.error`には安全なエラー情報を記録し、エラー固有の補助情報がある場合だけ`spec.error.context`を含める。
 
-各コンポーネントは、意味上有効な完成済み`LogEvent`をserialization境界でこのJSON表現へ投影する。
+`spec.payload`と`spec.error.context`の内部では`null`を使用せず、値を記録しない項目は含めない。正確な許可形はJSON Schemaを正本とする。
 
-- 内部モデルとJSON構造を同型にすることを要求しない。
-- JSONの項目構造やGeneric serializationの都合を、内部モデルの設計理由にしない。
-- 意味上有効な`LogEvent`からJSONへの変換はtotalな純粋変換として扱う。
-- JSON契約への不適合は、実行時の回復処理ではなく、各コンポーネントの型・変換テストとJSON Schema適合テストで検出する。
-- JSON objectの項目順を契約に含めない。
+## 6. 各コンポーネントとの責務分担
 
-## 6. 出力単位
+RAGScopeアプリケーションとAI推論サービスは、それぞれ自身が記録する構造化ログを本設計のv1 JSONへ変換する処理を実装する。
 
-v1のローカル構造化ログでは、1つの`LogEvent`を1行のJSONとして出力する。1イベントの前後へJSON以外の接頭辞、色制御文字、説明文を付加しない。
+本設計は変換後のJSON表現を共通契約として定義し、変換前の内部型、モジュール構造、変換関数、出力IOの構成は各コンポーネントの設計とコードへ委ねる。内部表現をv1 JSONと同じ構造にすることは要求しない。
 
-具体的な出力先とIO失敗の扱いは各コンポーネントの設計・実装が担当し、本設計では定義しない。
+JSON契約への適合性は[`log-event.schema.json`](../../../contracts/logging/v1/log-event.schema.json)で検証する。
 
-## 7. 正確な契約の正本
+## 7. 出力単位
 
-JSON契約の正確な項目、型、必須条件、列挙値、文字列形式、通常・失敗イベントの許可形は[`log-event.schema.json`](../../../contracts/logging/v1/log-event.schema.json)を正本とする。
+v1のローカル構造化ログでは、構造化ログ1件を1行のJSONとして出力する。1件の前後へJSON以外の接頭辞、色制御文字、説明文を付加しない。
+
+具体的な出力先とIO失敗の扱いは各コンポーネントの設計・実装が担当する。
+
+## 8. 機械可読な正本
+
+JSON契約の正確な項目、型、必須条件、列挙値、文字列形式、通常イベントと失敗イベントの許可形は[`log-event.schema.json`](../../../contracts/logging/v1/log-event.schema.json)を正本とする。
 
 fixtureはSchemaへ適合する例・適合しない例を表す検証入力であり、Schemaと同格の仕様正本として扱わない。
 
 ## 関連文書
 
 - [構造化ログ設計](./構造化ログ設計.md)
-- [ADR-0003 — 構造化ログのJSON構造をログモデルの型構造と整合させる](<../../adr/ADR-0003 構造化ログのJSON構造をログモデルの型構造と整合させる.md>)
+- [システムアーキテクチャ](../システムアーキテクチャ.md)
+- [エラー設計](../エラー設計.md)
+- [RAGScopeアプリケーション構造化ログ設計](./RAGScopeアプリケーション構造化ログ設計.md)
 - [ADR-0004 — 構造化ログの内部イベントモデルを通常イベントと失敗イベントの直和として表現する](<../../adr/ADR-0004 構造化ログの内部イベントモデルを通常イベントと失敗イベントの直和として表現する.md>)
