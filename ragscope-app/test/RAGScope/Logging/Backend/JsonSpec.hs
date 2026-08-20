@@ -19,8 +19,9 @@ import RAGScope.Logging.Testing (
   EventContext (ExecutionContext, ServiceContext),
   FieldName (FieldName),
   LogErrorCategory (LogData, LogDependency, LogInput, LogInternal, LogResource, LogTimeout),
-  LogLevel (Debug, Error, Info, Warn),
+  LogLevel (ErrorLevel, NormalLevel),
   LogValue (LogArray, LogBool, LogNumber, LogObject, LogText),
+  NormalLogLevel (Debug, Info, Warn),
   Payload (Payload),
   SchemaVersion (SchemaV1),
   fixedErrorCode,
@@ -51,17 +52,17 @@ spec = do
       SchemaV1 `shouldSerializeAs` Number 1
 
   describe "LogLevel" $ do
-    it "Debugを\"debug\"として表現する" $ do
-      Debug `shouldSerializeAs` String "debug"
+    it "NormalLevel Debugを\"debug\"として表現する" $ do
+      NormalLevel Debug `shouldSerializeAs` String "debug"
 
-    it "Infoを\"info\"として表現する" $ do
-      Info `shouldSerializeAs` String "info"
+    it "NormalLevel Infoを\"info\"として表現する" $ do
+      NormalLevel Info `shouldSerializeAs` String "info"
 
-    it "Warnを\"warn\"として表現する" $ do
-      Warn `shouldSerializeAs` String "warn"
+    it "NormalLevel Warnを\"warn\"として表現する" $ do
+      NormalLevel Warn `shouldSerializeAs` String "warn"
 
-    it "Errorを\"error\"として表現する" $ do
-      Error `shouldSerializeAs` String "error"
+    it "ErrorLevelを\"error\"として表現する" $ do
+      ErrorLevel `shouldSerializeAs` String "error"
 
   describe "EventId" $ do
     it "UUIDを文字列として表現する" $ do
@@ -181,7 +182,7 @@ spec = do
         `shouldSerializeAs` object
           [ "operation" .= fixedOperationName
           , "event" .= fixedEventName
-          , "level" .= Debug
+          , "level" .= NormalLevel Debug
           , "payload"
               .= object
                 [ "byte_count" .= Number 2048
@@ -194,7 +195,7 @@ spec = do
         `shouldSerializeAs` object
           [ "operation" .= fixedOperationName
           , "event" .= String "failed"
-          , "level" .= Error
+          , "level" .= ErrorLevel
           , "payload"
               .= object
                 [ "duration_ms" .= Number 12
@@ -220,7 +221,7 @@ spec = do
               .= object
                 [ "operation" .= fixedOperationName
                 , "event" .= fixedEventName
-                , "level" .= Debug
+                , "level" .= NormalLevel Debug
                 , "payload"
                     .= object
                       [ "byte_count" .= Number 2048

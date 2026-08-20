@@ -4,6 +4,7 @@ module RAGScope.Logging.Setup (
   ExecutionId,
   LoggingConfig (LoggingConfig, minimumLevel),
   LogLevel (..),
+  NormalLogLevel (..),
   newExecutionId,
   mkExecutionLogger,
   mkServiceLogger,
@@ -20,6 +21,7 @@ import RAGScope.Logging.Core (
   EventId (..),
   ExecutionId (..),
   LogLevel (..),
+  NormalLogLevel (..),
   Timestamp (..),
  )
 import RAGScope.Logging.Runtime (
