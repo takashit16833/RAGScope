@@ -17,7 +17,8 @@ import RAGScope.Logging.Testing (
   Component (RAGScopeApp),
   EventContext (ExecutionContext),
   LogEvent (..),
-  LogLevel (Debug, Info),
+  LogLevel (NormalLevel),
+  NormalLogLevel (Debug, Info),
   SchemaVersion (SchemaV1),
   TestEvent (TestDebugEvent),
   fixedClock,
@@ -37,7 +38,7 @@ spec = do
         -- メモリSinkへ接続したLoggerと読み出し処理を準備する
         (logger, readCapturedEvents) <-
           newMemoryLogger
-            Debug
+            (NormalLevel Debug)
             RAGScopeApp
             (ExecutionContext fixedExecutionId)
             fixedEventIdSource
@@ -68,7 +69,7 @@ spec = do
         -- メモリSinkへ接続したLoggerと読み出し処理を準備する
         (logger, readCapturedEvents) <-
           newMemoryLogger
-            Info
+            (NormalLevel Info)
             RAGScopeApp
             (ExecutionContext fixedExecutionId)
             fixedEventIdSource
@@ -87,7 +88,7 @@ spec = do
         -- 失敗するSinkへ接続したLoggerを準備する
         let logger =
               newFailureLogger
-                Debug
+                (NormalLevel Debug)
                 RAGScopeApp
                 (ExecutionContext fixedExecutionId)
                 fixedEventIdSource

@@ -14,7 +14,17 @@ import Test.Hspec (Spec, describe, it, shouldBe, shouldNotContain, shouldSatisfy
 
 import RAGScope.Logging (LoggingFailure (LoggingSinkFailure), emit)
 import RAGScope.Logging.Setup (LoggingConfig (LoggingConfig), mkServiceLogger)
-import RAGScope.Logging.Testing (Component (RAGScopeApp), EventContext (ExecutionContext), LogLevel (Debug), TestEvent (TestDebugEvent), fixedClock, fixedEventIdSource, fixedExecutionId, newCountingFailureLogger)
+import RAGScope.Logging.Testing (
+  Component (RAGScopeApp),
+  EventContext (ExecutionContext),
+  LogLevel (NormalLevel),
+  NormalLogLevel (Debug),
+  TestEvent (TestDebugEvent),
+  fixedClock,
+  fixedEventIdSource,
+  fixedExecutionId,
+  newCountingFailureLogger,
+ )
 
 -- action実行中だけstdout/stderrをテンポラリファイルへ差し替え、両方の出力を返す。
 captureStdoutAndStderr :: IO a -> IO (a, String, String)
@@ -61,7 +71,7 @@ spec :: Spec
 spec = do
   describe "output boundary" $ do
     it "正常結果をstdoutへ、構造化ログをstderrへ分離する" $ do
-      let logger = mkServiceLogger (LoggingConfig Debug)
+      let logger = mkServiceLogger (LoggingConfig (NormalLevel Debug))
 
       (result, capturedStdout, capturedStderr) <-
         captureStdoutAndStderr $ do
@@ -77,7 +87,7 @@ spec = do
     it "Sink失敗時に同じログ経路へ再出力しない" $ do
       (logger, readSinkCallCount) <-
         newCountingFailureLogger
-          Debug
+          (NormalLevel Debug)
           RAGScopeApp
           (ExecutionContext fixedExecutionId)
           fixedEventIdSource

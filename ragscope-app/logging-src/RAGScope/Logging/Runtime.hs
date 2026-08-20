@@ -13,12 +13,12 @@ import RAGScope.Logging.Core (
   Component,
   EventContext,
   EventId,
-  EventSpec (level),
   LogEvent (..),
   LogLevel,
   SchemaVersion (SchemaV1),
   Timestamp,
   ToEventSpec (..),
+  effectiveLogLevel,
  )
 
 -- | ログ基盤自身の失敗
@@ -85,7 +85,7 @@ emit logger eventValue =
   let -- 機能固有イベントを共通のEventSpecへ変換する
       eventSpec = toEventSpec eventValue
    in -- 最低ログレベル未満なら何も出力せず成功とする
-      if eventSpec.level < logger.minimumLevel
+      if effectiveLogLevel eventSpec < logger.minimumLevel
         then pure (Right ())
         else do
           -- 出力するイベントのIDと時刻を取得する
