@@ -42,6 +42,7 @@ note_type: reference
 次のファイルには適用しない。
 
 - リポジトリルートの`README.md`
+- `project-docs/`配下で文書領域の索引として配置する`README.md`
 - `.github/`配下のGitHub用ファイル
 - `templates/`配下のObsidianテンプレート
 - その他の外部ツールが管理するファイル
