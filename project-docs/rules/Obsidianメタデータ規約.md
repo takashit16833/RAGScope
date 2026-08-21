@@ -28,7 +28,7 @@ note_type: reference
 次の場所にある、人が管理するMarkdownノートへ適用する。
 
 ```text
-- Vault直下の`RAGScope概要.md`、`RAGScope要求定義.md`
+- Vault直下の`RAGScope概要.md`、`RAGScope要求定義.md`、`RAGScope用語集.md`
 - project-management直下の`RAGScopeプロジェクト運用ガイド.md`
 - `rules/`
 - `design/`
@@ -42,6 +42,7 @@ note_type: reference
 次のファイルには適用しない。
 
 - リポジトリルートの`README.md`
+- `project-docs/`配下で文書領域の索引として配置する`README.md`
 - `.github/`配下のGitHub用ファイル
 - `templates/`配下のObsidianテンプレート
 - その他の外部ツールが管理するファイル
@@ -80,7 +81,7 @@ note_type: reference
 | `design` | システムまたは機能の設計 |
 | `adr` | Architecture Decision Record |
 | `experiment` | 仮説、条件、結果、考察を伴う実験記録 |
-| `reference` | 規約、テンプレート、参照資料 |
+| `reference` | 用語集、規約、テンプレート、参照資料 |
 | `roadmap` | バージョン全体の計画 |
 | `milestone` | 1つのリリース可能なバージョン |
 | `epic` | Milestone内で実現する能力 |
@@ -144,7 +145,7 @@ epic: "[[v0.0 固定Markdown文書の取り込みとチャンク化]]"
 
 | 文書種別 | 必須プロパティ |
 |---|---|
-| 概要、要求定義、設計書、実験記録、規約・参照資料、Roadmap | `note_type` |
+| 概要、要求定義、用語集、設計書、実験記録、規約・参照資料、Roadmap | `note_type` |
 | ADR | `note_type`、`status` |
 | Milestone | `note_type`、`status` |
 | Epic | `note_type`、`status`、`milestone` |
