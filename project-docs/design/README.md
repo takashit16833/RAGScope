@@ -6,6 +6,7 @@ RAGScopeの設計文書を、知りたい内容から参照するための索引
 
 | 文書 | 確認したいこと |
 |---|---|
+| [RAGScopeドメインモデル](./RAGScopeドメインモデル.md) | RAGScopeの問題領域をどの領域に分け、それぞれが何を担当するか |
 | [RAGScope要求定義](../RAGScope要求定義.md) | RAGScopeは何をできなければならないか |
 | [システムアーキテクチャ](./システムアーキテクチャ.md) | どのコンポーネントが何を担当し、どうつながるか |
 | [文書処理設計](./文書処理設計.md) | Markdown文書をどう読み込み、文書チャンクへ変えるか |
@@ -16,6 +17,7 @@ RAGScopeの設計文書を、知りたい内容から参照するための索引
 
 ```mermaid
 flowchart TD
+    Domain["RAGScopeドメインモデル<br>問題領域の4分類と各領域の責務"]
     Requirements["RAGScope要求定義<br>RAGScopeが満たすべき要求"]
     Architecture["システムアーキテクチャ<br>システム全体のコンポーネント構成と責務"]
 
@@ -25,6 +27,8 @@ flowchart TD
 
     Machine["コード / JSON Schema / OpenAPI / migration / テスト<br>正確な項目・型・制約"]
 
+    Domain --> Requirements
+    Domain --> Architecture
     Requirements --> Architecture
     Architecture --> Document
     Architecture --> Error
@@ -37,9 +41,15 @@ flowchart TD
     Logging --> Machine
 ```
 
-[RAGScope要求定義](../RAGScope要求定義.md)が「何を満たすか」を決め、[システムアーキテクチャ](./システムアーキテクチャ.md)がシステム全体の分担を決めます。そのうえで、各機能の設計書が自分の担当範囲を詳しく説明します。
+[RAGScopeドメインモデル](./RAGScopeドメインモデル.md)がRAGScopeの問題領域の分け方を決め、[RAGScope要求定義](../RAGScope要求定義.md)がその分類に沿って「何を満たすか」を決めます。[システムアーキテクチャ](./システムアーキテクチャ.md)は、4つのドメイン領域と横断事項をシステムとしてどう実現するかを決めます。そのうえで、各機能の設計書が自分の担当範囲を詳しく説明します。
 
 ## 各文書の役割
+
+### RAGScopeドメインモデル
+
+> **RAGScopeの問題領域をどの領域に分け、それぞれが何を担当するか？**
+
+RAGScopeの問題領域を「文書」「評価データ」「検索・回答生成」「実験・評価」の4領域に分け、各領域の責務と領域間の基本関係を定義します。この4領域は要求と設計を整理する共通の軸ですが、そのままコンポーネント、サービス、モジュール、DBの境界を決めるものではありません。
 
 ### RAGScope要求定義
 
