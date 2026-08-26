@@ -33,7 +33,7 @@ flowchart TD
     end
 
     subgraph Logging["実行追跡・構造化ログ設計"]
-        LoggingDesigns["各設計<br>実行追跡・構造化ログ・error_typeの共通契約とコンポーネント別設計"]
+        LoggingDesigns["各設計<br>実行追跡・構造化ログ・error_typeの共通契約と外部表現"]
     end
 
     Domain --> UseCase
@@ -45,7 +45,7 @@ flowchart TD
 
     UseCase --> Logging
     Architecture --> Logging
-    Features --> Logging
+    Logging --> Features
 ```
 
 ## 読み分け

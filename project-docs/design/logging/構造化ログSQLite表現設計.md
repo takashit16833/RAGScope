@@ -4,7 +4,7 @@ note_type: design
 # 構造化ログSQLite表現設計
 
 > [!abstract] この文書の役割
-> [実行追跡・構造化ログ契約設計](./実行追跡・構造化ログ契約設計.md)で定義する構造化ログを、[構造化ログ外部表現共通設計](./構造化ログ外部表現共通設計.md)の共通情報と属性の規則を使ってSQLiteへどう配置するかを定義する。イベントや属性の意味・記録条件は論理契約と各機能設計を正本とし、この文書はSQLite固有のtable、column、relation、値型、省略方法を担当する。
+> [実行追跡・構造化ログ契約設計](./実行追跡・構造化ログ契約設計.md)で定義する構造化ログを、[構造化ログ外部表現共通設計](./構造化ログ外部表現共通設計.md)の共通情報と属性の規則を使ってSQLiteへどう配置するかを定義する。イベントや属性の意味・記録条件は、それらを定義する正本を参照し、この文書はSQLite固有のtable、column、relation、値型、省略方法を担当する。
 >
 > 本設計はSQLite表現そのものを定義するものであり、SQLiteを本番の構造化ログ出力として実装・サポートすることまでは要求しない。
 
@@ -149,7 +149,7 @@ erDiagram
 - `message`が存在しない場合は`log_record.message`を`NULL`にする。
 - `message`が空文字列として存在する場合は空の`TEXT`として保持する。
 - 属性が0件の場合は、その`record_id`に対応する`log_attribute` rowを持たない。
-- 各機能設計の記録条件を満たさず属性が存在しない場合は、その属性の`log_attribute` rowを持たない。
+- その属性を定義する正本の記録条件を満たさず属性が存在しない場合は、その属性の`log_attribute` rowを持たない。
 - 空arrayは`value_kind=array`の`log_value`だけを持ち、`log_array_item` rowを持たない。
 - 空objectは`value_kind=object`の`log_value`だけを持ち、`log_object_member` rowを持たない。
 
@@ -167,6 +167,7 @@ SQLiteから論理ログへ戻すときは、`log_record`から共通情報を�
 - `log_object_member`のparentは`value_kind=object`であり、同じparentに同じ`name`を複数持たない。
 - `log_value`のscalar columnは`value_kind`に対応するものだけが値を持つ。
 - `boolean_value`は`0`または`1`である。
+- `value_kind=number`の`number_value`は、論理上の数値として復元できる有効な10進または指数形式である。
 - 値のrelationに循環がない。
 
 ## 6. 出力単位
@@ -175,7 +176,7 @@ SQLite databaseは0件以上の`log_record`を保持できる。`record_id`の�
 
 構造化ログ1件をSQLiteへ投影するときは、`log_record`とその属性・子値を1 transactionで書き込む。途中で失敗した場合は、その構造化ログ1件に対応する変更をcommitしない。
 
-具体的なdatabase fileの配置、rotation、保持期間、同時書き込み、query用index、buffering、IO失敗時の扱いは本設計では定義しない。SQLiteを本番出力へ採用する場合は、各コンポーネントの構造化ログ設計と実装でその境界を定める。
+具体的なdatabase fileの配置、rotation、保持期間、同時書き込み、query用index、buffering、IO失敗時の扱いは本設計では定義しない。SQLiteを本番出力へ採用する場合は、その採用を扱う設計と、各コンポーネントのコード・設定・テストでその境界を定める。
 
 ## 7. 責務と正本
 
@@ -183,7 +184,7 @@ SQLite databaseは0件以上の`log_record`を保持できる。`record_id`の�
 |---|---|
 | [実行追跡・構造化ログ契約設計](./実行追跡・構造化ログ契約設計.md) | 構造化ログ1件が持つ論理情報、属性値、イベント、重要度、`error_type`、`TraceId`・`SpanId`の意味 |
 | [構造化ログ外部表現共通設計](./構造化ログ外部表現共通設計.md) | 外部表現で共通する項目名と値表現、属性名と論理上の型・値を形式間で維持する規則 |
-| 各機能設計 | 具体的なイベント、記録条件、既定の重要度、属性名・属性値、機能固有の`error_type` |
+| イベント・属性・`error_type`を定義する正本 | 具体的なイベント、記録条件、既定の重要度、属性名・属性値、`error_type` |
 | この文書 | 共通情報と属性をSQLiteのtable、column、relationへ配置する方法と、SQLiteから論理値へ復元する規則 |
 | migration | SQLite表現を実装する場合の正確なtable、column、constraint、index |
 
