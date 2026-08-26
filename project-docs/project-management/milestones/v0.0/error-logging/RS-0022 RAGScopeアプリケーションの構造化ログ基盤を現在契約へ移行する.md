@@ -1,6 +1,6 @@
 ---
 note_type: ticket
-status: planned
+status: in_progress
 milestone: "[[v0.0]]"
 epic: "[[v0.0 共通エラーと構造化ログによる実行追跡]]"
 ---
@@ -12,7 +12,9 @@ RS-0015で実装したRAGScopeアプリケーションの`ragscope-logging`は�
 
 [RS-0020 共通エラー・構造化ログの論理契約を再設計する](<./RS-0020 共通エラー・構造化ログの論理契約を再設計する.md>)で、1回のユースケース実行をOpenTelemetryの`trace`・`span`で追跡し、構造化ログを`TraceId`・`SpanId`で対応する`span`へ関連付ける現在契約を確定した。失敗理由は`error_type`で識別し、ログでは他の属性と同じ属性として記録する。イベント名、重要度、任意の`message`、`attributes`は互いに独立した論理情報として扱う。
 
-このTicketでは、既存のHaskell logging基盤を現在の実行追跡・構造化ログ契約と共有JSON Contractへ追随させ、後続の機能実装が旧論理モデルへ依存せず利用できる状態にする。
+このTicketでは、既存のHaskell logging基盤を現在の実行追跡・構造化ログ契約と共有JSON Contractへ追随させ、後続の機能実装が旧論理モデルへ依存せず利用できる状態にする。既存module構成や公開APIを前提として局所修正せず、RAGScopeアプリケーションから見た責務、外部インターフェース、module間の依存とデータの流れを先に設計し、その全体像を基準に実装を置き換える。loggingの境界を自然にするために必要であれば、`Observation`、`Result`、`AppError`など既存の周辺moduleも変更または削除の対象に含める。
+
+OpenTelemetryはRAGScopeの要求や論理契約を決める正本ではない。RAGScopeが必要とする実行追跡を実現するために、OpenTelemetryの`trace`・`span`などの設計と実装を利用する。OpenTelemetry側の都合だけを理由にRAGScope固有の契約、責務、公開APIを追加または変更しない。
 
 ## 前提
 
@@ -42,6 +44,9 @@ RS-0015で実装したRAGScopeアプリケーションの`ragscope-logging`は�
 
 ### 実装境界と検証
 
+- [ ] Haskell実装へ着手する前に、loggingの利用側から見た公開API、moduleごとの責務、module間の依存、実行追跡との境界、ログ生成からSinkまでのデータの流れ、logging自身の失敗処理を一つの全体像として設計し、その設計を基準に実装している
+- [ ] 既存の`ragscope-logging`、`Observation`、`Result`、`AppError`の構造を維持すること自体を要件とせず、現在契約とRAGScopeアプリケーションの責務から必要性を判断している
+- [ ] OpenTelemetryのAPIや内部表現の都合をRAGScope固有の論理契約や公開APIへ不要に持ち込まず、RAGScopeが採用した実行追跡を実現する境界として利用している
 - [ ] 機能固有の閉じたイベント表現から共通logging表現へ変換でき、共通基盤が機能固有イベント名、属性、`error_type`を任意に決定しない
 - [ ] loggingのRuntimeやSinkをテストから差し替えられ、実ログ出力を必要とせず共通logging境界を検証できる
 - [ ] stderr、memoryなど既存の差し替え可能なSink構造は、現在契約と衝突しない範囲で維持または同等の境界へ置き換えられている
@@ -71,7 +76,13 @@ RS-0015で実装したRAGScopeアプリケーションの`ragscope-logging`は�
 
 ## 実装メモ
 
-共通logging基盤をprivate sublibraryとして機能実装から分離すること、機能固有の閉じたイベントから共通loggingへ変換する境界、時刻やSinkを注入するRuntime、JSON serializationを共通モデルから分離する境界、Sinkを差し替える構造は、現在契約と衝突しないため維持候補とする。正確な型・module構成は既存構造を機械的に維持せず、実装時にコードとテストで決定する。
+最初に、利用側から見たloggingの公開API、moduleごとの責務と依存方向、中心となる型、`trace`・`span`とログの関係、Runtime・Sink・JSON出力・テスト境界、logging自身の失敗とアプリケーション実行の関係を一つの全体像として設計する。実装はその全体像を基準に進め、既存moduleへ変更を積み重ねながら後から構造を決める進め方はしない。
+
+共通logging基盤をprivate sublibraryとして機能実装から分離すること、機能固有の閉じたイベントから共通loggingへ変換する境界、時刻やSinkを注入するRuntime、JSON serializationを共通モデルから分離する境界、Sinkを差し替える構造は維持候補とする。ただし、いずれも既存構造を残すこと自体を目的とせず、先に設計した全体像の中で責務が自然に分かれる場合だけ採用する。
+
+`Observation`、`Result`、`AppError`を含む既存の周辺moduleは、このTicketの変更範囲外として固定しない。loggingの公開境界、実行追跡、失敗の確定、ログ基盤自身の失敗処理を一貫した構造にするために必要であれば、責務の変更、統合、分割、削除を行う。
+
+OpenTelemetryは、RAGScopeが採用した実行追跡を実装するための手段として利用する。`trace`・`span`・Contextなど利用する概念やHaskell実装上のAPIは確認するが、OpenTelemetryに存在する概念や制約をそのままRAGScopeの要求へ昇格させない。
 
 ログ基盤自身の出力・serialization失敗を機能失敗とどう組み合わせるかは、現在の共通論理契約では一律に定めない。RAGScopeアプリケーション固有の実装境界として、利用箇所と既存挙動を確認したうえでコードとテストを正本として確定する。
 
