@@ -5,5 +5,10 @@
   "level": "info",
   "trace_id": "0123456789abcdef0123456789abcdef",
   "span_id": "0123456789abcdef",
-  "schema_version": 1
+  "attributes": {
+    "detail": {
+      "enabled": true,
+      "enabled": false
+    }
+  }
 }

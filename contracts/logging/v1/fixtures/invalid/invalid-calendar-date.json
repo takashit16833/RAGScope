@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-08-26T09:00:00+09:00",
+  "timestamp": "2026-02-31T00:00:00Z",
   "component": "example_component",
   "event": "document.read.succeeded",
   "level": "info",
