@@ -1,0 +1,63 @@
+---
+note_type: adr
+status: accepted
+---
+# ADR-0005 — 実行追跡をOpenTelemetryのtrace・spanで表現し、イベントを構造化ログとして記録する
+
+## 背景
+
+RAGScopeでは、処理の進行と失敗をログから確認し、1回の実験に関係するログを識別できる必要がある。また、RAGScopeアプリケーションとAI推論サービスをまたぐ処理を一連の処理として追跡する必要がある。
+
+従来の構造化ログ設計と[ADR-0004](<./ADR-0004 構造化ログの内部イベントモデルを通常イベントと失敗イベントの直和として表現する.md>)は、RAGScope独自の`operation`を処理の識別に使い、通常イベントと失敗イベントを型として分け、失敗イベントから`failed`というイベント名と`error`というログレベルを固定的に導出する設計を採用していた。
+
+システム全体の実行追跡を見直すと、この構造では、一定時間続く処理、ある時点で起きたイベント、イベントの重要度、処理の失敗理由が1つのイベントモデルへ集まりすぎている。OpenTelemetryでは一定時間続く1つの処理を`span`として表し、構造化ログは`TraceId`と`SpanId`によってその`span`へ関連付けられる。RAGScope独自の`operation`を別に維持すると、同じ処理を表す概念が重複する。
+
+RAGScopeに必要なのは、処理のつながりと所要時間を追うこと、意味のある出来事を構造化ログへ記録すること、失敗理由を安定した`error_type`として扱うことを、それぞれの責務で組み合わせられる構造である。
+
+## 決定
+
+1. RAGScopeの実行追跡はOpenTelemetryの`trace`と`span`を使用する。RAGScope独自の`operation`は実行追跡の概念として設けない。
+2. `span`は開始から終了までを個別に追跡する1つの処理を表す。開始・終了、所要時間、エラー、親子関係を独立して確認する必要がある処理を`span`として追跡する。
+3. RAGScopeで起きた意味のある出来事はイベントとして構造化ログ1件に記録する。特定の`span`中で起きたイベントは`TraceId`と`SpanId`によってその`span`へ関連付ける。
+4. Span Statusは、その`span`が表す処理をRAGScopeがエラーとして扱うかを表す。エラーとして扱う場合は`Error`にし、それ以外は`Unset`のままとする。
+5. ログの重要度はイベントを運用上どの程度重く扱うかを表し、`debug`、`info`、`warn`、`error`、`fatal`の5段階とする。重要度からSpan Status、親`span`の結果、機能が保存する状態や実行結果を導出しない。
+6. 処理が成立しなかった理由は、RAGScopeの論理契約で`error_type`として扱う。機能処理で使用する具体的な値は、その失敗条件を定義する機能設計を正本とする。ログ基盤自身の失敗などコンポーネント実装に固有の失敗は、各コンポーネントの構造化ログ設計で扱いを定める。同じ失敗を`span`と構造化ログの両方へ記録する場合は、同じ`error_type`の値を使用する。OpenTelemetryの`span`へ記録するときは、この値をOpenTelemetryの`error.type`属性へ対応付ける。
+7. 機能処理として作成する`span`とその`Error`条件、具体的なログイベントと記録条件、既定の重要度、イベント固有の属性、使用する`error_type`は、その機能設計で定める。各コンポーネントの構造化ログ設計はこれらを再定義せず、この共通契約をそのコンポーネントで成立させるための実行追跡情報の扱い、ログ受付・出力の境界、ログ基盤自身の失敗の扱いなどを定める。
+8. コンポーネント間ではTrace Contextを引き継いで同じ`trace`を継続する。Trace Contextを具体的な通信媒体へ格納する方法は、その通信方式を定義する設計と機械可読な契約へ分離する。
+9. 論理契約、各コンポーネントの内部型、JSONなどの外部表現は別の正本で管理する。既存の内部型やJSON Schemaの構造を理由に、論理契約へ`operation`や通常・失敗イベントの直和を残さない。
+10. 本ADRは、構造化ログの論理モデルとして`operation`と通常・失敗イベントの直和を採用したADR-0004の判断を置き換える。内部モデルと外部表現を別の責務として扱うというADR-0004の判断は維持する。
+
+## 検討した選択肢
+
+### ADR-0004のイベントモデルへ実行追跡情報だけを追加する
+
+既存の内部型やJSON Schemaへの変更を抑えられる。一方、RAGScope独自の`operation`とOpenTelemetryの`span`が同じ処理を別々に表し、イベントの重要度と処理の失敗も固定的に結び付いたままになる。処理、イベント、重要度、失敗理由の責務を分けられないため採用しない。
+
+### `trace`・`span`だけで処理を追跡し、構造化ログを独立して扱わない
+
+処理の開始・終了、親子関係、所要時間、エラーを追跡できる。一方、RAGScopeには処理の進行、失敗、実験を識別できるログを出力する要求があるため、`trace`・`span`だけでは要求を満たさない。
+
+### OpenTelemetryの`trace`・`span`と、関連付けた構造化ログを組み合わせる
+
+一定時間続く処理は`span`、ある時点の出来事は構造化ログ、失敗理由は`error_type`としてそれぞれ扱える。`TraceId`と`SpanId`によってログから処理へたどれ、RAGScope独自の処理追跡概念を増やさずに要求とシステムアーキテクチャを満たせるため採用する。
+
+## 結果と影響
+
+- [実行追跡・構造化ログ契約設計](../design/logging/実行追跡・構造化ログ契約設計.md)は、`trace`、`span`、Span Status、構造化ログ、イベント、重要度、`error_type`の関係を現在設計として定義する。
+- 機能固有のイベント、記録条件、既定の重要度、属性、`span`、`error_type`は各機能設計を正本とし、コンポーネントの構造化ログ設計へ重複して定義しない。
+- ADR-0004は`superseded`へ変更する。
+- `contracts/logging/v1/log-event.schema.json`と現在の構造化ログ実装に残る`operation`、固定的な`failed`イベント、重要度と失敗の結合は、この判断をそのまま表していない。外部表現と実装は、論理契約を確定した後に対応する正本で見直す必要がある。
+- RAGScopeアプリケーションとAI推論サービスの通信方式を具体化するときは、Trace Contextをその通信へ格納する方法を、通信方式を定義する設計または機械可読な契約に置く。
+
+## 関連文書
+
+- [RAGScope要求定義](../RAGScope要求定義.md)
+- [RAGScope用語集](../RAGScope用語集.md)
+- [RAGScopeドメインモデル](../design/RAGScopeドメインモデル.md)
+- [システムアーキテクチャ](../design/システムアーキテクチャ.md)
+- [実行追跡・構造化ログ契約設計](../design/logging/実行追跡・構造化ログ契約設計.md)
+- [ADR-0004 — 構造化ログの内部イベントモデルを通常イベントと失敗イベントの直和として表現する](<./ADR-0004 構造化ログの内部イベントモデルを通常イベントと失敗イベントの直和として表現する.md>)
+- [OpenTelemetry Trace API](https://opentelemetry.io/docs/specs/otel/trace/api/)
+- [OpenTelemetry Logs Data Model](https://opentelemetry.io/docs/specs/otel/logs/data-model/)
+- [OpenTelemetry Semantic Conventions — Error](https://opentelemetry.io/docs/specs/semconv/registry/attributes/error/)
+- [OpenTelemetry Context API](https://opentelemetry.io/docs/specs/otel/context/api-propagators/)
