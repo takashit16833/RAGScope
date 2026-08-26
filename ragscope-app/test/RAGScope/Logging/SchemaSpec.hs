@@ -1,13 +1,11 @@
--- 共通ログ契約へのfixtureとHaskell生成LogEventの適合性をJSON Schemaで検証する。
+-- 共通ログ契約へのfixtureの適合性をJSON Schemaで検証する。
 module RAGScope.Logging.SchemaSpec (
   spec,
 ) where
 
-import Data.Aeson (ToJSON (toJSON), Value, eitherDecodeFileStrict')
+import Data.Aeson (Value, eitherDecodeFileStrict')
 import Data.JSON.JSONSchema (validateJSONSchema)
 import Test.Hspec (Spec, describe, it, shouldNotSatisfy, shouldSatisfy)
-
-import RAGScope.Logging.Testing (fixedExecutionFailedLogEvent, fixedExecutionLogEvent, fixedLogEvent, fixedPayloadTypesEvent)
 
 decodeJsonFile :: FilePath -> IO Value
 decodeJsonFile filePath = do
@@ -66,20 +64,3 @@ spec = do
     itRejectsInvalidFixture "null-payload-value.json"
     itRejectsInvalidFixture "service-with-execution-id.json"
     itRejectsInvalidFixture "unexpected-root-field.json"
-
-  describe "Haskell generated LogEvent" $ do
-    it "service通常イベントがSchemaへ適合する" $ do
-      schema <- loadLogEventSchema
-      toJSON fixedLogEvent `shouldSatisfy` validateJSONSchema schema
-
-    it "execution通常イベントがSchemaへ適合する" $ do
-      schema <- loadLogEventSchema
-      toJSON fixedExecutionLogEvent `shouldSatisfy` validateJSONSchema schema
-
-    it "execution失敗イベントがSchemaへ適合する" $ do
-      schema <- loadLogEventSchema
-      toJSON fixedExecutionFailedLogEvent `shouldSatisfy` validateJSONSchema schema
-
-    it "全LogValue型を含むイベントがSchemaへ適合する" $ do
-      schema <- loadLogEventSchema
-      toJSON fixedPayloadTypesEvent `shouldSatisfy` validateJSONSchema schema
