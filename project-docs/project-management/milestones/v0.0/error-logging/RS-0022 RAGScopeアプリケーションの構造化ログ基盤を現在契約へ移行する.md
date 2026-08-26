@@ -36,6 +36,7 @@ RS-0015で実装したRAGScopeアプリケーションの`ragscope-logging`は�
 
 - [ ] HaskellのJSON serializationが現在の[構造化ログJSON表現設計](../../../../design/logging/構造化ログJSON表現設計.md)へ投影する実装になっている
 - [ ] JSON出力がRS-0021で更新した共有JSON Schemaへ適合することを自動テストで確認できる
+- [ ] `ragscope-app/test/RAGScope/Logging/SchemaSpec.hs`をRS-0021で更新したfixture名と現在契約へ追随させ、共有fixtureとHaskell生成JSONのSchema適合検証を成功させる
 - [ ] `message`と`attributes`の省略、空文字列・空array・空objectの保持、属性値の再帰構造など、現在のJSON表現に必要な主要境界をテストで確認できる
 - [ ] 構造化ログをstderrへ出力する場合、1ログ1JSON objectを1物理行へUTF-8で出力し、JSON以外の接頭辞や説明文を付加しない
 
@@ -73,6 +74,8 @@ RS-0015で実装したRAGScopeアプリケーションの`ragscope-logging`は�
 共通logging基盤をprivate sublibraryとして機能実装から分離すること、機能固有の閉じたイベントから共通loggingへ変換する境界、時刻やSinkを注入するRuntime、JSON serializationを共通モデルから分離する境界、Sinkを差し替える構造は、現在契約と衝突しないため維持候補とする。正確な型・module構成は既存構造を機械的に維持せず、実装時にコードとテストで決定する。
 
 ログ基盤自身の出力・serialization失敗を機能失敗とどう組み合わせるかは、現在の共通論理契約では一律に定めない。RAGScopeアプリケーション固有の実装境界として、利用箇所と既存挙動を確認したうえでコードとテストを正本として確定する。
+
+RS-0021ではHaskellファイルを変更していないため、`SchemaSpec.hs`には置き換え前のfixture名が残っている。共有fixtureの参照を現在の名前へ更新し、現在のHaskell `LogEvent`生成JSONを共有Schemaへ適合させる作業は、このTicketでまとめて行う。
 
 ## 結果
 

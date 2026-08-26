@@ -1,6 +1,6 @@
 ---
 note_type: ticket
-status: in_progress
+status: done
 milestone: "[[v0.0]]"
 epic: "[[v0.0 共通エラーと構造化ログによる実行追跡]]"
 ---
@@ -20,22 +20,23 @@ epic: "[[v0.0 共通エラーと構造化ログによる実行追跡]]"
 
 ## 完了条件
 
-- [ ] `contracts/logging/v1/log-event.schema.json`が、現在のJSON表現で必須となる`timestamp`、`component`、`event`、`level`、`trace_id`、`span_id`と、任意の`message`、`attributes`を検証できる
-- [ ] `timestamp`、`trace_id`、`span_id`、`level`など、外部表現共通設計とJSON表現設計が定める正確な値形式と必須条件がSchemaに反映されている
-- [ ] `attributes`がstring、number、boolean、array、objectを再帰的に扱え、論理上存在しない`null`を受け入れない
-- [ ] `message`と`attributes`の省略、および空文字列・空array・空objectを値として保持するJSON表現を契約として検証できる
-- [ ] `level`で`debug`、`info`、`warn`、`error`、`fatal`を表現できる
-- [ ] `schema_version`、`event_id`、`context`、`execution_id`、`spec.operation`、固定的な`failed`イベント、失敗時の専用`error` objectなど、現在契約が採用しない旧構造をSchemaの契約として残していない
-- [ ] `error_type`やドメイン参照を共通root項目へ昇格させず、イベントを定義する正本が必要に応じて`attributes`へ配置できる
-- [ ] 特定コンポーネントの発生元、機能固有イベント名、機能固有`error_type`を共有Schemaの固定`enum`として持たない
-- [ ] 現在のJSON契約を代表するvalid fixtureと、主要な契約違反を代表するinvalid fixtureが更新されている
-- [ ] Schemaとfixtureを検証する既存または追加の自動検査を実行し、valid fixtureが受理され、invalid fixtureが拒否されることを確認できる
-- [ ] Schema・fixtureの適合検証を現在のHaskell `LogEvent`生成JSONのSchema適合検証から分離し、Haskell実装の新Schemaへの追随は[RS-0022 RAGScopeアプリケーションの構造化ログ基盤を現在契約へ移行する](<./RS-0022 RAGScopeアプリケーションの構造化ログ基盤を現在契約へ移行する.md>)で扱える状態になっている
-- [ ] Schema、fixture、現在の実行追跡・構造化ログ契約設計、外部表現共通設計、JSON表現設計の間に未解消な差異がない
+- [x] `contracts/logging/v1/log-event.schema.json`が、現在のJSON表現で必須となる`timestamp`、`component`、`event`、`level`、`trace_id`、`span_id`と、任意の`message`、`attributes`を検証できる
+- [x] `timestamp`、`trace_id`、`span_id`、`level`など、外部表現共通設計とJSON表現設計が定める正確な値形式と必須条件がSchemaに反映されている
+- [x] `attributes`がstring、number、boolean、array、objectを再帰的に扱え、論理上存在しない`null`を受け入れない
+- [x] `message`と`attributes`の省略、および空文字列・空array・空objectを値として保持するJSON表現を契約として検証できる
+- [x] `level`で`debug`、`info`、`warn`、`error`、`fatal`を表現できる
+- [x] `schema_version`、`event_id`、`context`、`execution_id`、`spec.operation`、固定的な`failed`イベント、失敗時の専用`error` objectなど、現在契約が採用しない旧構造をSchemaの契約として残していない
+- [x] `error_type`やドメイン参照を共通root項目へ昇格させず、イベントを定義する正本が必要に応じて`attributes`へ配置できる
+- [x] 特定コンポーネントの発生元、機能固有イベント名、機能固有`error_type`を共有Schemaの固定`enum`として持たない
+- [x] 現在のJSON契約を代表するvalid fixtureと、主要な契約違反を代表するinvalid fixtureが更新されている
+- [x] Schemaとfixtureを検証する既存または追加の自動検査を実行し、valid fixtureが受理され、invalid fixtureが拒否されることを確認できる
+- [x] Schema・fixtureの適合検証を現在のHaskell `LogEvent`生成JSONのSchema適合検証から分離し、Haskell実装の新Schemaへの追随は[RS-0022 RAGScopeアプリケーションの構造化ログ基盤を現在契約へ移行する](<./RS-0022 RAGScopeアプリケーションの構造化ログ基盤を現在契約へ移行する.md>)で扱える状態になっている
+- [x] Schema、fixture、現在の実行追跡・構造化ログ契約設計、外部表現共通設計、JSON表現設計の間に未解消な差異がない
 
 ## 対象外
 
 - RAGScopeアプリケーションのHaskell logging実装を新しい契約へ移行すること
+- `ragscope-app/test/RAGScope/Logging/SchemaSpec.hs`など、Haskell側のSchema適合テストを新しいfixtureと契約へ追随させること
 - AI推論サービスのPython logging実装を作成すること
 - SQLiteを本番向け外部表現として実装すること
 - 機能固有のイベント、属性、`error_type`をこのTicketで決定すること
@@ -58,10 +59,14 @@ JSON object内の重複property名の拒否はJSON Schemaだけでは保証で�
 
 ## 結果
 
-> [!note] 完了時に記入
-> - 更新したJSON Schema
-> - 更新したvalid / invalid fixture
-> - 実行したSchema・fixture検証と結果
-> - 現在のJSON表現設計との適合結果
-> - 既知の制約
-> - 関連Pull Request
+`contracts/logging/v1/log-event.schema.json`を、必須の`timestamp`、`component`、`event`、`level`、`trace_id`、`span_id`と、任意の`message`、`attributes`を持つ現在のJSON表現へ更新した。重要度5種、UTC timestamp、TraceId・SpanId、再帰的な属性値、任意項目の省略を検証し、rootの追加propertyを拒否する契約とした。特定の発生元、イベント名、`error_type`は固定`enum`へ閉じ込めていない。
+
+valid fixtureは`complete-event.json`、`empty-values.json`、`minimal-event.json`の3件へ更新した。invalid fixtureは、必須項目、型、値形式、`null`、空のroot `attributes`、未知のroot項目、JSON object内の重複property名などを代表する21件へ更新した。
+
+Python 3.12.13と`jsonschema` 4.26.0のDraft 2020-12 validatorを使用し、`format`検査を有効にしてSchemaとfixtureを独立に検証した。Schema自体の妥当性を確認したうえで、valid 3件をすべて受理し、invalid 21件をすべて拒否した。invalidのうち18件はSchemaで拒否し、重複property名を持つ3件は、同名propertyを拒否するJSON parser境界で拒否した。
+
+Schemaのroot項目、必須条件、重要度、属性値の再帰構造、TraceId・SpanId・イベント名の値形式を機械的に照合した。旧契約要素も検索し、`schema_version`は拒否確認用のinvalid fixtureだけに残り、`event_id`、`execution_id`、`context`、`spec`、`operation`、専用`error` objectは共有Contractに残っていないことを確認した。`failed`は固定イベントではなくイベント名の接尾辞、`error`は重要度、`error_type`とドメイン参照は通常の属性として扱われている。
+
+[実行追跡・構造化ログ契約設計](../../../../design/logging/実行追跡・構造化ログ契約設計.md)、[構造化ログ外部表現共通設計](../../../../design/logging/構造化ログ外部表現共通設計.md)、[構造化ログJSON表現設計](../../../../design/logging/構造化ログJSON表現設計.md)とSchema・fixtureを照合し、RS-0021の範囲に未解消な差異がないことを確認した。
+
+JSON SchemaだけではJSON object内の重複property名を検出できないため、入力をJSON値へ変換するparser境界で一意性を検証する必要がある。Haskellファイルは変更しておらず、現在のHaskell logging実装、JSON生成、新fixture名への`SchemaSpec.hs`の追随、Haskell生成JSONのSchema適合検証は[RS-0022](<./RS-0022 RAGScopeアプリケーションの構造化ログ基盤を現在契約へ移行する.md>)で扱う。
