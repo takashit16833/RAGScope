@@ -26,7 +26,7 @@ OpenTelemetryはRAGScopeの要求や論理契約を決める正本ではない�
 - `error_type`をHaskellで表す`ErrorType`と、失敗値だけから`ErrorType`へ変換する`ToErrorType`は、共通local package `ragscope-error`のpublic main libraryにある`RAGScope.ErrorType`で定義する。`ragscope-error`はLogging、Tracing、Observability、Feature固有failureのいずれにも所有させない。
 - 各FeatureのUseCase failureは`RAGScope.<Feature>.Failure`で定義し、その型に対する`ToErrorType` instanceも同じmoduleに置く。これにより`ToErrorType` instanceをorphanにせず、`ragscope-features`から`ragscope-error`への一方向依存とする。
 - `ErrorType`を必要とする公開境界は、具体的なFeature failure型へ固定せず、`ToErrorType failure => failure`を受け取って境界内で`toErrorType`を適用できる形とする。その下位層には変換後の`ErrorType`だけを渡す。root spanの失敗反映ではObservability Runnerがこの変換境界を担い、Observability InternalとTracingには`ErrorType`を渡す。
-- 最終失敗ログはFeature固有eventとして表す。検索機能であれば`SearchEvent`の最終失敗を表すconstructorを使い、Logging側は他のFeature eventと同様に`ToLogSpec SearchEvent`を通して`LogSpec`へ変換する。具体的なconstructor名と保持する値は各Featureの設計・実装で確定する。
+- ユースケース失敗ログはFeature固有eventとして表す。検索機能であれば`SearchEvent`のユースケース失敗を表すconstructorを使い、Logging側は他のFeature eventと同様に`ToLogSpec SearchEvent`を通して`LogSpec`へ変換する。具体的なconstructor名と保持する値は各Featureの設計・実装で確定する。
 - `Port`はmodule名のsuffixではなく設計上の役割を表す語として使う。呼び出し側が必要とする抽象操作を定義し、具体実装を境界の向こう側で差し替える箇所をPortと呼ぶ。`RAGScope.Tracing`はObservability Runtimeが要求するspan操作を定義し、`RAGScope.Tracing.OpenTelemetry`がその具体実装となるためTracing Portと呼ぶ。`RAGScope.Observability`はFeature向けObservability Effect API、`RAGScope.Logging.Write`はLoggingの公開APIと呼び、単なる公開境界を一律にPortとは呼ばない。
 
 ## 完了条件
