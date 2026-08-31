@@ -77,10 +77,12 @@ erDiagram
 | `event` | `TEXT` | 共通外部表現の`event` |
 | `level` | `TEXT` | 共通外部表現の`level` |
 | `message` | `TEXT` / `NULL` | 共通外部表現の`message` |
-| `trace_id` | `TEXT` | 共通外部表現の`trace_id` |
-| `span_id` | `TEXT` | 共通外部表現の`span_id` |
+| `trace_id` | `TEXT` / `NULL` | Trace Contextが存在する場合の共通外部表現`trace_id` |
+| `span_id` | `TEXT` / `NULL` | Trace Contextが存在する場合の共通外部表現`span_id` |
 
-`timestamp`、`component`、`event`、`level`、`trace_id`、`span_id`は`NOT NULL`とする。`message`の扱いは4章で定める。
+`timestamp`、`component`、`event`、`level`は`NOT NULL`とする。`message`、`trace_id`、`span_id`の扱いは4章で定める。
+
+`trace_id`と`span_id`は必ず両方が`NULL`、または両方が非`NULL`になるように制約する。片方だけが`NULL`のrowは有効なSQLite表現として扱わない。正確な`CHECK` constraintはmigrationを正本とする。
 
 `record_id`はSQLite表現のrelationを作るためだけに使用する。論理契約や共通外部表現の項目ではなく、復元した構造化ログへ含めない。値の開始番号、連番、ログの発生順や出力順に意味を持たせず、`AUTOINCREMENT`も要求しない。
 
@@ -142,26 +144,31 @@ erDiagram
 
 投影処理は論理上の値1件ごとに新しい`log_value` rowを作り、循環するrelationは作らない。
 
-## 4. 任意情報
+## 4. 任意情報とTrace Context
 
-任意情報と空の値は、rowまたは`NULL`の有無で区別する。
+任意情報と空の値、Trace Contextの不存在は、rowまたは`NULL`の有無で区別する。
 
 - `message`が存在しない場合は`log_record.message`を`NULL`にする。
 - `message`が空文字列として存在する場合は空の`TEXT`として保持する。
+- Trace Contextが存在する場合は`log_record.trace_id`と`log_record.span_id`を両方非`NULL`とする。
+- Trace Contextが存在しない場合は`log_record.trace_id`と`log_record.span_id`を両方`NULL`にする。
 - 属性が0件の場合は、その`record_id`に対応する`log_attribute` rowを持たない。
 - その属性を定義する正本の記録条件を満たさず属性が存在しない場合は、その属性の`log_attribute` rowを持たない。
 - 空arrayは`value_kind=array`の`log_value`だけを持ち、`log_array_item` rowを持たない。
 - 空objectは`value_kind=object`の`log_value`だけを持ち、`log_object_member` rowを持たない。
 
-この規則により、「情報が存在しないこと」と「空文字列・空array・空objectという値が存在すること」を区別したまま論理情報へ戻せる。
+この規則により、「情報が存在しないこと」と「空文字列・空array・空objectという値が存在すること」、および「特定の`span`へ関連付かないこと」を区別したまま論理情報へ戻せる。
 
 ## 5. 復元
 
 SQLiteから論理ログへ戻すときは、`log_record`から共通情報を取得し、同じ`record_id`の`log_attribute`から各属性のroot `value_id`を取得する。`log_value`の`value_kind`に従い、arrayでは`log_array_item`を`item_index`の昇順でたどり、objectでは`log_object_member`をたどって属性値を再帰的に復元する。
 
+`trace_id`と`span_id`が両方非`NULL`ならTrace Contextが存在する論理ログへ戻し、両方`NULL`ならTrace Contextを持たない論理ログへ戻す。
+
 有効なSQLite表現は、次を満たす。
 
 - foreign keyがすべて解決できる。
+- `trace_id`と`span_id`は両方`NULL`または両方非`NULL`である。
 - `log_attribute`では同じ`record_id`に同じ`name`を複数持たない。
 - `log_array_item`のparentは`value_kind=array`であり、`item_index`は0から隙間なく並ぶ。
 - `log_object_member`のparentは`value_kind=object`であり、同じparentに同じ`name`を複数持たない。
@@ -182,10 +189,10 @@ SQLite databaseは0件以上の`log_record`を保持できる。`record_id`の�
 
 | 正本 | 担当すること |
 |---|---|
-| [実行追跡・構造化ログ契約設計](./実行追跡・構造化ログ契約設計.md) | 構造化ログ1件が持つ論理情報、属性値、イベント、重要度、`error_type`、`TraceId`・`SpanId`の意味 |
-| [構造化ログ外部表現共通設計](./構造化ログ外部表現共通設計.md) | 外部表現で共通する項目名と値表現、属性名と論理上の型・値を形式間で維持する規則 |
+| [実行追跡・構造化ログ契約設計](./実行追跡・構造化ログ契約設計.md) | 構造化ログ1件が持つ論理情報、属性値、イベント、重要度、`error_type`、Trace Contextを持つ条件、`TraceId`・`SpanId`の意味 |
+| [構造化ログ外部表現共通設計](./構造化ログ外部表現共通設計.md) | 外部表現で共通する項目名と値表現、Trace Contextの存在・不存在、属性名と論理上の型・値を形式間で維持する規則 |
 | イベント・属性・`error_type`を定義する正本 | 具体的なイベント、記録条件、既定の重要度、属性名・属性値、`error_type` |
-| この文書 | 共通情報と属性をSQLiteのtable、column、relationへ配置する方法と、SQLiteから論理値へ復元する規則 |
+| この文書 | 共通情報と属性をSQLiteのtable、column、relationへ配置する方法、Trace Contextの`NULL`表現、SQLiteから論理値へ復元する規則 |
 | migration | SQLite表現を実装する場合の正確なtable、column、constraint、index |
 
 ## 関連文書

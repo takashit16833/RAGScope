@@ -1,0 +1,7 @@
+{
+  "timestamp": "2026-08-26T00:00:00Z",
+  "component": "example_component",
+  "event": "example.process.failed",
+  "level": "error",
+  "span_id": "0123456789abcdef"
+}

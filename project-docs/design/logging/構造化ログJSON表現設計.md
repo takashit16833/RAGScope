@@ -8,7 +8,7 @@ note_type: design
 
 ## 1. JSON表現の全体像
 
-構造化ログ1件を1つのJSON objectとして表す。次はJSON上の形を示す例であり、`example_component`、イベント名、属性名を各機能の現在仕様として定めるものではない。
+構造化ログ1件を1つのJSON objectとして表す。次は特定の`span`へ関連付くログのJSON上の形を示す例であり、`example_component`、イベント名、属性名を各機能の現在仕様として定めるものではない。
 
 ```json
 {
@@ -32,13 +32,24 @@ note_type: design
 }
 ```
 
+特定の`span`へ属さないログでは`trace_id`と`span_id`を両方省略する。
+
+```json
+{
+  "timestamp": "2026-08-26T00:00:00Z",
+  "component": "example_component",
+  "event": "example.lifecycle.started",
+  "level": "info"
+}
+```
+
 ## 2. 論理情報からJSONへの対応
 
 ### 2.1 共通情報
 
-[構造化ログ外部表現共通設計](./構造化ログ外部表現共通設計.md)で定める共通外部項目を、同名のJSON propertyとしてroot objectへ置く。各propertyの値はJSON stringとして表す。
+[構造化ログ外部表現共通設計](./構造化ログ外部表現共通設計.md)で定める共通外部項目を、同名のJSON propertyとしてroot objectへ置く。
 
-`message`以外の共通情報は必須である。`message`の扱いは4章で定める。
+`timestamp`、`component`、`event`、`level`は必須である。`message`、`trace_id`、`span_id`の扱いは4章で定める。
 
 ### 2.2 属性
 
@@ -68,21 +79,26 @@ arrayはJSON arrayとして表す。各要素には3章の属性値の表現を�
 
 objectはJSON objectとして表す。論理上の名前をproperty名として使用し、各property値には3章の属性値の表現を再帰的に適用する。objectのproperty順には意味を持たせない。
 
-## 4. 任意情報
+## 4. 任意情報とTrace Context
 
-`message`と`attributes`は、論理上存在しない場合に`null`を入れず、項目自体を省略する。
+`message`、`attributes`、Trace Contextは、論理上存在しない場合に`null`を入れず、対応するproperty自体を省略する。
 
 - `message`が存在しない場合は`message`を省略する。
 - `message`が空文字列として存在する場合は`"message": ""`として残す。
 - 属性が0件の場合は`attributes`を省略する。
 - その属性を定義する正本の記録条件を満たさず属性が存在しない場合は、そのpropertyを作らない。
 - 属性値として空のarrayまたはobjectが存在する場合は、`[]`または`{}`としてpropertyを残す。
+- Trace Contextが存在する場合は`trace_id`と`span_id`を両方記録する。
+- Trace Contextが存在しない場合は`trace_id`と`span_id`を両方省略する。
+- `trace_id`だけ、または`span_id`だけを持つJSON objectは有効な構造化ログとして扱わない。
 
-この規則により、「情報が存在しないこと」と「空文字列・空array・空objectという値が存在すること」を区別したまま論理情報へ戻せる。
+この規則により、「情報が存在しないこと」と「空文字列・空array・空objectという値が存在すること」、および「特定の`span`へ関連付かないこと」を区別したまま論理情報へ戻せる。
 
 ## 5. 復元
 
 JSONから論理ログへ戻すときは、root objectの共通外部項目を共通情報へ戻し、`attributes` objectの各propertyを属性名と属性値の組へ戻す。属性値はJSONの値型に従って3章の対応を逆にたどり、arrayとobjectは再帰的に復元する。
+
+`trace_id`と`span_id`が両方存在する場合はTrace Contextが存在する論理ログへ戻し、両方存在しない場合はTrace Contextを持たない論理ログへ戻す。片方だけが存在するJSON objectは復元対象として受け入れない。
 
 JSON objectに同じproperty名が複数存在する場合は、論理契約の名前の一意性を満たさないため復元対象として受け入れない。この規則は、root object、`attributes` object、属性値として使用するobjectのすべてに適用する。
 
@@ -100,12 +116,12 @@ JSON objectに同じproperty名が複数存在する場合は、論理契約の�
 
 | 正本 | 担当すること |
 |---|---|
-| [実行追跡・構造化ログ契約設計](./実行追跡・構造化ログ契約設計.md) | 構造化ログ1件が持つ論理情報、属性、イベント、重要度、`error_type`、`TraceId`・`SpanId`の意味 |
-| [構造化ログ外部表現共通設計](./構造化ログ外部表現共通設計.md) | 外部表現で共通する項目名と値表現、属性名と論理上の型・値を形式間で維持する規則 |
+| [実行追跡・構造化ログ契約設計](./実行追跡・構造化ログ契約設計.md) | 構造化ログ1件が持つ論理情報、属性、イベント、重要度、`error_type`、Trace Contextを持つ条件、`TraceId`・`SpanId`の意味 |
+| [構造化ログ外部表現共通設計](./構造化ログ外部表現共通設計.md) | 外部表現で共通する項目名と値表現、Trace Contextの存在・不存在、属性名と論理上の型・値を形式間で維持する規則 |
 | イベント・属性・`error_type`を定義する正本 | 具体的なイベント、記録条件、既定の重要度、属性名・属性値、`error_type` |
-| この文書 | 共通情報と属性をJSONへ配置する階層、JSON上の値型、省略規則、1件の出力単位 |
+| この文書 | 共通情報と属性をJSONへ配置する階層、JSON上の値型、Trace Contextを含む任意情報の省略規則、1件の出力単位 |
 | 各コンポーネントのコード・設定・テスト | JSON表現へ投影する実装境界、具体的な出力先、buffering、ログ基盤自身のIO失敗の扱い |
-| JSON Schema | JSONの正確な項目、型、必須条件、文字列形式を機械的に検証する契約 |
+| JSON Schema | JSONの正確な項目、型、必須条件、項目間の存在条件、文字列形式を機械的に検証する契約 |
 
 ## 関連文書
 

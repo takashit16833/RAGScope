@@ -1,5 +1,6 @@
 {
   "timestamp": "2026-08-26T00:00:00Z",
   "component": "example_component",
-  "event": "document.read.succeeded"
+  "event": "application.lifecycle.started",
+  "level": "info"
 }

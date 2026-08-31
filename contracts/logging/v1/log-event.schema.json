@@ -7,10 +7,16 @@
     "timestamp",
     "component",
     "event",
-    "level",
-    "trace_id",
-    "span_id"
+    "level"
   ],
+  "dependentRequired": {
+    "trace_id": [
+      "span_id"
+    ],
+    "span_id": [
+      "trace_id"
+    ]
+  },
   "additionalProperties": false,
   "properties": {
     "timestamp": {
