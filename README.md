@@ -24,21 +24,29 @@ RAGScopeの構成、開発方法、プロジェクト運用、コーディング
 - [RAGScopeコーディング規約](project-docs/rules/RAGScopeコーディング規約.md): RAGScope全体へ適用するコード品質と責務分離の原則
 - [Haskellコーディング規約](project-docs/rules/Haskellコーディング規約.md): `ragscope-app/`へ適用するHaskell固有の規約
 
-### プロジェクト管理Vaultを使いたい
+### project-management を Obsidian Vault として使いたい
 
-`project-docs/project-management/` をObsidian Vaultとして使う場合は、Config Layerをセットアップします。
+`project-docs/project-management/` をObsidian Vaultとして開く場合は、リポジトリルートで次を実行します。
 
 ```bash
 bash Scripts/setup-project-vault.sh
 ```
 
-Config Layer本体は `Vendor/obsidian-config-layer` のsubmoduleとして管理し、ビルド成果物だけをVaultの `.obsidian/plugins/config-layer/` へ配置します。Vault固有の `.obsidian` はGit管理しません。
+このスクリプトは `obsidian-config-layer` submoduleを初期化・ビルドし、Vaultへインストールして有効化します。
+
+共有Obsidian設定はデフォルトで `~/dotfiles/obsidian` を参照します。別の場所にある場合は環境変数で指定できます。
+
+```bash
+OBSIDIAN_SHARED_CONFIG_DIR=/path/to/obsidian bash Scripts/setup-project-vault.sh
+```
+
+既存のConfig Layer設定がある場合、スクリプトは設定済みのパスを上書きしません。セットアップ後にObsidianをreloadすると、共有 `plugins.json` に列挙された必須プラグインもConfig Layerによってインストール・有効化されます。
 
 ## リポジトリ構成
 
 - [`ragscope-app/`](ragscope-app/README.md): RAGScopeアプリケーションを実装するHaskellコンポーネント
 - [`contracts/`](contracts/): コンポーネント間で共有する機械可読な契約
 - [`project-docs/`](project-docs/): 要求、設計、ADR、プロジェクト管理、開発規約
-- [`Vendor/obsidian-config-layer/`](Vendor/obsidian-config-layer/): プロジェクト管理Vaultで利用するConfig Layerのsubmodule
+- [`Vendor/obsidian-config-layer/`](Vendor/obsidian-config-layer/): project-management Vaultで利用するConfig Layerのsubmodule
 
 システム全体のコンポーネント構成と責務は[システムアーキテクチャ](project-docs/design/システムアーキテクチャ.md)を正本とします。
