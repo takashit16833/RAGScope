@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-VAULT="$ROOT/project-docs/project-management"
+VAULT="$ROOT/project-docs"
 CONFIG_SOURCE="$ROOT/Vendor/obsidian-config-layer"
 CONFIG_DEST="$VAULT/.obsidian/plugins/config-layer"
 CONFIG_DATA="$CONFIG_DEST/data.json"
@@ -36,7 +36,7 @@ if [[ ! -f "$CONFIG_SOURCE/manifest.json" || ! -f "$CONFIG_SOURCE/main.js" ]]; t
   exit 1
 fi
 
-printf '\n[3/5] Installing Config Layer into the project-management vault...\n'
+printf '\n[3/5] Installing Config Layer into the project-docs vault...\n'
 mkdir -p "$CONFIG_DEST"
 cp "$CONFIG_SOURCE/manifest.json" "$CONFIG_DEST/manifest.json"
 cp "$CONFIG_SOURCE/main.js" "$CONFIG_DEST/main.js"
@@ -105,6 +105,6 @@ if "config-layer" not in current:
 path.write_text(json.dumps(current, ensure_ascii=False, indent=2) + "\n")
 PY
 
-printf '\nProject-management vault setup complete.\n'
+printf '\nProject-docs vault setup complete.\n'
 echo "Restart Obsidian or reload the vault."
 echo "On Config Layer startup, plugins listed in $SHARED_CONFIG/plugins.json are installed/enabled automatically."
