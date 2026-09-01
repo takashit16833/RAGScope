@@ -12,6 +12,7 @@ RAGScopeの現在設計を、知りたい内容から参照するための索引
 | [ユースケース詳細設計](./ユースケース詳細設計.md) | ユースケースの成功・失敗と具体的なfailureを、RAGScopeアプリケーションのHaskell実装でどう表現し受け渡すか |
 | [ErrorType変換詳細設計](./ErrorType変換詳細設計.md) | Feature・利用インターフェース・Applicationなどが所有する具体的なfailureを、観測用の共通`ErrorType`へどう変換するか |
 | [利用者操作基本設計](./利用者操作基本設計.md) | 1回のトップレベルな利用者操作はどこからどこまでで、UseCaseをどう内包し、操作全体の成功・失敗をどう判定するか |
+| [利用者操作詳細設計](./利用者操作詳細設計.md) | 利用者操作全体をHaskellの`Either`でどう表し、UseCase前後を含む具体failureを操作固有failureとしてどう保持するか |
 | [システムアーキテクチャ](./システムアーキテクチャ.md) | どのコンポーネントが何を担当し、どうつながるか |
 | [機能設計](./features/README.md) | 個別機能はどの処理規則で動き、具体的にどのような失敗があるか |
 | [実行追跡・構造化ログ設計](./logging/README.md) | 処理と出来事をどう追跡し、失敗理由を`error_type`として共有し、構造化ログへどう記録するか |
@@ -30,11 +31,14 @@ flowchart TD
         UseCaseDetail["ユースケース詳細設計<br>UseCase結果・failureのHaskell表現"]
         ErrorTypeConversion["ErrorType変換詳細設計<br>具体failure → ErrorType"]
         Operation["利用者操作基本設計<br>Operation境界<br>OperationSuccess / OperationFailure"]
+        OperationDetail["利用者操作詳細設計<br>Either operationFailure result<br>操作固有failure"]
         Architecture["システムアーキテクチャ<br>コンポーネント構成・責務・連携"]
         UseCase --> UseCaseDetail
-        ErrorTypeConversion --> UseCaseDetail
         UseCase --> Operation
-        ErrorTypeConversion --> Operation
+        Operation --> OperationDetail
+        UseCaseDetail --> OperationDetail
+        ErrorTypeConversion --> UseCaseDetail
+        ErrorTypeConversion --> OperationDetail
         UseCase --> Architecture
         Operation --> Architecture
     end
@@ -58,6 +62,7 @@ flowchart TD
     Features --> UseCaseDetail
 
     Operation --> Logging
+    OperationDetail --> Logging
     UseCase --> Logging
     ErrorTypeConversion --> Logging
     Architecture --> Logging
@@ -68,7 +73,7 @@ flowchart TD
 
 利用者がRAGScopeへ何を依頼し、その目的を実現するユースケースが**何を成立させれば`UseCaseSuccess`で、何を`UseCaseFailure`とみなすか**は[ユースケース基本設計](./ユースケース基本設計.md)を確認する。
 
-1回のトップレベルな利用者操作について、**どの処理を操作全体へ含め、`UseCaseResult`をどう内包し、何を`OperationSuccess`・`OperationFailure`とするか**は[利用者操作基本設計](./利用者操作基本設計.md)を確認する。
+1回のトップレベルな利用者操作について、**どの処理を操作全体へ含め、`UseCaseResult`をどう内包し、何を`OperationSuccess`・`OperationFailure`とするか**は[利用者操作基本設計](./利用者操作基本設計.md)を確認する。操作全体を**Haskellの`Either operationFailure result`としてどう表し、UseCase前後を含む具体failureをどう保持・受け渡すか**まで必要な場合は[利用者操作詳細設計](./利用者操作詳細設計.md)を確認する。
 
 ユースケースを構成する各処理で**具体的にどのような失敗があるか**は[機能設計](./features/README.md)を確認する。それらの失敗を**Haskell上でどう表現し、ユースケースの失敗としてApplicationへどう受け渡すか**は[ユースケース詳細設計](./ユースケース詳細設計.md)を確認する。
 

@@ -26,8 +26,11 @@ OpenTelemetryはRAGScopeの要求や論理契約を決める正本ではない�
 - `error_type`をHaskellで表す`ErrorType`と、失敗値だけから`ErrorType`へ変換する`ToErrorType`は、共通local package `ragscope-error`のpublic main libraryにある`RAGScope.ErrorType`で定義する。`ragscope-error`はLogging、Tracing、Observability、UseCase固有failureのいずれにも所有させない。
 - 各UseCaseが`UseCaseFailure`となった具体的な理由は、そのUseCase固有のfailure型で表す。failure型はそのUseCaseを所有するFeatureの`RAGScope.<Feature>.Failure`で定義し、その型に対する`ToErrorType` instanceも同じmoduleに置く。Featureはfailure型の所有単位であり、`FeatureFailure`という共通の結果区分は導入しない。これにより`ToErrorType` instanceをorphanにせず、`ragscope-features`から`ragscope-error`への一方向依存とする。
 - UseCase実行の結果は概念上`UseCaseResult = UseCaseSuccess | UseCaseFailure`として扱う。HaskellのUseCase境界では`Either failure result`を使い、`Right result`を`UseCaseSuccess`、`Left failure`を`UseCaseFailure`として表す。`UseCaseSuccess`・`UseCaseFailure`は結果区分であり、具体的なresult型・failure型の名称ではない。routing・command判定、入力変換・検証、ユースケース終了後の結果処理などの失敗をUseCase固有failureへ混在させない。
-- 1回のトップレベルな利用者操作全体は、必要な場合だけ`UseCaseResult`を内包する外側の結果を持つ。この結果は概念上`OperationResult = OperationSuccess | OperationFailure`として扱う。UseCaseが`UseCaseFailure`となった場合は`OperationFailure`となり、UseCase前後の通常失敗もUseCase固有failureへ変換せず`OperationFailure`の原因として扱う。`UseCaseSuccess`だけでは`OperationSuccess`は確定せず、操作固有処理全体が完了して利用者が依頼した結果が成立したときに`OperationSuccess`となる。アプリケーションやプロセスの起動・終了など利用者操作外のライフサイクル結果は`OperationResult`へ含めない。`OperationResult`の正確なHaskell型名、constructor、外側のfailure型の構造はアプリケーション実行・失敗境界の実装で確定する。
-- `ErrorType`を必要とする公開境界は、具体的なUseCase固有failure型へ固定せず、`ToErrorType failure => failure`を受け取って境界内で`toErrorType`を適用できる形とする。その下位層には変換後の`ErrorType`だけを渡す。ユースケース実行`span`と利用者操作全体のroot `span`は表す処理が異なるため、UseCase固有failureをroot `span`の失敗へ直接対応付ける旧前提は置かない。`ToErrorType`をどのObservability公開APIで適用するかは、現在の実行追跡境界に合わせてこのTicketで設計・実装する。
+- 1回のトップレベルな利用者操作全体は、必要な場合だけ`UseCaseResult`を内包する外側の結果を持ち、概念上`OperationResult = OperationSuccess | OperationFailure`として扱う。Haskellの利用者操作境界では`Either operationFailure result`を使い、`Right result`を`OperationSuccess`、`Left operationFailure`を`OperationFailure`として表す。結果区分を表すためだけの共通`OperationResult` ADTは導入しない。
+- `operationFailure`は全操作で共用するパラメータ化された共通failure型ではなく、各トップレベルな利用者操作が、その操作で実際に発生し得るUseCase前・UseCase・UseCase後の具体的なfailureだけを列挙した操作固有failure型として持つ。UseCaseが`Left useCaseFailure`を返した場合は、その具体的なfailure値を失わず、操作固有failureの対応するconstructorで包む。UseCase外のfailureも、それぞれを所有する処理の具体的なfailure値のまま保持し、UseCase固有failureや`ErrorType`へ変換してから保持しない。
+- 操作固有failure型は、そのトップレベルな操作を組み立てる利用インターフェース側が所有する。同じUseCaseをCLIとAPIから呼び出しても、UseCase前後の処理が異なり得るため、UseCaseが同じことだけを理由に操作固有failure型を共有しない。操作固有failure型をFeatureや`ragscope-error`へ置かず、Featureから利用インターフェース側へ逆向きに依存させない。
+- 操作固有failure型にも`ToErrorType` instanceを定義する。instanceはconstructorを判別して内包する具体的なfailureを取り出し、そのfailure自身の`toErrorType`へ変換を委ねる。UseCase failureを包む場合はFeature側で定義済みの`ToErrorType` instanceをそのまま利用するため、同じUseCase failureがUseCase実行`span`とroot `span`の両方を失敗させる場合に同じ`ErrorType`を得られる。
+- `ErrorType`を必要とする公開境界は、具体的なUseCase固有failure型へ固定せず、`ToErrorType failure => failure`を受け取って境界内で`toErrorType`を適用できる形とする。その下位層には変換後の`ErrorType`だけを渡す。`ToErrorType`をどのObservability公開APIで適用するかは、現在の実行追跡境界に合わせてこのTicketで設計・実装する。
 - 利用インターフェースが1回のトップレベルな操作について操作固有処理を開始する境界から、その操作の処理を完了または失敗として終了して外側へ制御を戻す境界までを1つの`trace`として扱える公開境界を設ける。routing・command判定、入力変換・検証、ユースケース呼び出し、ユースケース後の結果処理は、その操作に属する限り同じroot `span`の時間区間に含められるようにする。
 - RAGScope Applicationがユースケースを呼び出した場合、その呼び出しからApplicationへ制御が戻るまでをroot `span`配下のユースケース実行`span`として追跡できるようにする。routingや入力検証で操作が終了してユースケースを呼び出さない場合は、ユースケース実行`span`を作らない。
 - ユースケース失敗ログはFeature固有eventとして表す。検索機能であれば`SearchEvent`のユースケース失敗を表すconstructorを使い、Logging側は他のFeature eventと同様に`ToLogSpec SearchEvent`を通して`LogSpec`へ変換する。ユースケース失敗イベントはユースケース実行`span`へ関連付け、親やrootへ失敗が伝播したという理由だけで同じ失敗ログを重複して記録しない。具体的なconstructor名と保持する値は各Featureの設計・実装で確定する。
@@ -44,6 +47,9 @@ OpenTelemetryはRAGScopeの要求や論理契約を決める正本ではない�
 - [ ] ユースケースを呼び出した場合はその実行をroot `span`配下の子`span`として追跡し、ユースケースを呼び出さず操作が終了した場合はユースケース実行`span`を作らない
 - [ ] UseCase実行を概念上`UseCaseResult = UseCaseSuccess | UseCaseFailure`として扱い、Haskellの`Either failure result`では`Right result`を`UseCaseSuccess`、`Left failure`を`UseCaseFailure`として表せる
 - [ ] 1回の利用者操作全体を概念上`OperationResult = OperationSuccess | OperationFailure`として扱い、必要な場合だけ内側の`UseCaseResult`を含める。`UseCaseFailure`とUseCase前後の通常失敗を`OperationFailure`の原因として扱え、`UseCaseSuccess`だけを理由に`OperationSuccess`を確定しない
+- [ ] Haskellの利用者操作境界を`Either operationFailure result`で表し、`Right result`を`OperationSuccess`、`Left operationFailure`を`OperationFailure`として扱い、結果区分だけを表す共通`OperationResult` ADTを導入していない
+- [ ] 各トップレベルな利用者操作が操作固有failure型を持ち、その操作に実際に存在するUseCase前・UseCase・UseCase後の具体的なfailureをconstructorで保持できる。UseCase failureを操作側の別分類へ変換せず、元の具体的なfailure値を包んで保持できる
+- [ ] 操作固有failure型の`ToErrorType` instanceが、内包する具体的なfailure自身の`ToErrorType`へ変換を委ね、UseCase失敗がroot `span`まで同じ失敗理由として伝わる場合に同じ`ErrorType`を得られる
 - [ ] `UseCaseFailure`という結果区分と、`DenseSearchFailure`などUseCase固有の具体的なfailure型を同一視せず、Featureは具体failure型の所有単位として扱う
 - [ ] アプリケーションやプロセスの起動・終了など、利用者操作外のライフサイクル結果を`OperationResult`へ混在させない
 - [ ] root `span`とユースケース実行`span`のSpan Status・`error_type`を、それぞれが表す処理自身の最終結果から独立して決められる
@@ -104,6 +110,9 @@ OpenTelemetryはRAGScopeの要求や論理契約を決める正本ではない�
 - [システムアーキテクチャ](../../../../design/システムアーキテクチャ.md)
 - [ユースケース基本設計](../../../../design/ユースケース基本設計.md)
 - [ユースケース詳細設計](../../../../design/ユースケース詳細設計.md)
+- [利用者操作基本設計](../../../../design/利用者操作基本設計.md)
+- [利用者操作詳細設計](../../../../design/利用者操作詳細設計.md)
+- [ErrorType変換詳細設計](../../../../design/ErrorType変換詳細設計.md)
 - [実行追跡・構造化ログ契約設計](../../../../design/logging/実行追跡・構造化ログ契約設計.md)
 - [構造化ログ外部表現共通設計](../../../../design/logging/構造化ログ外部表現共通設計.md)
 - [構造化ログJSON表現設計](../../../../design/logging/構造化ログJSON表現設計.md)
@@ -118,7 +127,7 @@ logging・tracing・observabilityなど独立した責務は、既存の1 packag
 
 機能固有の閉じたイベントから共通loggingへ変換する境界、時刻やTrace Contextなど実行時情報を付加する境界、JSON serializationとSQLite投影を共通モデルから分離する境界、Sinkを差し替える構造は維持候補とする。ただし、いずれも既存構造を残すこと自体を目的とせず、先に設計した全体像の中で責務が自然に分かれる場合だけ採用する。Trace Contextはすべてのログへ要求せず、特定の`span`へ属するログだけに`TraceId`・`SpanId`を組で付加する。JSONとSQLiteは同じ`LogRecord`から独立して投影し、片方の表現都合を共通モデルへ持ち込まなければもう片方を実装できない構造を避ける。
 
-`Observation`、`Result`、`AppError`を含む既存の周辺moduleは、このTicketの変更範囲外として固定しない。UseCase実行は概念上`UseCaseResult = UseCaseSuccess | UseCaseFailure`として扱い、Haskell境界では`Either failure result`を使う。1回の利用者操作全体はその`UseCaseResult`を必要な場合だけ内包し、概念上`OperationResult = OperationSuccess | OperationFailure`という外側の結果境界を持つ。正確な`OperationResult`のHaskell型・constructor・failure構造は、loggingの公開境界、root `span`とユースケース実行`span`、例外、ログ基盤自身の失敗処理を一貫して扱えるよう、アプリケーション実行・失敗境界の実装で確定する。
+`Observation`、`Result`、`AppError`を含む既存の周辺moduleは、このTicketの変更範囲外として固定しない。UseCase実行は概念上`UseCaseResult = UseCaseSuccess | UseCaseFailure`として扱い、Haskell境界では`Either failure result`を使う。利用者操作全体は概念上`OperationResult = OperationSuccess | OperationFailure`として扱い、Haskell境界では`Either operationFailure result`を使う。各トップレベルな利用者操作は、その操作で実際に発生し得るUseCase前・UseCase・UseCase後の具体的なfailureをconstructorで保持する操作固有failure型を持つ。UseCase failureは操作固有constructorで包んで元のfailure値を保持し、操作固有failureの`ToErrorType`は内包するfailure自身の`ToErrorType`へ変換を委ねる。同期・非同期Exceptionとlogging基盤自身のfailureを利用者操作全体の結果へどう組み合わせるかは引き続き別途設計する。
 
 OpenTelemetryは、RAGScopeが採用した実行追跡を実装するための手段として利用する。`trace`・`span`・Contextなど利用する概念やHaskell実装上のAPIは確認するが、OpenTelemetryに存在する概念や制約をそのままRAGScopeの要求へ昇格させない。
 
