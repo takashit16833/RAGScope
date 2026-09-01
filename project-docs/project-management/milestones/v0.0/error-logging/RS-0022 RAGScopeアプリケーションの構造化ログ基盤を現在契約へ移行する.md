@@ -25,6 +25,8 @@ OpenTelemetryはRAGScopeの要求や論理契約を決める正本ではない�
 
 - `error_type`をHaskellで表す`ErrorType`と、失敗値だけから`ErrorType`へ変換する`ToErrorType`は、共通local package `ragscope-error`のpublic main libraryにある`RAGScope.ErrorType`で定義する。`ragscope-error`はLogging、Tracing、Observability、Feature固有failureのいずれにも所有させない。
 - 各FeatureのUseCase failureは`RAGScope.<Feature>.Failure`で定義し、その型に対する`ToErrorType` instanceも同じmoduleに置く。これにより`ToErrorType` instanceをorphanにせず、`ragscope-features`から`ragscope-error`への一方向依存とする。
+- UseCase境界の`Either failure result`はユースケース実行自身の結果だけを表す。routing・command判定、入力変換・検証、ユースケース終了後の結果処理などの失敗をFeature failureへ混在させない。
+- 1回のトップレベルな利用者操作全体には、UseCase境界とは別に成功・失敗の実行結果境界を持たせる。この外側の結果は概念上`OperationResult = Success | Failure`として扱い、UseCaseの`Left failure`は外側の`Failure`へ引き渡す原因の1つとする。UseCase前後の通常失敗も外側の`Failure`として扱い、アプリケーションやプロセスの起動・終了など利用者操作外のライフサイクル結果は`OperationResult`へ含めない。正確なHaskell型名、constructor、外側のfailure型の構造はアプリケーション実行・失敗境界の実装で確定する。
 - `ErrorType`を必要とする公開境界は、具体的なFeature failure型へ固定せず、`ToErrorType failure => failure`を受け取って境界内で`toErrorType`を適用できる形とする。その下位層には変換後の`ErrorType`だけを渡す。ユースケース実行`span`と利用者操作全体のroot `span`は表す処理が異なるため、Feature failureをroot `span`の失敗へ直接対応付ける旧前提は置かない。`ToErrorType`をどのObservability公開APIで適用するかは、現在の実行追跡境界に合わせてこのTicketで設計・実装する。
 - 利用インターフェースが1回のトップレベルな操作について操作固有処理を開始する境界から、その操作の処理を完了または失敗として終了して外側へ制御を戻す境界までを1つの`trace`として扱える公開境界を設ける。routing・command判定、入力変換・検証、ユースケース呼び出し、ユースケース後の結果処理は、その操作に属する限り同じroot `span`の時間区間に含められるようにする。
 - RAGScope Applicationがユースケースを呼び出した場合、その呼び出しからApplicationへ制御が戻るまでをroot `span`配下のユースケース実行`span`として追跡できるようにする。routingや入力検証で操作が終了してユースケースを呼び出さない場合は、ユースケース実行`span`を作らない。
@@ -40,6 +42,8 @@ OpenTelemetryはRAGScopeの要求や論理契約を決める正本ではない�
 - [ ] 特定の`span`中で起きた構造化ログは`TraceId`・`SpanId`を組で持ち、対応するOpenTelemetry `span`へ関連付けられる。特定の`span`へ属さない構造化ログは両方を持たず、片方だけを持つ状態を作らない
 - [ ] 利用インターフェースが受け付けた1回のトップレベルな操作を1つの`trace`として追跡し、routing・command判定、入力変換・検証、ユースケース呼び出し、ユースケース後の結果処理をその操作に属する範囲でroot `span`に含められる
 - [ ] ユースケースを呼び出した場合はその実行をroot `span`配下の子`span`として追跡し、ユースケースを呼び出さず操作が終了した場合はユースケース実行`span`を作らない
+- [ ] UseCaseの`Either failure result`と、1回の利用者操作全体の成功・失敗を表す外側の実行結果境界を分離し、UseCaseの`Left failure`とUseCase前後の通常失敗を外側の`Failure`へ引き渡せる
+- [ ] アプリケーションやプロセスの起動・終了など、利用者操作外のライフサイクル結果を1回の利用者操作の実行結果へ混在させない
 - [ ] root `span`とユースケース実行`span`のSpan Status・`error_type`を、それぞれが表す処理自身の最終結果から独立して決められる
 - [ ] コンポーネントの起動・終了など、特定の利用者操作へ属さないイベントを同じlogging基盤へtrace外ログとして渡せる
 - [ ] イベント名と重要度を独立して扱え、`debug`、`info`、`warn`、`error`、`fatal`の5段階を表現できる
@@ -112,7 +116,7 @@ logging・tracing・observabilityなど独立した責務は、既存の1 packag
 
 機能固有の閉じたイベントから共通loggingへ変換する境界、時刻やTrace Contextなど実行時情報を付加する境界、JSON serializationとSQLite投影を共通モデルから分離する境界、Sinkを差し替える構造は維持候補とする。ただし、いずれも既存構造を残すこと自体を目的とせず、先に設計した全体像の中で責務が自然に分かれる場合だけ採用する。Trace Contextはすべてのログへ要求せず、特定の`span`へ属するログだけに`TraceId`・`SpanId`を組で付加する。JSONとSQLiteは同じ`LogRecord`から独立して投影し、片方の表現都合を共通モデルへ持ち込まなければもう片方を実装できない構造を避ける。
 
-`Observation`、`Result`、`AppError`を含む既存の周辺moduleは、このTicketの変更範囲外として固定しない。ユースケース実行結果と利用者操作全体の結果を同一視せず、loggingの公開境界、root `span`とユースケース実行`span`、失敗の確定、ログ基盤自身の失敗処理を一貫した構造にするために必要であれば、責務の変更、統合、分割、削除を行う。
+`Observation`、`Result`、`AppError`を含む既存の周辺moduleは、このTicketの変更範囲外として固定しない。ユースケース実行結果と利用者操作全体の結果を同一視せず、利用者操作全体には概念上`OperationResult = Success | Failure`という外側の結果境界を置く。その正確なHaskell型・constructor・failure構造は、loggingの公開境界、root `span`とユースケース実行`span`、例外、ログ基盤自身の失敗処理を一貫して扱えるよう、アプリケーション実行・失敗境界の実装で確定する。
 
 OpenTelemetryは、RAGScopeが採用した実行追跡を実装するための手段として利用する。`trace`・`span`・Contextなど利用する概念やHaskell実装上のAPIは確認するが、OpenTelemetryに存在する概念や制約をそのままRAGScopeの要求へ昇格させない。
 
