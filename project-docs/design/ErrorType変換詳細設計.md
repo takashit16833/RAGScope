@@ -1,7 +1,7 @@
 ---
 note_type: design
 ---
-# 失敗理由ErrorType変換設計
+# ErrorType変換詳細設計
 
 > [!abstract] この文書の役割
 > RAGScopeアプリケーションのHaskell実装で、具体的なfailure値を、実行追跡・構造化ログで共有する観測用の`ErrorType`へ変換する共通契約を定義する。`ToErrorType`はUseCase固有の仕組みではなく、Feature、利用インターフェース、Applicationなどが所有する具体的な失敗理由を共通`ErrorType`へ接続するための契約である。
@@ -83,13 +83,13 @@ ragscope
 | 対象 | この共通契約との関係 |
 |---|---|
 | UseCase | UseCase固有failureをFeatureが所有し、そのfailureから`ErrorType`へ変換できるようにする。UseCase境界でのfailureの受け渡しは[ユースケース詳細設計](./ユースケース詳細設計.md)を正本とする |
-| 利用者操作 | UseCase前・UseCase・UseCase後の具体的なfailureのうち、root `span`などで`error_type`として観測するfailureをこの契約へ接続する。`OperationFailure`の構造は[利用者操作実行設計](./利用者操作実行設計.md)を正本とする |
+| 利用者操作 | UseCase前・UseCase・UseCase後の具体的なfailureのうち、root `span`などで`error_type`として観測するfailureをこの契約へ接続する。`OperationFailure`の構造は[利用者操作基本設計](./利用者操作基本設計.md)を正本とする |
 | 構造化ログ | 失敗eventが具体的なfailureを元に`error_type`を生成する場合、この契約で得た`ErrorType`を`LogSpec`へ反映する。eventから`LogSpec`への変換は[構造化ログイベント変換設計](./logging/構造化ログイベント変換設計.md)を正本とする |
 | 実行追跡 | 失敗した`span`へ付ける`error_type`の論理的な意味と、同じ失敗をログと共有する規則は[実行追跡・構造化ログ契約設計](./logging/実行追跡・構造化ログ契約設計.md)を正本とする |
 
 ## 関連文書
 
 - [ユースケース詳細設計](./ユースケース詳細設計.md)
-- [利用者操作実行設計](./利用者操作実行設計.md)
+- [利用者操作基本設計](./利用者操作基本設計.md)
 - [実行追跡・構造化ログ契約設計](./logging/実行追跡・構造化ログ契約設計.md)
 - [構造化ログイベント変換設計](./logging/構造化ログイベント変換設計.md)
