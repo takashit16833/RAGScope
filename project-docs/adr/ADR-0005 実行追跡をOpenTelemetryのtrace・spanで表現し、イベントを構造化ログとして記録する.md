@@ -43,7 +43,7 @@ RAGScopeに必要なのは、処理のつながりと所要時間を追うこと
 
 ## 結果と影響
 
-- [実行追跡・構造化ログ契約設計](../design/logging/実行追跡・構造化ログ契約設計.md)は、`trace`、`span`、Span Status、構造化ログ、イベント、重要度、`error_type`の関係を現在設計として定義する。
+- [実行追跡・構造化ログ契約設計](../design/実行追跡・構造化ログ契約設計.md)は、`trace`、`span`、Span Status、構造化ログ、イベント、重要度、`error_type`の関係を現在設計として定義する。
 - 機能固有のイベント、記録条件、既定の重要度、属性、`span`、`error_type`は各機能設計を正本とし、コンポーネント実装はその定義に従う。コンポーネント固有の正確な内部型、出力境界、設定、ログ基盤自身の失敗処理はコード・設定・テストを正本とし、専用の構造化ログ設計書へ重複して定義しない。
 - ADR-0004は`superseded`へ変更する。
 - `contracts/logging/v1/log-event.schema.json`と現在の構造化ログ実装に残る`operation`、固定的な`failed`イベント、重要度と失敗の結合は、この判断をそのまま表していない。外部表現と実装は、論理契約を確定した後に対応する正本で見直す必要がある。
@@ -55,7 +55,7 @@ RAGScopeに必要なのは、処理のつながりと所要時間を追うこと
 - [RAGScope用語集](../RAGScope用語集.md)
 - [RAGScopeドメインモデル](../design/RAGScopeドメインモデル.md)
 - [システムアーキテクチャ](../design/システムアーキテクチャ.md)
-- [実行追跡・構造化ログ契約設計](../design/logging/実行追跡・構造化ログ契約設計.md)
+- [実行追跡・構造化ログ契約設計](../design/実行追跡・構造化ログ契約設計.md)
 - [ADR-0004 — 構造化ログの内部イベントモデルを通常イベントと失敗イベントの直和として表現する](<./ADR-0004 構造化ログの内部イベントモデルを通常イベントと失敗イベントの直和として表現する.md>)
 - [OpenTelemetry Trace API](https://opentelemetry.io/docs/specs/otel/trace/api/)
 - [OpenTelemetry Logs Data Model](https://opentelemetry.io/docs/specs/otel/logs/data-model/)
