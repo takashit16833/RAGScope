@@ -1,0 +1,111 @@
+---
+note_type: design
+---
+# RAGScopeアプリケーション構造化ログイベント変換詳細設計
+
+> [!abstract] この文書の役割
+> RAGScopeアプリケーションの構造化ログ実装を実装・レビューする開発者向けの詳細設計である。現在のHaskell実装で、Feature、利用インターフェース、Application lifecycleなどの所有者が定義するeventをLogging共通表現へ変換する契約を定義する。`ToLogSpec`による`LogSpec`生成と、実行時情報を付加して`LogRecord`を完成する境界を扱う。
+>
+> 構造化ログの論理情報と記録規則は[実行追跡・構造化ログ契約設計](../実行追跡・構造化ログ契約設計.md)、具体的なfailureから共通`ErrorType`への変換は[ErrorType変換詳細設計](../ErrorType変換詳細設計.md)、具体的なeventの意味・記録条件・属性はそのeventを所有する設計、JSON・SQLiteへの投影は各外部表現設計を正本とする。
+
+## 1. eventから`LogRecord`までの変換
+
+構造化ログへ記録するeventは、その出来事を意味として所有するFeature、利用インターフェース、Application lifecycleなどが定義する。Logging共通基盤は、具体的なevent名、記録条件、重要度、属性、`error_type`を所有者に代わって決めない。
+
+RAGScopeアプリケーションでは、所有者が定義したeventを次の順序でLogging共通表現へ変換する。
+
+```text
+所有者が定義するevent
+        ↓ ToLogSpec
+      LogSpec
+        ↓ timestamp / component / Trace Contextを付加
+     LogRecord
+        ↓
+       Sink
+```
+
+`LogSpec`は、event名、重要度、任意のmessage、attributesなど、eventの値から決まるログの意味を表す。失敗を報告するeventで`error_type`を記録する場合、その`error_type`もattributesの一部として`LogSpec`へ含める。
+
+`LogRecord`は、`LogSpec`へ発生時刻、発生元component、Trace Contextを付加した構造化ログ1件のLogging内部表現である。特定の`span`へ属するログには`TraceId`と`SpanId`を組で付加し、特定の`span`へ属さないログには両方を付加しない。
+
+`LogSpec`と`LogRecord`はJSONやSQLiteの外部表現ではない。JSON・SQLiteへの投影は、それぞれの外部表現設計に従って`LogRecord`から行う。
+
+## 2. `ToLogSpec`の契約
+
+所有者が定義したeventから`LogSpec`への変換を`ToLogSpec`で表す。
+
+Haskell実装上の契約は、概念的には次の変換を提供する。
+
+```haskell
+class ToLogSpec event where
+    toLogSpec :: event -> LogSpec
+```
+
+この宣言は責務と入出力を示すための概念表現であり、正確なclass・関数・型定義は実装コードを正本とする。
+
+`ToLogSpec`はevent値だけを入力として、そのeventに対応する`LogSpec`を返す。発生時刻、発生元component、Trace Contextは`ToLogSpec`の入力にせず、`LogSpec`生成後にLogging側が`LogRecord`を完成するときに付加する。
+
+`ToLogSpec`はeventを構造化ログへ記録するかどうかを決めない。どの条件でeventを発生させ、構造化ログへ渡すかは、そのeventを所有する設計で定める。`ToLogSpec`は、渡されたeventをどのevent名、重要度、message、attributesとして表すかだけを担当する。
+
+### 2.1 Feature eventの`ToLogSpec` instance
+
+Feature eventに対する`ToLogSpec` instanceは、そのFeatureを所有する`ragscope-features` libraryの`RAGScope.<Feature>.Logging`に置く。
+
+`RAGScope.<Feature>.Logging`は、対応する`RAGScope.<Feature>.Event`と、Loggingが公開する`ToLogSpec` / `LogSpec`の契約をimportし、`ToLogSpec <FeatureEvent>`を実装する。`RAGScope.<Feature>.Logging`は`ragscope-features`からexposeし、`ragscope-application`の`RAGScope.Application.LoggingInstances`がinstance moduleとして`import ... ()`できるようにする。
+
+`RAGScope.<Feature>.UseCase`、`RAGScope.<Feature>.Event`、`RAGScope.<Feature>.Failure`はLogging moduleをimportしない。Feature側が依存するのはeventから`LogSpec`への変換に必要なLoggingの公開契約までとし、Logging Runtime、Sink、JSON / SQLite実装には依存しない。
+
+ApplicationはFeature固有eventから`LogSpec`への変換規則を定義しない。`RAGScope.Application.LoggingInstances`は本番で必要なFeature eventのinstance moduleを読み込み、Applicationの本番構成がObservability / Logging / Tracingを接続する。
+
+## 3. failureと失敗event
+
+具体的なfailure型そのものには、failureであることだけを理由に`ToLogSpec`を要求しない。失敗を構造化ログへ記録する場合は、その失敗を意味として表すeventを失敗の所有者側で定義し、そのeventを`ToLogSpec`で`LogSpec`へ変換する。
+
+具体的なfailureを`error_type`として観測する場合は、[ErrorType変換詳細設計](../ErrorType変換詳細設計.md)の共通`ToErrorType`契約によって`ErrorType`へ変換する。
+
+```text
+具体的なfailure
+        ↓ ToErrorType
+     ErrorType
+
+失敗を表すowner event
+        ↓ ToLogSpec
+       LogSpec
+```
+
+失敗eventが具体的なfailure値を元に`error_type`属性を生成する場合、`LogSpec`には共通`ToErrorType`契約で得られる`ErrorType`に対応する値を反映する。eventへどのfailure情報を保持させるか、`toErrorType`をどのmodule・関数で適用するか、どの`error_type`を属性として記録するかは、event所有者の設計と今後確定する`ToLogSpec`の実装境界に従う。
+
+UseCase失敗の場合も同じ契約を使う。UseCase固有failure型自身には`ToLogSpec`を要求せず、その失敗を表すFeature eventをFeature側で定義する。
+
+## 4. event所有者とLoggingの責務
+
+| 対象 | 正本・担当する内容 |
+|---|---|
+| Feature event | 各Feature設計。eventの意味、発生条件、event固有属性、必要な`error_type` |
+| Feature eventの`ToLogSpec` instance | `ragscope-features`の`RAGScope.<Feature>.Logging`。Feature eventをLogging共通表現へ変換する |
+| 利用インターフェース固有event | 各利用インターフェースの設計・実装。eventの意味、発生条件、event固有属性 |
+| Application lifecycle event | Application lifecycleを担当する設計・実装。eventの意味、発生条件、event固有属性 |
+| `ErrorType` / `ToErrorType` | [ErrorType変換詳細設計](../ErrorType変換詳細設計.md)。具体的なfailureから観測用`ErrorType`へ変換する共通契約 |
+| `ToLogSpec` / `LogSpec` | Logging。所有者定義eventをLogging共通表現へ変換する契約 |
+| `LogRecord`生成 | Logging。`LogSpec`へ発生時刻、発生元component、Trace Contextを付加する |
+| JSON / SQLiteへの投影 | 各構造化ログ外部表現設計と対応する実装 |
+
+## 5. 現在固定していない実装詳細
+
+現時点では次を固定しない。
+
+- `ToLogSpec`、`LogSpec`、`LogRecord`、属性値型の正確なHaskell定義。
+- 利用インターフェース固有eventとApplication lifecycle eventの`ToLogSpec` instanceを配置する正確なmoduleと、それに伴うCabal library間の静的依存。
+- `LogSpec`へ実行時情報を付加して`LogRecord`を完成する公開APIの関数名とmodule分割。
+- 完成した`LogRecord`をSinkへ渡すAPIと、Sink自身のfailureの扱い。
+
+これらを実装した時点では、正確な型、class、instance、関数、module、Cabal `build-depends`はコードとCabal設定を機械可読な正本とする。
+
+## 関連文書
+
+- [実行追跡・構造化ログ契約設計](../実行追跡・構造化ログ契約設計.md)
+- [ErrorType変換詳細設計](../ErrorType変換詳細設計.md)
+- [ユースケース詳細設計](../ユースケース詳細設計.md)
+- [構造化ログ外部表現共通設計](./構造化ログ外部表現共通設計.md)
+- [構造化ログJSON表現設計](./構造化ログJSON表現設計.md)
+- [構造化ログSQLite表現設計](./構造化ログSQLite表現設計.md)
