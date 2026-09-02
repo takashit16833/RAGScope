@@ -60,15 +60,60 @@ OpenTelemetry Adapter
 | 能力 | 契約 |
 |---|---|
 | `withTrace` | 1回のトップレベルな利用者操作について新しい`trace`とroot `span`を開始し、そのscopeが終了するとroot `span`を終了する |
-| `withSpan` | 開始済み`trace`のcurrent `span`を親として子`span`を開始し、そのscopeが終了すると子`span`を終了する。current `trace`がない場合に暗黙のroot `span`を作らない |
-| `observeResult` | current `span`が表す処理の`Either failure result`を観測し、`Left failure`なら`Error`と`error_type`、`Right _`なら`Unset`としてTracingへ反映する |
+| `withSpan` | 開始済み`trace`のcurrent `span`を親として子`span`を開始し、そのscopeが終了すると子`span`を終了する。current `trace`がない場合は子`span`も暗黙のroot `span`も作らず、渡された処理だけをそのまま実行する |
+| `observeResult` | current `span`が表す処理の`Either failure result`を観測し、`Left failure`なら`Error`と`error_type`、`Right _`なら`Unset`としてTracingへ反映する。current `span`がない場合は何も反映しない |
 | `currentTraceContext` | current `span`の`TraceId`と`SpanId`を`TraceContext`として取得する。特定の`span`に属していない場合は`Nothing`を返す |
 
-`observeResult`は、具体的なfailure型に固定せず、概念上`ToErrorType failure => Either failure result -> m ()`として扱う。`Left failure`の場合に使用する`error_type`は`toErrorType failure`から得る。`Left` / `Right`をSpan Statusへどう対応付けるかという契約は`RAGScope.Tracing`側が定義し、OpenTelemetry Adapterはその契約をOpenTelemetry SDKで実装する。Observability Runtime自身は`Either`をpattern matchしてSpan Statusを決定しない。
+公開するHaskell APIは次の形とする。
 
-`currentTraceContext`は概念上`m (Maybe TraceContext)`である。`TraceContext`は`RAGScope.Tracing.Context`が公開する`TraceId`と`SpanId`の組であり、Logging Runtimeはこの値を使ってtrace内ログへTrace Contextを付加する。
+```haskell
+{-# LANGUAGE RankNTypes #-}
 
-`withTrace` / `withSpan`へ渡す名称の正確な型、これらの関数の正確なHaskell型、current `trace`がない状態で`withSpan`が呼ばれた場合の失敗表現は、実装時にコードとテストで確定する。これらの未確定事項を理由に、Application / Featureへ`TraceId`や`SpanId`を渡すAPIにはしない。
+module RAGScope.Tracing
+  ( Tracing (..)
+  , SpanName (..)
+  ) where
+
+import Data.Text (Text)
+import RAGScope.ErrorType (ToErrorType)
+import RAGScope.Tracing.Context (TraceContext)
+
+newtype SpanName =
+  SpanName Text
+  deriving (Eq, Show)
+
+data Tracing m = Tracing
+  { withTrace
+      :: forall a
+       . SpanName
+      -> m a
+      -> m a
+  , withSpan
+      :: forall a
+       . SpanName
+      -> m a
+      -> m a
+  , observeResult
+      :: forall failure result
+       . ToErrorType failure
+      => Either failure result
+      -> m ()
+  , currentTraceContext
+      :: m (Maybe TraceContext)
+  }
+```
+
+`withTrace`と`withSpan`は、囲む処理の結果型へ制約を加えず、同じ`Tracing m`値から任意の`m a`を追跡できるようfield側で`a`を量化する。`observeResult`も同じ`Tracing m`値から任意の`ToErrorType failure => Either failure result`を観測できるよう、`failure`と`result`をfield側で量化する。
+
+`withTrace`へ渡す名称は新しい`trace`そのものの別名ではなく、その`trace`と同時に開始するroot `span`の名称である。root `span`と子`span`はいずれも`span`なので、名称型は共通の`SpanName`を使用し、別の`TraceName`型は導入しない。
+
+`observeResult`は、具体的なfailure型に固定せず、`ToErrorType failure => Either failure result -> m ()`として扱う。`Left failure`の場合に使用する`error_type`は`toErrorType failure`から得る。`Left` / `Right`をSpan Statusへどう対応付けるかという契約は`RAGScope.Tracing`側が定義し、OpenTelemetry Adapterはその契約をOpenTelemetry SDKで実装する。Observability Runtime自身は`Either`をpattern matchしてSpan Statusを決定しない。
+
+`currentTraceContext`は`m (Maybe TraceContext)`である。`TraceContext`は`RAGScope.Tracing.Context`が公開する`TraceId`と`SpanId`の組であり、Logging Runtimeはこの値を使ってtrace内ログへTrace Contextを付加する。
+
+current `trace`がない状態で`withSpan spanName action`が呼ばれた場合、Tracingは新しい`trace`、root `span`、子`span`のいずれも作らず、`action`だけを実行してその結果をそのまま返す。Tracing側の失敗を返したり例外を発生させたりせず、観測処理の都合でApplication / Feature本来の結果型を変更しない。current `span`がない状態で`observeResult result`が呼ばれた場合も、Span Statusや`error_type`を反映する対象がないため何も行わず`m ()`として正常に終了する。
+
+Application / Featureへ`TraceId`や`SpanId`を渡すAPIにはしない。
 
 ## 3. current Trace Contextの管理
 
@@ -150,7 +195,7 @@ Logging Runtimeは、`LogSpec`へ実行時情報を付加して`LogRecord`を作
 - Logging RuntimeはTrace Contextを扱うために必要な公開型と、composition時に注入されるcurrent Trace Context取得能力だけを利用し、Tracingのspan操作やOpenTelemetry Adapterへ依存しない。
 - `ragscope-application`はcomposition rootでOpenTelemetry AdapterからTracing実装を作り、Observability RuntimeとLogging Runtimeを組み立てる。
 
-正確なCabal library名、`build-depends`、moduleのexpose範囲、関数・recordの型定義は実装時にCabal設定とコードを機械可読な正本として確定する。
+正確なCabal library名、`build-depends`、moduleのexpose範囲、実装コード上の定義は、実装時にCabal設定とコードを機械可読な正本として確定する。
 
 ## 関連文書
 
