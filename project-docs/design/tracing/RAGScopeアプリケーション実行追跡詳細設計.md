@@ -10,7 +10,7 @@ note_type: design
 
 ## 1. 全体構成
 
-Application / Featureは、処理を追跡するために`RAGScope.Observability`を利用し、eventを記録するために`RAGScope.Logging`を利用する。Application / Featureから`RAGScope.Tracing`やOpenTelemetry SDKを直接利用しない。
+利用インターフェースのOperation実装 / Featureは、処理を追跡するために`RAGScope.Observability`を利用し、eventを記録するために`RAGScope.Logging`を利用する。Operation実装 / Featureから`RAGScope.Tracing`やOpenTelemetry SDKを直接利用しない。
 
 Application起動時のcompositionでは、OpenTelemetry Adapterから`RAGScope.Tracing`の具体実装を作り、その同じTracing実装を使ってObservability RuntimeとLogging Runtimeを組み立てる。
 
@@ -34,14 +34,19 @@ AppEnv
   └─ その他のApplicationが利用する能力
 ```
 
-`Tracing`自体はApplication / Featureが利用する能力として`AppEnv`へ公開しない。Observability RuntimeはTracing Portを内部依存として保持し、Logging RuntimeにはTracing全体ではなく、現在のTrace Contextを取得するために必要な能力だけを渡す。
+`Tracing`自体はOperation / Featureが利用する能力として`AppEnv`へ公開しない。Applicationのcomposition rootだけが、Observability RuntimeとLogging Runtimeを組み立てるためにTracing実装を直接扱う。Observability RuntimeはTracing Portを内部依存として保持し、Logging RuntimeにはTracing全体ではなく、現在のTrace Contextを取得するために必要な能力だけを渡す。
 
-Application / Featureから見た依存は次のとおりである。
+利用側とcomposition rootから見た依存は次のとおりである。
 
 ```text
-Application / Feature
+Operation / Feature
   ├─ Observability
   └─ Logging
+
+Application composition root
+  ├─ Observability Runtime
+  ├─ Logging Runtime
+  └─ Tracing
 
 Observability Runtime
   └─ Tracing
@@ -115,11 +120,11 @@ data Tracing m = Tracing
 
 current `trace`がない状態で`withSpan spanName action`が呼ばれた場合、Tracingは新しい`trace`、root `span`、子`span`のいずれも作らず、`action`だけを実行してその結果をそのまま返す。Tracing側の失敗を返したり例外を発生させたりせず、観測処理の都合でApplication / Feature本来の結果型を変更しない。current `span`がない状態で`observeResult result`が呼ばれた場合も、Span Statusや`error_type`を反映する対象がないため何も行わず`m ()`として正常に終了する。
 
-Application / Featureへ`TraceId`や`SpanId`を渡すAPIにはしない。
+Operation / Featureへ`TraceId`や`SpanId`を渡すAPIにはしない。
 
 ## 3. Observability公開API
 
-`RAGScope.Observability`は、利用インターフェース・Application・Featureが処理を実行追跡へ関連付けるための公開Effect APIである。Application / FeatureへTracing Portの低レベル操作をそのまま公開せず、`span`のscopeと、そのscopeが表す処理の最終結果の観測を1つの操作として提供する。
+`RAGScope.Observability`は、利用インターフェース・Application・Featureが処理を実行追跡へ関連付けるための公開Effect APIである。Operation / FeatureへTracing Portの低レベル操作をそのまま公開せず、`span`のscopeと、そのscopeが表す処理の最終結果の観測を1つの操作として提供する。
 
 公開するHaskell APIは次の形とする。
 
@@ -152,7 +157,7 @@ data Observability m = Observability
 
 Observabilityの公開能力は`withTrace`と`withSpan`の2つとする。Tracing Portの`observeResult`はObservabilityから独立した公開操作として再公開しない。`TraceId`、`SpanId`、`TraceContext`、OpenTelemetry SDK型もObservabilityの利用側へ要求しない。
 
-`SpanName`はTracingとObservabilityで別型を定義せず、`RAGScope.Tracing`が所有する同じ型を`RAGScope.Observability`から再exportする。Application / Featureは`RAGScope.Observability`だけをimportして`Observability`と`SpanName`を利用でき、`RAGScope.Tracing`を直接importしない。
+`SpanName`はTracingとObservabilityで別型を定義せず、`RAGScope.Tracing`が所有する同じ型を`RAGScope.Observability`から再exportする。Operation / Featureは`RAGScope.Observability`だけをimportして`Observability`と`SpanName`を利用でき、`RAGScope.Tracing`を直接importしない。
 
 `withTrace`はOperation境界の`m (Either OperationFailure result)`を囲む。`withSpan`はUseCase境界の`m (Either useCaseFailure result)`など、開始済み`trace`内で独立して結果を観測する処理を囲む。どの機能内部処理を追加の子`span`として追跡するかは各機能設計が決め、この共通詳細設計では具体的な内部`span`を先行決定しない。
 
@@ -183,7 +188,7 @@ tracing.withSpan spanName $ do
   pure result
 ```
 
-`withTrace`も同じ順序で、Tracingの`withTrace` scope内で`action`を実行し、その結果を`observeResult`へ渡してから結果をそのまま返す。このため、Application / Feature自身が`observeResult`の呼び忘れや、scope終了後の観測を起こさない。
+`withTrace`も同じ順序で、Tracingの`withTrace` scope内で`action`を実行し、その結果を`observeResult`へ渡してから結果をそのまま返す。このため、Operation / Feature自身が`observeResult`の呼び忘れや、scope終了後の観測を起こさない。
 
 Observability Runtime自身は`Either`をpattern matchして`Left` / `Right`からSpan Statusを決めない。結果の解釈はTracing Portの`observeResult`へ委譲する。Observabilityは`action`が返した`Either failure result`を別の結果型へ変換せず、そのまま利用側へ返す。
 
@@ -220,7 +225,7 @@ trace終了
 
 同じTracing実装を複数の利用者操作で共有しても、各操作のcurrent Trace Contextを混在させてはならない。APIなどで複数のトップレベル操作が並行実行される場合、それぞれの実行scopeで独立したcurrent Trace Contextを参照できる実装とする。Application全体で1個の`IORef (Maybe TraceContext)`のような値を共有し、別操作の`withTrace`によって上書きされる構造は採用しない。
 
-`withSpan`で作る子`span`の親は、Tracing実装がその実行scopeのcurrent `span`から決定する。Application / Featureは`TraceId`、`SpanId`、親`SpanId`を受け取ったり引き回したりしない。
+`withSpan`で作る子`span`の親は、Tracing実装がその実行scopeのcurrent `span`から決定する。Operation / Featureは`TraceId`、`SpanId`、親`SpanId`を受け取ったり引き回したりしない。
 
 ## 5. Application起動と`withTrace`の境界
 
@@ -255,11 +260,11 @@ Application process
 
 ## 6. ObservabilityとLoggingからの利用
 
-Observability RuntimeはTracing Portの`withTrace`、`withSpan`、`observeResult`を利用する。Application / Featureへ公開するObservability APIは、Tracingの具体実装値、`TraceId`、`SpanId`、OpenTelemetry SDK型を要求しない。
+Observability RuntimeはTracing Portの`withTrace`、`withSpan`、`observeResult`を利用する。Operation / Featureへ公開するObservability APIは、Tracingの具体実装値、`TraceId`、`SpanId`、OpenTelemetry SDK型を要求しない。
 
 Logging Runtimeは、`LogSpec`へ実行時情報を付加して`LogRecord`を作るときに、注入された`currentTraceContext`を呼び出す。`Just traceContext`なら`TraceId`・`SpanId`を組で付加し、`Nothing`ならtrace外ログとして両方を付加しない。Logging RuntimeはTracingのspan開始・終了、Span Status更新を担当しない。
 
-これにより、ObservabilityとLoggingは同じTracing実装が管理するcurrent Trace Contextを利用しながら、Application / Featureから見た公開責務は分離したまま維持する。
+これにより、ObservabilityとLoggingは同じTracing実装が管理するcurrent Trace Contextを利用しながら、Operation / Featureから見た公開責務は分離したまま維持する。
 
 ## 7. package・library・moduleの依存
 
@@ -267,7 +272,7 @@ Logging Runtimeは、`LogSpec`へ実行時情報を付加して`LogRecord`を作
 
 | package / library | 公開module | 直接必要な依存 | 責務 |
 |---|---|---|---|
-| `ragscope-observability` main library | `RAGScope.Observability` | `ragscope-error` main、`ragscope-tracing` main | Application / Featureが利用する`Observability m`と、Tracing所有の`SpanName`の再export |
+| `ragscope-observability` main library | `RAGScope.Observability` | `ragscope-error` main、`ragscope-tracing` main | Operation / Featureが利用する`Observability m`と、Tracing所有の`SpanName`の再export |
 | `ragscope-observability:runtime` | `RAGScope.Observability.Runtime` | `ragscope-observability` main、`ragscope-tracing` main | `Tracing m`から`makeObservability`で`Observability m`を組み立てる |
 
 main libraryが`ragscope-error`へ依存するのは、公開する`withTrace` / `withSpan`が`ToErrorType failure`制約を持つためである。`ragscope-tracing` mainへ依存するのは、Tracing所有の`SpanName`を再exportするためである。
