@@ -55,9 +55,9 @@ Haskellの一般的な慣習へ従い、RAGScope内で統一する。
 
 | 対象 | 形式 | 例 |
 |---|---|---|
-| モジュール | `UpperCamelCase`を`.`で区切る | `RAGScope.Logging.Types` |
-| 型、型クラス、データコンストラクタ | `UpperCamelCase` | `ExecutionId`、`ServiceContext` |
-| 関数、変数、レコードフィールド | `lowerCamelCase` | `encodeLogEvent`、`executionId` |
+| モジュール | `UpperCamelCase`を`.`で区切る | `RAGScope.Document.Chunk` |
+| 型、型クラス、データコンストラクタ | `UpperCamelCase` | `DocumentId`、`ChunkIndex` |
+| 関数、変数、レコードフィールド | `lowerCamelCase` | `splitDocument`、`chunkIndex` |
 | 型変数 | 短い小文字 | `a`、`err` |
 
 名前は意味を優先するが、すべての条件を名前へ埋め込んで長文化しない。型とモジュールで文脈が明確な場合は、重複する接頭辞を避ける。
@@ -84,10 +84,10 @@ executable、test-suite、`other-modules`に置く内部モジュールは利用
 - 利用時に守る不変条件または境界
 
 ```haskell
--- | RAGScopeアプリケーションの構造化ログで共通利用する基本型を定義する。
+-- | 文書チャンクの値と、その値だけで成立する操作を定義する。
 --
--- ログイベントの組み立て、JSON変換、出力は別の責務として扱う。
-module RAGScope.Logging.Types (...) where
+-- ファイル読み込み、永続化、外部表現への変換は別の責務として扱う。
+module RAGScope.Document.Chunk (...) where
 ```
 
 ### 4.2 公開要素のHaddock
@@ -133,14 +133,12 @@ Haddockの参照、コード表記、箇条書きが解釈でき、ドキュメ�
 例：
 
 ```haskell
-newtype ExecutionId = ExecutionId UUID
-
-data EventContext
-  = ExecutionContext ExecutionId
-  | ServiceContext
+data ConnectionState connection
+  = Disconnected
+  | Connected connection
 ```
 
-この形では、`execution`なのに`execution_id`がない状態と、`service`なのに`execution_id`がある状態を通常の値として作らない。
+この形では、「接続中」という状態なのに接続値が存在しない状態を通常の値として作らない。
 
 ### 5.2 プリミティブな値を役割ごとに区別する
 
@@ -182,7 +180,7 @@ data EventContext
 
 `IO`または`IO`を内包する共通結果型を、呼び出し側と型を揃えるためだけに慣習的な戻り値として使用しない。副作用を必要としない検証、変換、判断、組み立ては、純粋な型のまま保つ。
 
-純粋な処理の失敗は第7.1節に従い、具体的な失敗理由を保てる型で表現する。アプリケーション共通エラーへの変換は、その共通エラーを扱う必要がある境界で行う。
+純粋な処理の失敗は第7.1節に従い、具体的な失敗理由を保てる型で表現する。観測用の`ErrorType`や利用者向け・外部API向けのエラー表現への変換は、その表現を必要とする境界で行う。
 
 ### 6.2 小さな責務へ分割する
 
@@ -212,7 +210,7 @@ Haskellらしさは、技巧的な短さではなく、型、純粋性、合成�
 
 `Maybe`は値がないこと自体が十分な意味になる場合に使用する。失敗理由を呼び出し側が必要とする場合は`Either`を使用する。
 
-例外は、外部ライブラリや`IO`境界から発生する予期しない失敗、またはHaskellの慣習上例外で通知される失敗を受け取るために使用する。責務の境界でRAGScopeのエラー型へ変換する。
+例外は、外部ライブラリや`IO`境界から発生する予期しない失敗、またはHaskellの慣習上例外で通知される失敗を受け取るために使用する。その例外を扱う責務を持つ境界で、必要に応じて具体的なtyped failureや外部向けエラー表現へ変換する。
 
 ### 7.2 部分関数を原則として使用しない
 
@@ -285,6 +283,6 @@ Haskellモジュールでは、次の場合に行数にかかわらず分割を�
 - export listが必要最小限になっている
 - トップレベル関数に型シグネチャがある
 - 純粋処理へ不要な`IO`や`IO`を内包する共通結果型を持ち込まず、副作用の境界が分かる
-- 部分関数を避け、失敗を`Maybe`、`Either`、共通エラーなどで表現している
+- 部分関数を避け、失敗を`Maybe`、`Either`などの明示的な結果型で表現している
 - `make check-app`を実行し、Fourmolu、GHC warning、ビルド、テスト、Haddock生成を確認している
 - Contract、Schema、設計とHaskell実装が矛盾していない
