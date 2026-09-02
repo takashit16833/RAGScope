@@ -156,7 +156,25 @@ Observabilityの公開能力は`withTrace`と`withSpan`の2つとする。Tracin
 
 `withTrace`はOperation境界の`m (Either OperationFailure result)`を囲む。`withSpan`はUseCase境界の`m (Either useCaseFailure result)`など、開始済み`trace`内で独立して結果を観測する処理を囲む。どの機能内部処理を追加の子`span`として追跡するかは各機能設計が決め、この共通詳細設計では具体的な内部`span`を先行決定しない。
 
-Observability Runtimeは、Tracing Portのscopeを閉じる前に処理結果を`observeResult`へ渡す。概念上の処理順は次のとおりである。
+Observability Runtimeは、Tracing Portのscopeを閉じる前に処理結果を`observeResult`へ渡す。`RAGScope.Observability.Runtime`はObservabilityを組み立てる`makeObservability`を公開し、次の型を持つ。
+
+```haskell
+module RAGScope.Observability.Runtime
+  ( makeObservability
+  ) where
+
+import RAGScope.Observability (Observability)
+import RAGScope.Tracing (Tracing)
+
+makeObservability
+  :: Monad m
+  => Tracing m
+  -> Observability m
+```
+
+`Monad m`制約は、`makeObservability`が`action`を実行し、その結果を`observeResult`へ渡してから同じ結果を返す順序を合成するために必要である。`Observability m`型そのものへ`Monad m`制約は置かない。
+
+Runtime内の概念上の処理順は次のとおりである。
 
 ```haskell
 tracing.withSpan spanName $ do
@@ -222,7 +240,7 @@ let env =
         }
 ```
 
-このコードはcompositionの概念例であり、`AppEnv`、`makeObservability`、`makeLogging`、`makeOpenTelemetryTracing`の正確な型・関数名は実装コードを正本とする。
+`makeObservability`は`RAGScope.Observability.Runtime`が公開する組み立て関数である。このコードの`AppEnv`、`makeLogging`、`makeOpenTelemetryTracing`の正確な型・関数名は、それぞれの実装コードを機械可読な正本とする。
 
 実際の`trace`は、利用インターフェースが1回のトップレベルな操作について操作固有処理を開始する境界でObservabilityの`withTrace`を呼んだときに開始する。CLIのプロセス起動時にTracing実装を初期化しても、設定読み込みやTracing初期化など、トップレベル操作より前の処理はその操作の`trace`へ含めない。APIでは1つのプロセスが複数のトップレベル操作を受け付けても、各操作がそれぞれ別の`withTrace` scopeを持つ。
 
@@ -243,18 +261,50 @@ Logging Runtimeは、`LogSpec`へ実行時情報を付加して`LogRecord`を作
 
 これにより、ObservabilityとLoggingは同じTracing実装が管理するcurrent Trace Contextを利用しながら、Application / Featureから見た公開責務は分離したまま維持する。
 
-## 7. package・moduleの依存
+## 7. package・library・moduleの依存
 
-- `RAGScope.Tracing`は`ragscope-tracing` packageのpublic main libraryに置き、上記Tracing Portを公開する。
+`ragscope-observability`は、`ragscope-app`配下でほかのRAGScopeアプリケーション用packageと同じ`cabal.project`から扱う独立local packageとする。Observabilityの利用APIと組み立てAPIをCabal library境界で分けるため、main libraryと`runtime` libraryの2つだけを持つ。現在のObservability責務では、別の`internal` libraryや`Runner` moduleは設けない。
+
+| package / library | 公開module | 直接必要な依存 | 責務 |
+|---|---|---|---|
+| `ragscope-observability` main library | `RAGScope.Observability` | `ragscope-error` main、`ragscope-tracing` main | Application / Featureが利用する`Observability m`と、Tracing所有の`SpanName`の再export |
+| `ragscope-observability:runtime` | `RAGScope.Observability.Runtime` | `ragscope-observability` main、`ragscope-tracing` main | `Tracing m`から`makeObservability`で`Observability m`を組み立てる |
+
+main libraryが`ragscope-error`へ依存するのは、公開する`withTrace` / `withSpan`が`ToErrorType failure`制約を持つためである。`ragscope-tracing` mainへ依存するのは、Tracing所有の`SpanName`を再exportするためである。
+
+`runtime` libraryは`RAGScope.Observability`と`RAGScope.Tracing`をimportして`makeObservability`を実装する。現在の責務では`RAGScope.ErrorType`、`RAGScope.Tracing.Context`、Logging、OpenTelemetry Adapter、OpenTelemetry SDKを直接importしない。これらを必要とする新しい責務が生じない限り、`runtime`の直接`build-depends`へ追加しない。
+
+`RAGScope.Observability.Runtime`は`ragscope` packageのcomposition rootから利用するため、package外から参照できるlibraryとする。一方、Feature側のlibraryには`ragscope-observability:runtime`を`build-depends`へ追加しない。これによりFeatureはObservabilityを利用できるが、Observability Runtimeを組み立てる責務を持たない。
+
+利用側の直接依存は次のとおりとする。
+
+```text
+ragscope-features
+  ├─→ ragscope-observability main
+  └─→ ragscope-error main
+
+ragscope-application
+  ├─→ ragscope-observability main
+  ├─→ ragscope-observability:runtime
+  ├─→ ragscope-tracing main
+  └─→ ragscope-error main
+```
+
+`ragscope-features`は`RAGScope.Observability`をimportして`withSpan`を利用できるが、`RAGScope.Observability.Runtime`、`RAGScope.Tracing`、`RAGScope.Tracing.Context`を直接importしない。そのためFeature側の`build-depends`にはObservabilityのmain libraryと`ragscope-error`だけを追加し、Observabilityの`runtime` libraryと`ragscope-tracing`を追加しない。
+
+`ragscope-application`はcomposition rootで`RAGScope.Tracing`値を受け取り、`RAGScope.Observability.Runtime.makeObservability`へ渡して本番用`Observability`を組み立てるため、Observabilityのmain / `runtime` libraryと`ragscope-tracing` mainへ直接依存する。`OperationFailure`と`ToErrorType OperationFailure`のために`ragscope-error`へも直接依存する。OpenTelemetry具体実装を組み立てるApplication側のlibraryは、別途private `ragscope-tracing-otel` libraryを利用する。
+
+Tracing側は次の責務を維持する。
+
+- `RAGScope.Tracing`は`ragscope-tracing` packageのpublic main libraryに置き、Tracing Portを公開する。
 - `RAGScope.Tracing.Context`は同packageのpublic `core` libraryに置き、`TraceId`、`SpanId`、`TraceContext`を公開する。
-- `observeResult`が`ToErrorType`を利用するため、Tracing Portを持つlibraryは`ragscope-error`の`RAGScope.ErrorType`へ依存する。`ErrorType` / `ToErrorType`の所有はTracingへ移さない。
-- `RAGScope.Observability`は`Observability m`とTracing所有の`SpanName`を公開し、Observability RuntimeはTracing Portへ依存する。Application / FeatureはObservabilityを通して実行追跡を利用し、Tracingを直接importしない。
+- `observeResult`が`ToErrorType`を利用するため、Tracing Portを持つmain libraryは`ragscope-error`の`RAGScope.ErrorType`へ依存する。
 - `RAGScope.Application.Tracing.OpenTelemetry`は`ragscope` package内のprivate `ragscope-tracing-otel` libraryに置き、`ragscope-tracing`のpublic main / `core` libraryとOpenTelemetry SDKへ依存してTracing Portを実装する。
 - Observability RuntimeはOpenTelemetry AdapterやOpenTelemetry SDKを直接importしない。
-- Logging RuntimeはTrace Contextを扱うために必要な公開型と、composition時に注入されるcurrent Trace Context取得能力だけを利用し、Tracingのspan操作やOpenTelemetry Adapterへ依存しない。
-- `ragscope-application`はcomposition rootでOpenTelemetry AdapterからTracing実装を作り、Observability RuntimeとLogging Runtimeを組み立てる。
 
-正確なCabal package・library名、`build-depends`、moduleのexpose範囲、Observability Runtimeの組み立て関数名、実装コード上の定義は、実装時にCabal設定とコードを機械可読な正本として確定する。
+Logging RuntimeはTrace Contextを扱うために必要な公開型と、composition時に注入されるcurrent Trace Context取得能力だけを利用し、Tracingのspan操作やOpenTelemetry Adapterへ依存しない。
+
+正確なCabal stanza、`visibility`、`build-depends`の記法、`hs-source-dirs`、実装ファイルの配置は、実装時にCabal設定とコードを機械可読な正本として確定する。この設計で固定するのは、package / library / moduleの責務と、許可する直接依存の方向である。
 
 ## 関連文書
 
