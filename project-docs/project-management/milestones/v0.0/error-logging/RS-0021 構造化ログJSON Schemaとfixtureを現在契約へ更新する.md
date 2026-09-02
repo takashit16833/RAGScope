@@ -45,7 +45,7 @@ epic: "[[v0.0 共通エラーと構造化ログによる実行追跡]]"
 
 - [RS-0020 共通エラー・構造化ログの論理契約を再設計する](<./RS-0020 共通エラー・構造化ログの論理契約を再設計する.md>)
 - [RS-0022 RAGScopeアプリケーションの構造化ログ基盤を現在契約へ移行する](<./RS-0022 RAGScopeアプリケーションの構造化ログ基盤を現在契約へ移行する.md>)
-- [実行追跡・構造化ログ契約設計](../../../../design/logging/実行追跡・構造化ログ契約設計.md)
+- [実行追跡・構造化ログ契約設計](../../../../design/実行追跡・構造化ログ契約設計.md)
 - [構造化ログ外部表現共通設計](../../../../design/logging/構造化ログ外部表現共通設計.md)
 - [構造化ログJSON表現設計](../../../../design/logging/構造化ログJSON表現設計.md)
 - [構造化ログ論理契約のJSON・SQLite投影検証](../../../../experiments/構造化ログ論理契約のJSON・SQLite投影検証.md)
@@ -67,6 +67,6 @@ Python 3.12.13と`jsonschema` 4.26.0のDraft 2020-12 validatorを使用し、`fo
 
 Schemaのroot項目、必須条件、重要度、属性値の再帰構造、TraceId・SpanId・イベント名の値形式を機械的に照合した。旧契約要素も検索し、`schema_version`は拒否確認用のinvalid fixtureだけに残り、`event_id`、`execution_id`、`context`、`spec`、`operation`、専用`error` objectは共有Contractに残っていないことを確認した。`failed`は固定イベントではなくイベント名の接尾辞、`error`は重要度、`error_type`とドメイン参照は通常の属性として扱われている。
 
-[実行追跡・構造化ログ契約設計](../../../../design/logging/実行追跡・構造化ログ契約設計.md)、[構造化ログ外部表現共通設計](../../../../design/logging/構造化ログ外部表現共通設計.md)、[構造化ログJSON表現設計](../../../../design/logging/構造化ログJSON表現設計.md)とSchema・fixtureを照合し、RS-0021の範囲に未解消な差異がないことを確認した。
+[実行追跡・構造化ログ契約設計](../../../../design/実行追跡・構造化ログ契約設計.md)、[構造化ログ外部表現共通設計](../../../../design/logging/構造化ログ外部表現共通設計.md)、[構造化ログJSON表現設計](../../../../design/logging/構造化ログJSON表現設計.md)とSchema・fixtureを照合し、RS-0021の範囲に未解消な差異がないことを確認した。
 
 JSON SchemaだけではJSON object内の重複property名を検出できないため、入力をJSON値へ変換するparser境界で一意性を検証する必要がある。Haskellファイルは変更しておらず、現在のHaskell logging実装、JSON生成、新fixture名への`SchemaSpec.hs`の追随、Haskell生成JSONのSchema適合検証は[RS-0022](<./RS-0022 RAGScopeアプリケーションの構造化ログ基盤を現在契約へ移行する.md>)で扱う。
