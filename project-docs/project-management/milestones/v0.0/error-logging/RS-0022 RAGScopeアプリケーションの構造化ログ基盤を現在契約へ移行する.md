@@ -12,6 +12,8 @@ RS-0015で実装したRAGScopeアプリケーションの`ragscope-logging`は�
 
 [RS-0020 共通エラー・構造化ログの論理契約を再設計する](<./RS-0020 共通エラー・構造化ログの論理契約を再設計する.md>)で、OpenTelemetryの`trace`・`span`による実行追跡、`TraceId`・`SpanId`による構造化ログと`span`の関連付け、`error_type`による失敗理由の識別という基本契約を確定した。RS-0022の設計検討では、その契約を利用インターフェースからユースケース前後まで適用できるように見直し、現在は**利用インターフェースが受け付けた1回のトップレベルな操作を1つの`trace`として追跡し、ユースケース実行はroot `span`配下の子`span`として追跡する**。また、構造化ログは`trace`より広い概念とし、特定の`span`へ属するログだけが`TraceId`・`SpanId`を組で持ち、アプリケーションの起動・終了など`trace`外のイベントは両方を持たずに記録できる。失敗理由は`error_type`で識別し、ログでは他の属性と同じ属性として記録する。イベント名、重要度、任意の`message`、`attributes`は互いに独立した論理情報として扱う。
 
+この実行追跡・構造化ログ契約はRAGScopeアプリケーションだけの契約ではなく、AI推論サービスを含むRAGScope全体の共通契約である。コンポーネント間ではTrace Contextを引き継いで同じ`trace`を継続する。RS-0022はその共通契約を変更してRAGScopeアプリケーション専用へ閉じるTicketではなく、共通契約をRAGScopeアプリケーションのHaskell実装で成立させるための詳細設計と実装を担当する。
+
 このTicketでは、既存のHaskell logging基盤を現在の実行追跡・構造化ログ契約へ追随させ、同じ共通モデルからJSONとSQLiteの双方へ投影できる状態にする。JSONとSQLiteを同時に実装することで、JSON固有の型、項目、serializationの都合が共通logging契約や`LogRecord`へ漏れ込んでいないことを実装とテストで検証する。既存module構成や公開APIを前提として局所修正せず、RAGScopeアプリケーションから見た責務、利用インターフェースとの実行追跡境界、Cabal package・library・module間の依存とデータの流れを先に設計し、その全体像を基準に実装を置き換える。loggingの境界を自然にするために必要であれば、`Observation`、`Result`、`AppError`など既存の周辺moduleも変更または削除の対象に含める。
 
 OpenTelemetryはRAGScopeの要求や論理契約を決める正本ではない。RAGScopeが必要とする実行追跡を実現するために、OpenTelemetryの`trace`・`span`などの設計と実装を利用する。OpenTelemetry側の都合だけを理由にRAGScope固有の契約、責務、公開APIを追加または変更しない。
@@ -112,7 +114,7 @@ OpenTelemetryはRAGScopeの要求や論理契約を決める正本ではない�
 - [ ] loggingのRuntimeやSinkをテストから差し替えられ、実ログ出力を必要とせず共通logging境界を検証できる
 - [ ] stderr、memoryなど既存の差し替え可能なSink構造は、現在契約と衝突しない範囲で維持または同等の境界へ置き換えられている
 - [ ] ログ基盤自身の失敗を、失敗した同じログ経路へ再帰的に記録しない
-- [ ] コンポーネント固有の正確な内部型、発生元の値、OpenTelemetry利用方法、ログ受付・出力境界、設定、ログ基盤自身の失敗処理をコード・設定・Schema・migration・テストの正本へ置き、専用のRAGScopeアプリケーション構造化ログ設計書を作成していない
+- [ ] RAGScopeアプリケーション固有の実行追跡責務とevent→`LogSpec`変換責務は、それぞれ[RAGScopeアプリケーション実行追跡詳細設計](../../../../design/tracing/RAGScopeアプリケーション実行追跡詳細設計.md)と[RAGScopeアプリケーション構造化ログイベント変換詳細設計](../../../../design/logging/RAGScopeアプリケーション構造化ログイベント変換詳細設計.md)から追える。一方、正確な内部型、関数、module、Cabal依存、OpenTelemetry SDK利用方法、ログ受付・出力境界、設定、migration、具体的なテストケースはコード・設定・Schema・migration・テストを機械可読な正本とし、Markdownへ逐語的に複製していない
 - [ ] 関係するHaskellテスト、JSON Schema適合テスト、SQLite投影・復元テスト、プロジェクトの品質検査を実行し、追加・更新したテストを含めて成功する
 - [ ] Haskell実装、共有JSON Contract、SQLite表現、現在の実行追跡・構造化ログ設計の間に未解消な差異がない
 
@@ -137,8 +139,11 @@ OpenTelemetryはRAGScopeの要求や論理契約を決める正本ではない�
 - [利用者操作基本設計](../../../../design/利用者操作基本設計.md)
 - [利用者操作詳細設計](../../../../design/利用者操作詳細設計.md)
 - [ErrorType変換詳細設計](../../../../design/ErrorType変換詳細設計.md)
-- [実行追跡・構造化ログ契約設計](../../../../design/logging/実行追跡・構造化ログ契約設計.md)
-- [RAGScopeアプリケーション実行追跡構成設計](../../../../design/logging/RAGScopeアプリケーション実行追跡構成設計.md)
+- [実行追跡・構造化ログ契約設計](../../../../design/実行追跡・構造化ログ契約設計.md)
+- [実行追跡設計](../../../../design/tracing/README.md)
+- [RAGScopeアプリケーション実行追跡詳細設計](../../../../design/tracing/RAGScopeアプリケーション実行追跡詳細設計.md)
+- [構造化ログ設計](../../../../design/logging/README.md)
+- [RAGScopeアプリケーション構造化ログイベント変換詳細設計](../../../../design/logging/RAGScopeアプリケーション構造化ログイベント変換詳細設計.md)
 - [構造化ログ外部表現共通設計](../../../../design/logging/構造化ログ外部表現共通設計.md)
 - [構造化ログJSON表現設計](../../../../design/logging/構造化ログJSON表現設計.md)
 - [構造化ログSQLite表現設計](../../../../design/logging/構造化ログSQLite表現設計.md)
