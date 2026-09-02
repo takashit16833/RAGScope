@@ -37,12 +37,17 @@ OpenTelemetryはRAGScopeの要求や論理契約を決める正本ではない�
 - 利用インターフェースが1回のトップレベルな操作について操作固有処理を開始する境界から、その操作の処理を完了または失敗として終了して外側へ制御を戻す境界までを1つの`trace`として扱える公開境界を設ける。routing・command判定、入力変換・検証、ユースケース呼び出し、ユースケース後の結果処理は、その操作に属する限り同じroot `span`の時間区間に含められるようにする。
 - RAGScope Applicationがユースケースを呼び出した場合、その呼び出しからApplicationへ制御が戻るまでをroot `span`配下のユースケース実行`span`として追跡できるようにする。routingや入力検証で操作が終了してユースケースを呼び出さない場合は、ユースケース実行`span`を作らない。
 - Observabilityの利用側では、新しいトップレベルな利用者操作の`trace`を開始するscopeと、開始済み`trace`内へ`span`を追加するscopeを分ける。現時点では前者を`withTrace`、後者を`withSpan`と呼ぶ。Operation境界が`withTrace`を使い、その内側のApplication / Featureは`withSpan`を使う。`withSpan`は開始済み`trace`の中で使い、現在の`trace`がない場合に暗黙に新しいroot `span`を開始しない。
-- 利用側は`TraceId`や`SpanId`を受け取ったり`withSpan`へ渡したりしない。現在のtrace / span状態はTracingの具体実装側が管理し、`withSpan`で作るspanの親はそのcurrent spanから決定する。`withTrace` / `withSpan`の正確な型・module分割と、それらを実現するTracing Portの最小APIは引き続きこのTicketで確定する。
+- 利用側は`TraceId`や`SpanId`を受け取ったり`withSpan`へ渡したりしない。現在のtrace / span状態はTracingの具体実装側が管理し、`withSpan`で作るspanの親はそのcurrent spanから決定する。
+- Tracing Portの最小能力は`withTrace`、`withSpan`、`observeResult`、`currentTraceContext`の4つとする。`observeResult`は概念上`ToErrorType failure => Either failure result -> m ()`を受け、`Left failure`ならcurrent `span`へ`Error`と`toErrorType failure`から得た`error_type`を反映し、`Right _`なら`Unset`を反映する。Observability Runtime自身は`Either`をpattern matchしてSpan Statusを決定しない。
+- `currentTraceContext`は概念上`m (Maybe TraceContext)`であり、current `span`がある場合はその`TraceId`・`SpanId`を返し、trace外では`Nothing`を返す。current Trace Contextは`AppEnv`の固定値として保持せず、Tracingの具体実装が`withTrace` / `withSpan`の実行scopeごとに管理する。複数のトップレベル操作が並行実行されても別操作のcurrent Trace Contextを混在させず、Application全体で1個の`IORef (Maybe TraceContext)`を共有して上書きする構造は採用しない。
+- Application / Featureは`RAGScope.Tracing`を直接利用せず、処理追跡には`RAGScope.Observability`、event記録には`RAGScope.Logging.Write`を利用する。composition rootではOpenTelemetry Adapterから1つのTracing実装を組み立て、そのTracing実装をObservability Runtimeへ内部依存として渡し、Logging RuntimeにはTracing全体ではなく`currentTraceContext`取得能力だけを渡す。`Tracing`自体はApplication / Featureが利用する能力として`AppEnv`へ公開しない。
+- `makeOpenTelemetryTracing`はTracing実装を初期化する処理であり、それ自体では利用者操作を表す`trace`を開始しない。実際の`trace`は各トップレベル操作の境界でObservabilityの`withTrace`を呼んだときに開始する。CLIでもAPIでもこの規則を共通とし、Application起動・Tracing初期化・終了処理を1つの利用者操作の`trace`へ含めない。
+- `withTrace` / `withSpan`へ渡す名称の型、これらの関数の正確なHaskell型、current `trace`がない状態で`withSpan`が呼ばれた場合の失敗表現、Observability公開APIの正確な型・module分割と結果観測APIとの組み合わせは、今回確定した責務を維持したうえで実装時にコードとテストで確定する。
 - ユースケース失敗ログはFeature固有eventとして表す。検索機能であれば`SearchEvent`のユースケース失敗を表すconstructorを使い、Logging側は他のFeature eventと同様に`ToLogSpec SearchEvent`を通して`LogSpec`へ変換する。ユースケース失敗イベントはユースケース実行`span`へ関連付け、親やrootへ失敗が伝播したという理由だけで同じ失敗ログを重複して記録しない。具体的なconstructor名と保持する値は各Featureの設計・実装で確定する。
 - 構造化ログの共通表現は、trace内ログとtrace外ログの両方を同じlogging基盤で扱えるようにする。特定の`span`へ属するログは`TraceId`・`SpanId`を組で持ち、特定の`span`へ属さないログは両方を持たない。片方だけを持つ状態は表現しない。
 - `Port`はmodule名のsuffixではなく設計上の役割を表す語として使う。呼び出し側が必要とする抽象操作を定義し、具体実装を境界の向こう側で差し替える箇所をPortと呼ぶ。`RAGScope.Tracing`は`ragscope-tracing` packageのpublic main libraryに置き、Observability Runtimeが要求するspan操作を定義するTracing Portとする。`RAGScope.Tracing.Context`は同packageのpublic `core` libraryに置き、`TraceId`、`SpanId`、`TraceContext`を公開する。
 - Tracing PortのOpenTelemetry具体実装は`ragscope-tracing` packageへ置かない。`ragscope` package内のprivate `ragscope-tracing-otel` libraryに`RAGScope.Application.Tracing.OpenTelemetry`を置き、`ragscope-tracing`のpublic main / `core` libraryとOpenTelemetry SDKへ依存して`RAGScope.Tracing`を実装する。OpenTelemetry SDKへ直接依存するのはこのprivate libraryだけとし、`ragscope-tracing` package自体はOpenTelemetry SDKへ依存しない。
-- `ragscope-application`はprivate `ragscope-tracing-otel` libraryを利用して本番用の`RAGScope.Tracing`実装を組み立てる。Observability RuntimeとFeatureは`RAGScope.Application.Tracing.OpenTelemetry`もOpenTelemetry SDKもimportしない。`RAGScope.Observability`は利用インターフェース・Application・Featureから必要な実行追跡操作を利用するObservability Effect API、`RAGScope.Logging.Write`はLoggingの公開APIと呼び、単なる公開境界を一律にPortとは呼ばない。Observability公開APIの正確な型・module分割と結果観測APIとの組み合わせは、上記の`withTrace` / `withSpan`の責務に合わせてこのTicketで確定する。
+- `ragscope-application`はprivate `ragscope-tracing-otel` libraryを利用して本番用の`RAGScope.Tracing`実装を組み立てる。Observability RuntimeとFeatureは`RAGScope.Application.Tracing.OpenTelemetry`もOpenTelemetry SDKもimportしない。`RAGScope.Observability`は利用インターフェース・Application・Featureから必要な実行追跡操作を利用するObservability Effect API、`RAGScope.Logging.Write`はLoggingの公開APIと呼び、単なる公開境界を一律にPortとは呼ばない。
 
 ## 完了条件
 
@@ -90,6 +95,10 @@ OpenTelemetryはRAGScopeの要求や論理契約を決める正本ではない�
 ### 実装境界と検証
 
 - [ ] Haskell実装へ着手する前に、loggingの利用側から見た公開API、Cabal package・library・moduleごとの責務と依存方向、利用インターフェースからroot `span`を開始・終了する境界、ユースケース実行`span`との関係、ログ生成からSinkまでのデータの流れ、logging自身の失敗処理を一つの全体像として設計し、その設計を基準に実装している
+- [ ] Tracing Portが`withTrace`、`withSpan`、`observeResult`、`currentTraceContext`の4能力を提供し、Application / FeatureはTracingを直接利用せずObservability / Loggingを通して必要な処理を行う
+- [ ] current Trace ContextをTracing実装が実行scopeごとに管理し、並行するトップレベル操作間でTrace Contextを混在させず、Logging Runtimeが注入された`currentTraceContext`取得能力からtrace内外を判定できる
+- [ ] Application起動時のcompositionでOpenTelemetry AdapterからTracing実装を組み立て、その実装をObservability RuntimeとLogging Runtimeへ必要な能力だけ渡し、Tracing自体をApplication / Feature向け`AppEnv`へ公開していない
+- [ ] `makeOpenTelemetryTracing`などTracing実装の初期化と、各トップレベル操作を開始する`withTrace`を分離し、Application / process全体を1つの利用者操作`trace`として扱っていない
 - [ ] logging・tracing・observabilityなど独立した責務を別Cabal packageへ分ける場合、同一`cabal.project`内のlocal packageとして構成し、許可するpackage間依存を`build-depends`へ明示して循環や逆向き依存を作っていない
 - [ ] `ragscope-tracing` packageが公開するのはTracing Portを持つpublic main libraryと`RAGScope.Tracing.Context`を持つpublic `core` libraryだけであり、OpenTelemetry具体実装とOpenTelemetry SDK依存を含んでいない。OpenTelemetry具体実装は`ragscope` package内のprivate `ragscope-tracing-otel` libraryに閉じ、`ragscope-application`以外のApplication / Feature / Observability実装から直接利用させていない
 - [ ] 既存の`ragscope-logging`、`Observation`、`Result`、`AppError`の構造を維持すること自体を要件とせず、現在契約とRAGScopeアプリケーションの責務から必要性を判断している
@@ -126,6 +135,7 @@ OpenTelemetryはRAGScopeの要求や論理契約を決める正本ではない�
 - [利用者操作詳細設計](../../../../design/利用者操作詳細設計.md)
 - [ErrorType変換詳細設計](../../../../design/ErrorType変換詳細設計.md)
 - [実行追跡・構造化ログ契約設計](../../../../design/logging/実行追跡・構造化ログ契約設計.md)
+- [RAGScopeアプリケーション実行追跡構成設計](../../../../design/logging/RAGScopeアプリケーション実行追跡構成設計.md)
 - [構造化ログ外部表現共通設計](../../../../design/logging/構造化ログ外部表現共通設計.md)
 - [構造化ログJSON表現設計](../../../../design/logging/構造化ログJSON表現設計.md)
 - [構造化ログSQLite表現設計](../../../../design/logging/構造化ログSQLite表現設計.md)
@@ -138,9 +148,3 @@ OpenTelemetryはRAGScopeの要求や論理契約を決める正本ではない�
 logging・tracing・observabilityなど独立した責務は、既存の1 package内private sublibraryへ閉じることを前提にせず、別Cabal packageとして分離することを第一候補とする。これらは別repositoryや外部公開を意味せず、`ragscope-app`配下の同一`cabal.project`から複数のlocal packageをまとめて扱う。package境界では`build-depends`によって大きな依存方向を機械的に制約し、各packageの内側では必要に応じてpublic / private libraryと`exposed-modules` / `other-modules`を使って公開範囲をさらに絞る。packageを分けること自体を目的にはせず、独立した責務・公開API・依存方向として分離する意味が薄い境界は設計の中で統合してよい。OpenTelemetry AdapterはTracing Portの契約ではなくRAGScopeアプリケーションの本番用具体実装なので、この原則の例外ではなく適用結果として`ragscope` package内のprivate `ragscope-tracing-otel` libraryへ置く。
 
 機能固有の閉じたイベントから共通loggingへ変換する境界、時刻やTrace Contextなど実行時情報を付加する境界、JSON serializationとSQLite投影を共通モデルから分離する境界、Sinkを差し替える構造は維持候補とする。ただし、いずれも既存構造を残すこと自体を目的とせず、先に設計した全体像の中で責務が自然に分かれる場合だけ採用する。Trace Contextはすべてのログへ要求せず、特定の`span`へ属するログだけに`TraceId`・`SpanId`を組で付加する。JSONとSQLiteは同じ`LogRecord`から独立して投影し、片方の表現都合を共通モデルへ持ち込まなければもう片方を実装できない構造を避ける。
-
-`Observation`、`Result`、`AppError`を含む既存の周辺moduleは、このTicketの変更範囲外として固定しない。UseCase実行は概念上`UseCaseResult = UseCaseSuccess | UseCaseFailure`として扱い、Haskell境界では`Either failure result`を使う。利用者操作全体は概念上`OperationResult = OperationSuccess | OperationFailure`として扱い、Haskell境界では`Either OperationFailure result`を使う。Application側の共通`OperationFailure`は`ToErrorType` instanceを持つ具体的なfailure値を`OperationFailure failure`として保持する。UseCaseの`Left failure`、UseCase前の通常failure、UseCase後の通常failureは、それぞれの具体型を必要とする処理をOperation内で行った後、利用者操作を失敗として終了するときに`OperationFailure failure`で包む。`ToErrorType OperationFailure`は中のfailure値を取り出して`toErrorType failure`を実行する。利用者操作ごとのfailure ADTや処理段階ごとのconstructorは作らない。同期・非同期Exceptionとlogging基盤自身のfailureを利用者操作全体の結果へどう組み合わせるかは引き続き別途設計する。
-
-Span Statusの実装方法は引き続き公開API設計で確定する。現時点の最有力候補は、UseCase境界の`Either failure result`とOperation境界の`Either OperationFailure result`について、結果を観測するObservability側が`Left`を`Error`、`Right`を`Unset`として直接解釈する方法である。現在契約ではSpan Statusの判定に具体的なfailureやresultの種類を区別する必要がないため、`ToSpanStatus`のような専用型クラスは現時点では導入しない。結果型固有のSpan Status判定が必要になった場合は、その時点で型クラス化を再検討する。
-
-OpenTelemetryは、RAGScopeが採用した実行追跡を実装するための手段として利用する。`RAGScope.Tracing`はOpenTelemetryを知らないPortとして保ち、`RAGScope.Application.Tracing.OpenTelemetry`だけがOpenTelemetry SDKをimportしてPortを実装する。Applicationの本番構成はprivate `ragscope-tracing-otel` libraryからその実装を取得し、Observability Runtimeへ`RAGScope.Tracing`の値として渡す。Feature、Observability Runtime、`ragscope-tracing` packageからOpenTelemetry SDKを直接importしない。
