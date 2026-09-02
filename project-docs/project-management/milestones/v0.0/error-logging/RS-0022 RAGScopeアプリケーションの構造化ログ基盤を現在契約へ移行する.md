@@ -28,11 +28,12 @@ OpenTelemetryはRAGScopeの要求や論理契約を決める正本ではない�
 - UseCase実行の結果は概念上`UseCaseResult = UseCaseSuccess | UseCaseFailure`として扱う。HaskellのUseCase境界では`Either failure result`を使い、`Right result`を`UseCaseSuccess`、`Left failure`を`UseCaseFailure`として表す。`UseCaseSuccess`・`UseCaseFailure`は結果区分であり、具体的なresult型・failure型の名称ではない。routing・command判定、入力変換・検証、ユースケース終了後の結果処理などの失敗をUseCase固有failureへ混在させない。
 - 1回のトップレベルな利用者操作全体は、必要な場合だけ`UseCaseResult`を内包する外側の結果を持ち、概念上`OperationResult = OperationSuccess | OperationFailure`として扱う。Haskellの利用者操作境界では`Either OperationFailure result`を使い、`Right result`を`OperationSuccess`、`Left operationFailure`を`OperationFailure`として表す。結果区分を表すためだけの共通`OperationResult` ADTは導入しない。
 - すべてのトップレベルな利用者操作は同じ`OperationFailure`型を使う。`OperationFailure`は、`ToErrorType` instanceを持つ具体的なfailure値を`OperationFailure failure`として1つ保持する。利用者操作ごとに`DenseSearchOperationFailure`などのfailure型を定義せず、`InputFailure`、`UseCaseFailure`、`OutputFailure`のような処理段階を表すconstructorも`OperationFailure`へ追加しない。
-- UseCaseが`Left useCaseFailure`を返した場合、Applicationはその具体的な`useCaseFailure`値を受け取る。その場所でUseCase span、失敗ログ、利用者向け結果などUseCase failureとして必要な処理を行い、利用者操作も失敗として終了する場合に`Left (OperationFailure useCaseFailure)`を返す。入力変換・検証やUseCase後の結果処理で通常のtyped failureを受け取った場合も、その場所で必要な処理を行った後、`Left (OperationFailure failure)`として返す。具体failureを先に`ErrorType`へ変換してから保持しない。
+- UseCaseが`Left useCaseFailure`を返した場合、Applicationはその具体的な`useCaseFailure`値を受け取り、利用者操作も失敗として終了する場合に`Left (OperationFailure useCaseFailure)`を返す。入力変換・検証やUseCase後の結果処理で通常のtyped failureを受け取った場合も、利用者操作を失敗として終了する場合に`Left (OperationFailure failure)`として返す。UseCaseとOperationは自身の成功・失敗を結果として返すまでを責務とし、failureを観測用表現やログ表現へ変換することを必須責務にしない。具体failureを先に`ErrorType`へ変換してから`OperationFailure`へ保持しない。
+- failure型など変換元の型を所有する側は、その型から別表現への変換規則が必要な場合に、変換先側が提供する型クラスのinstanceを提供できる。instanceとして変換規則を提供することと、実行時に変換関数を適用することは別の責務とし、`ErrorType`や`LogSpec`など変換後の表現を必要とする処理が実際の変換を行う。
 - `OperationFailure`は`ragscope` packageの`ragscope-application` libraryが所有する。Featureや`ragscope-error`には置かない。`OperationFailure`の定義は個別のUseCase固有failure型をimportせず、constructorの`ToErrorType failure`制約と`ToErrorType OperationFailure` instanceのために`RAGScope.ErrorType`をimportする。このため`ragscope-application`から`ragscope-error`への直接依存を持つ。正確なmodule名はApplication実装時にコードで確定する。
-- `ToErrorType OperationFailure` instanceは、`OperationFailure failure`から中の`failure`値を取り出し、その値に`toErrorType`を適用して結果を返す。同じUseCase failureがUseCase実行`span`とroot `span`の両方を失敗させる場合、UseCase実行`span`では`toErrorType useCaseFailure`を適用し、root `span`では`toErrorType (OperationFailure useCaseFailure)`を適用する。後者も中の同じ`useCaseFailure`値に`toErrorType`を適用するため、両方で同じ`ErrorType`を得られる。
-- `OperationFailure`を受け取るOperation境界の外側では、保持されたfailure値を`DenseSearchFailure`などの具体型へ戻して処理を分岐しない。具体failureの型に応じた処理は、そのfailure値を具体型のまま受け取れるOperation内の場所で行う。Operation境界の外側で必要な失敗理由は`toErrorType operationFailure`によって取得する。
-- `ErrorType`を必要とする公開境界は、具体的なUseCase固有failure型へ固定せず、`ToErrorType failure => failure`を受け取って境界内で`toErrorType`を適用できる形とする。その下位層には変換後の`ErrorType`だけを渡す。`ToErrorType`をどのObservability公開APIで適用するかは、現在の実行追跡境界に合わせてこのTicketで設計・実装する。
+- `ToErrorType OperationFailure` instanceは、`OperationFailure failure`から中の`failure`値を取り出し、その値に`toErrorType`を適用して結果を返す。同じUseCase failureをUseCase実行`span`とroot `span`の両方で`error_type`として観測する場合、UseCase実行`span`で`ErrorType`を必要とする処理は`toErrorType useCaseFailure`を適用し、root `span`で`ErrorType`を必要とする処理は`toErrorType (OperationFailure useCaseFailure)`を適用する。後者も中の同じ`useCaseFailure`値に`toErrorType`を適用するため、両方で同じ`ErrorType`を得られる。
+- `OperationFailure`を受け取るOperation境界の外側では、保持されたfailure値を`DenseSearchFailure`などの具体型へ戻して処理を分岐しない。具体failureの型に応じた処理は、そのfailure値を具体型のまま受け取れるOperation内の場所で行う。Operation境界の外側で`ErrorType`が必要な処理は`toErrorType operationFailure`によって取得する。
+- `ErrorType`を必要とする公開境界が具体的なfailure値を受け取る場合、具体的なUseCase固有failure型へ固定せず、`ToErrorType failure => failure`を受け取って境界内で`toErrorType`を適用できる形とする。具体failure値を必要としない下位処理には変換後の`ErrorType`を渡す。どの処理または公開APIが`ErrorType`を必要とするかは、その責務と実行追跡境界に合わせてこのTicketで設計・実装する。
 - 利用インターフェースが1回のトップレベルな操作について操作固有処理を開始する境界から、その操作の処理を完了または失敗として終了して外側へ制御を戻す境界までを1つの`trace`として扱える公開境界を設ける。routing・command判定、入力変換・検証、ユースケース呼び出し、ユースケース後の結果処理は、その操作に属する限り同じroot `span`の時間区間に含められるようにする。
 - RAGScope Applicationがユースケースを呼び出した場合、その呼び出しからApplicationへ制御が戻るまでをroot `span`配下のユースケース実行`span`として追跡できるようにする。routingや入力検証で操作が終了してユースケースを呼び出さない場合は、ユースケース実行`span`を作らない。
 - ユースケース失敗ログはFeature固有eventとして表す。検索機能であれば`SearchEvent`のユースケース失敗を表すconstructorを使い、Logging側は他のFeature eventと同様に`ToLogSpec SearchEvent`を通して`LogSpec`へ変換する。ユースケース失敗イベントはユースケース実行`span`へ関連付け、親やrootへ失敗が伝播したという理由だけで同じ失敗ログを重複して記録しない。具体的なconstructor名と保持する値は各Featureの設計・実装で確定する。
@@ -54,6 +55,7 @@ OpenTelemetryはRAGScopeの要求や論理契約を決める正本ではない�
 - [ ] Haskellの利用者操作境界を`Either OperationFailure result`で表し、`Right result`を`OperationSuccess`、`Left operationFailure`を`OperationFailure`として扱い、結果区分だけを表す共通`OperationResult` ADTを導入していない
 - [ ] 共通`OperationFailure`が`ToErrorType` instanceを持つ具体的なfailure値を`OperationFailure failure`として保持し、利用者操作ごとのfailure ADTやInput / UseCase / Outputなど処理段階ごとのconstructorを要求しない
 - [ ] UseCaseの`Left failure`、UseCase前の通常failure、UseCase後の通常failureを、その具体型を必要とする処理が終わった後に`OperationFailure failure`として保持でき、先に`ErrorType`へ変換して具体failure値を失わない
+- [ ] failure型の所有側が必要な変換型クラスのinstanceを提供できる一方、UseCaseやOperation自身へ観測用表現・ログ表現への実変換を要求せず、その表現を必要とする処理が変換関数を適用できる
 - [ ] `ToErrorType OperationFailure` instanceが`OperationFailure failure`から中のfailure値を取り出して`toErrorType failure`を実行し、同じUseCase failureをUseCase実行`span`とroot `span`で観測する場合に同じ`ErrorType`を得られる
 - [ ] `OperationFailure`の定義が個別のUseCase固有failure型へ依存せず、`ragscope-application`が`RAGScope.ErrorType`をimportして`ragscope-error`へ直接依存する構造をCabalの`build-depends`で表現できる
 - [ ] `OperationFailure`を受け取ったOperation境界の外側で具体failure型に応じた分岐を要求せず、必要な失敗理由を`toErrorType operationFailure`から取得できる
@@ -137,20 +139,6 @@ logging・tracing・observabilityなど独立した責務は、既存の1 packag
 
 `Observation`、`Result`、`AppError`を含む既存の周辺moduleは、このTicketの変更範囲外として固定しない。UseCase実行は概念上`UseCaseResult = UseCaseSuccess | UseCaseFailure`として扱い、Haskell境界では`Either failure result`を使う。利用者操作全体は概念上`OperationResult = OperationSuccess | OperationFailure`として扱い、Haskell境界では`Either OperationFailure result`を使う。Application側の共通`OperationFailure`は`ToErrorType` instanceを持つ具体的なfailure値を`OperationFailure failure`として保持する。UseCaseの`Left failure`、UseCase前の通常failure、UseCase後の通常failureは、それぞれの具体型を必要とする処理をOperation内で行った後、利用者操作を失敗として終了するときに`OperationFailure failure`で包む。`ToErrorType OperationFailure`は中のfailure値を取り出して`toErrorType failure`を実行する。利用者操作ごとのfailure ADTや処理段階ごとのconstructorは作らない。同期・非同期Exceptionとlogging基盤自身のfailureを利用者操作全体の結果へどう組み合わせるかは引き続き別途設計する。
 
+Span Statusの実装方法は引き続き公開API設計で確定する。現時点の最有力候補は、UseCase境界の`Either failure result`とOperation境界の`Either OperationFailure result`について、結果を観測するObservability側が`Left`を`Error`、`Right`を`Unset`として直接解釈する方法である。現在契約ではSpan Statusの判定に具体的なfailureやresultの種類を区別する必要がないため、`ToSpanStatus`のような専用型クラスは現時点では導入しない。結果型固有のSpan Status判定が必要になった場合は、その時点で型クラス化を再検討する。
+
 OpenTelemetryは、RAGScopeが採用した実行追跡を実装するための手段として利用する。`RAGScope.Tracing`はOpenTelemetryを知らないPortとして保ち、`RAGScope.Application.Tracing.OpenTelemetry`だけがOpenTelemetry SDKをimportしてPortを実装する。Applicationの本番構成はprivate `ragscope-tracing-otel` libraryからその実装を取得し、Observability Runtimeへ`RAGScope.Tracing`の値として渡す。Feature、Observability Runtime、`ragscope-tracing` packageからOpenTelemetry SDKを直接importしない。
-
-ログ基盤自身の出力・serialization・persistence失敗を、利用者操作全体の失敗やユースケース失敗とどう組み合わせるかは、現在の共通論理契約では一律に定めない。RAGScopeアプリケーション固有の実装境界として、利用箇所と既存挙動を確認したうえでコードとテストを正本として確定する。失敗したlogging経路自身へ同じlogging経路を使って再帰的に失敗を記録しない。
-
-RS-0021完了後にRS-0022の設計検討で共有JSON Contractを追加修正しているため、`SchemaSpec.hs`は現在のfixture名とSchemaへ追随させる。共有fixtureにはtrace内ログ、trace外ログ、`trace_id`だけまたは`span_id`だけを持つ不正ログを含め、現在のHaskell `LogRecord`生成JSONが同じ契約へ適合することを確認する。
-
-## 結果
-
-> [!note] 完了時に記入
-> - 移行したHaskell logging基盤
-> - 実装したOpenTelemetryによる利用者操作単位の実行追跡とログ関連付け
-> - 更新したJSON serializationとSchema適合結果
-> - 実装したSQLite投影・復元と往復検証結果
-> - 維持・変更・削除した旧logging構造
-> - 実行したテスト・品質検査と結果
-> - 既知の制約
-> - 関連Pull Request

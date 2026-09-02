@@ -34,9 +34,11 @@ failure型であることだけを理由に、すべてのfailure型へ`ToErrorT
 - 同じfailure値には常に同じ`ErrorType`を返す。
 - `ToErrorType` instanceを持つfailure型のすべての値に対して`ErrorType`を返す。
 
-`ErrorType`を必要とする公開境界が具体的なfailure値を受け取る場合、その境界を`DenseSearchFailure`など特定のfailure型へ固定せず、概念上`ToErrorType failure => failure`を受け取れる形とする。境界内で`toErrorType failure`を適用し、それより下位のObservability、Tracing、Logging側の処理へ具体的なfailure値を渡さず、変換後の`ErrorType`を渡す。
+具体的なfailure型の所有側は、そのfailureから`ErrorType`への変換規則が必要な場合に`ToErrorType` instanceを定義する。instanceとして変換規則を提供することと、実行時に`toErrorType`を適用することは別の責務である。failureを生成または返す処理は、`ErrorType`を必要としない限り変換を行わない。`ErrorType`を必要とする処理が具体的なfailure値へ`toErrorType`を適用する。
 
-どのObservability公開APIがこの変換を行うか、正確な関数名とmodule分割はこの文書では固定しない。
+`ErrorType`を必要とする公開境界が具体的なfailure値を受け取る場合、その境界を`DenseSearchFailure`など特定のfailure型へ固定せず、概念上`ToErrorType failure => failure`を受け取れる形とする。境界内で`toErrorType failure`を適用し、具体的なfailure値を必要としない下位処理には変換後の`ErrorType`を渡す。
+
+どの処理または公開APIが`ErrorType`を必要とし、そこで変換を行うか、正確な関数名とmodule分割は各責務の設計・実装で確定する。
 
 ## 3. failure所有者とinstance
 
@@ -92,9 +94,9 @@ Observability、Tracing、Loggingの各packageが`ragscope-error`へ直接依存
 
 | 対象 | この共通契約との関係 |
 |---|---|
-| UseCase | UseCase固有failure型に`ToErrorType` instanceを定義する。UseCase実行`span`へ`error_type`を設定するときは、その具体的なfailure値に`toErrorType`を適用する。UseCase境界でのfailureの受け渡しは[ユースケース詳細設計](./ユースケース詳細設計.md)を正本とする |
-| 利用者操作 | UseCase前・UseCase・UseCase後で受け取った具体的なfailure値を`OperationFailure failure`として保持する。root `span`などで`ErrorType`が必要な場合は`toErrorType operationFailure`を適用し、`ToErrorType OperationFailure` instanceが中のfailure値に`toErrorType`を適用する。`OperationFailure`のHaskell表現は[利用者操作詳細設計](./利用者操作詳細設計.md)を正本とする |
-| 構造化ログ | 失敗eventが具体的なfailureを元に`error_type`を生成する場合、そのfailure値へ`toErrorType`を適用して得た`ErrorType`を`LogSpec`へ入れる。eventから`LogSpec`への変換は[構造化ログイベント変換設計](./logging/構造化ログイベント変換設計.md)を正本とする |
+| UseCase | UseCase固有failure型の所有側が`ToErrorType` instanceを定義する。UseCase本体はfailure値を返し、UseCase実行`span`などで`ErrorType`を必要とする処理が、その具体的なfailure値へ`toErrorType`を適用する。UseCase境界でのfailureの受け渡しは[ユースケース詳細設計](./ユースケース詳細設計.md)を正本とする |
+| 利用者操作 | UseCase前・UseCase・UseCase後で受け取った具体的なfailure値を`OperationFailure failure`として保持する。root `span`などで`ErrorType`を必要とする処理が`toErrorType operationFailure`を適用し、`ToErrorType OperationFailure` instanceが中のfailure値に`toErrorType`を適用する。`OperationFailure`のHaskell表現は[利用者操作詳細設計](./利用者操作詳細設計.md)を正本とする |
+| 構造化ログ | 失敗eventが具体的なfailureを元に`error_type`を生成する場合、その変換を必要とするeventから`LogSpec`への変換処理がfailure値へ`toErrorType`を適用し、得た`ErrorType`を`LogSpec`へ入れる。eventから`LogSpec`への変換は[構造化ログイベント変換設計](./logging/構造化ログイベント変換設計.md)を正本とする |
 | 実行追跡 | 失敗した`span`へ付ける`error_type`の論理的な意味と、同じ失敗をログと共有する規則は[実行追跡・構造化ログ契約設計](./logging/実行追跡・構造化ログ契約設計.md)を正本とする |
 
 ## 関連文書
