@@ -6,7 +6,7 @@ note_type: design
 > [!abstract] この文書の役割
 > RAGScopeアプリケーションのHaskell実装で、具体的なfailure値に`toErrorType`を適用して、実行追跡・構造化ログで共有する`ErrorType`を得るための共通契約を定義する。`ToErrorType`はUseCase固有の仕組みではなく、Feature、利用インターフェース、Applicationなどが所有する具体的なfailure型に対して定義できる。
 >
-> `error_type`の論理的な意味と`span`・構造化ログでの利用規則は[実行追跡・構造化ログ契約設計](./logging/実行追跡・構造化ログ契約設計.md)、各failureが表す具体的な失敗条件はそのfailureを所有する機能・利用インターフェース・Applicationの設計を正本とする。正確なHaskell型・class・instance・module・Cabal依存は実装コードと設定を機械可読な正本とする。
+> `error_type`の論理的な意味と`span`・構造化ログでの利用規則は[実行追跡・構造化ログ契約設計](./実行追跡・構造化ログ契約設計.md)、各failureが表す具体的な失敗条件はそのfailureを所有する機能・利用インターフェース・Applicationの設計を正本とする。正確なHaskell型・class・instance・module・Cabal依存は実装コードと設定を機械可読な正本とする。
 
 ## 1. `ErrorType`と`ToErrorType`
 
@@ -86,7 +86,7 @@ instance ToErrorType OperationFailure where
 
 `OperationFailure`は`ragscope` packageの`ragscope-application` libraryが所有する。Featureや`ragscope-error`には置かない。`ragscope-application`は`OperationFailure`のconstructor制約とinstanceで`ToErrorType`を使うため、`RAGScope.ErrorType`をimportし、`ragscope-error`へ直接依存する。正確な`OperationFailure`のmodule名はApplication実装時にコードで確定する。
 
-Observability、Tracing、Loggingの各packageが`ragscope-error`へ直接依存するかは、各packageの公開APIと内部表現を設計するときに確定する。
+`ragscope-tracing`のpublic main libraryは、`RAGScope.Tracing.observeResult`の`ToErrorType failure`制約のため`ragscope-error` mainへ直接依存する。`ragscope-observability`のpublic main libraryも、公開する`withTrace` / `withSpan`の`ToErrorType failure`制約のため`ragscope-error` mainへ直接依存する。`ragscope-observability`のruntime libraryはObservability mainと`ragscope-tracing` mainを通して必要な契約を利用し、`ragscope-error`へは直接依存しない。Loggingが`ragscope-error`へ直接依存するかは、Loggingの公開APIと内部表現を設計するときに確定する。
 
 `ErrorType`の内部表現と具体的な値は、この文書では固定せず、実装コードを正本とする。
 
@@ -96,13 +96,13 @@ Observability、Tracing、Loggingの各packageが`ragscope-error`へ直接依存
 |---|---|
 | UseCase | UseCase固有failure型の所有側が`ToErrorType` instanceを定義する。UseCase本体はfailure値を返し、UseCase実行`span`などで`ErrorType`を必要とする処理が、その具体的なfailure値へ`toErrorType`を適用する。UseCase境界でのfailureの受け渡しは[ユースケース詳細設計](./ユースケース詳細設計.md)を正本とする |
 | 利用者操作 | UseCase前・UseCase・UseCase後で受け取った具体的なfailure値を`OperationFailure failure`として保持する。root `span`などで`ErrorType`を必要とする処理が`toErrorType operationFailure`を適用し、`ToErrorType OperationFailure` instanceが中のfailure値に`toErrorType`を適用する。`OperationFailure`のHaskell表現は[利用者操作詳細設計](./利用者操作詳細設計.md)を正本とする |
-| 構造化ログ | 失敗eventが具体的なfailureを元に`error_type`を生成する場合、その変換を必要とするeventから`LogSpec`への変換処理がfailure値へ`toErrorType`を適用し、得た`ErrorType`を`LogSpec`へ入れる。eventから`LogSpec`への変換は[構造化ログイベント変換設計](./logging/構造化ログイベント変換設計.md)を正本とする |
-| 実行追跡 | 失敗した`span`へ付ける`error_type`の論理的な意味と、同じ失敗をログと共有する規則は[実行追跡・構造化ログ契約設計](./logging/実行追跡・構造化ログ契約設計.md)を正本とする |
+| 構造化ログ | 失敗eventが具体的なfailureを元に`error_type`を生成する場合、その変換を必要とするeventから`LogSpec`への変換処理がfailure値へ`toErrorType`を適用し、得た`ErrorType`を`LogSpec`へ入れる。eventから`LogSpec`への変換は[RAGScopeアプリケーション構造化ログイベント変換詳細設計](./logging/RAGScopeアプリケーション構造化ログイベント変換詳細設計.md)を正本とする |
+| 実行追跡 | 失敗した`span`へ付ける`error_type`の論理的な意味と、同じ失敗をログと共有する規則は[実行追跡・構造化ログ契約設計](./実行追跡・構造化ログ契約設計.md)を正本とする |
 
 ## 関連文書
 
 - [ユースケース詳細設計](./ユースケース詳細設計.md)
 - [利用者操作基本設計](./利用者操作基本設計.md)
 - [利用者操作詳細設計](./利用者操作詳細設計.md)
-- [実行追跡・構造化ログ契約設計](./logging/実行追跡・構造化ログ契約設計.md)
-- [構造化ログイベント変換設計](./logging/構造化ログイベント変換設計.md)
+- [実行追跡・構造化ログ契約設計](./実行追跡・構造化ログ契約設計.md)
+- [RAGScopeアプリケーション構造化ログイベント変換詳細設計](./logging/RAGScopeアプリケーション構造化ログイベント変換詳細設計.md)
