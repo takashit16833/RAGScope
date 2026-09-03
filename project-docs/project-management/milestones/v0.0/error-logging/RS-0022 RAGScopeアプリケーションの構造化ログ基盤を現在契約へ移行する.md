@@ -54,6 +54,7 @@ OpenTelemetryはRAGScopeの要求や論理契約を決める正本ではない�
 - `ragscope-features`は`ragscope-observability` main、`ragscope-error`、`RAGScope.Logging`を公開するlogging library、`LogSpec`を公開するlogging coreへ依存する。Featureの記録箇所は`Logger m <FeatureEvent>`と`record`を利用し、`RAGScope.<Feature>.Logging`はFeature eventから`LogSpec`への純粋変換を定義する。`ragscope-observability:runtime`、`ragscope-tracing`、Logging Runtime、Sink、JSON / SQLite実装を`build-depends`へ追加しない。
 - `ragscope-application`はcomposition rootでObservabilityとFeature別Loggerを組み立てるために、`ragscope-observability` main / `runtime`、`ragscope-tracing` main、`ragscope-error`、Loggingのmain / core / Runtime境界、`contravariant`へ直接依存する。OpenTelemetry具体実装を組み立てるApplication側のlibraryはprivate `ragscope-tracing-otel`も利用する。
 - `RAGScope.Logging`は`newtype Logger m event = Logger { record :: event -> m () }`を公開し、`Logger m`へ`Contravariant` instanceを定義する。Logging Runtimeは`Logger m LogSpec`を組み立て、Applicationのcomposition rootはevent所有側が提供する`event -> LogSpec`の純粋関数を`contramap`で合成して`Logger m event`を作る。利用側は`record logger event`だけを呼び、`LogSpec`、`LogRecord`、Runtime、Sinkを扱わない。
+- `record`はLogging RuntimeやSinkで発生したlogging failureをtyped resultとしてOperation / Featureへ返さない。logging failureだけを理由に`OperationResult`を`OperationFailure`へ変更せず、利用者操作本体が失敗している場合も`OperationResult`には操作本体のfailureだけを保持する。logging failureはLogging側の独立したfailure境界で通知・保持し、その正確な内部境界はHaskell実装へ入る前にこのTicketで確定する。
 - eventから`LogSpec`への変換には`ToLogSpec`型クラスを使用しない。Feature eventに対するorphan instance、`RAGScope.Application.LoggingInstances`、instanceを有効にする`import ... ()`、1つのLogging値で任意eventを受け取るための`RankNTypes`も導入しない。Feature固有変換は`RAGScope.<Feature>.Logging`の名前付き純粋関数として明示的にimportする。
 - ユースケース失敗ログはFeature固有eventとして表す。検索機能であれば`SearchEvent`のユースケース失敗を表すconstructorを使い、他のFeature eventと同じ純粋関数で`LogSpec`へ変換できるようにする。composition rootが作る`Logger m SearchEvent`を使って記録し、ユースケース実行`span`へ関連付ける。親やrootへ失敗が伝播したという理由だけで同じ失敗ログを重複して記録しない。具体的なconstructor名と保持する値は各Featureの設計・実装で確定する。
 - 構造化ログの共通表現は、trace内ログとtrace外ログの両方を同じlogging基盤で扱えるようにする。特定の`span`へ属するログは`TraceId`・`SpanId`を組で持ち、特定の`span`へ属さないログは両方を持たない。片方だけを持つ状態は表現しない。
@@ -72,6 +73,7 @@ OpenTelemetryはRAGScopeの要求や論理契約を決める正本ではない�
 - [ ] UseCase実行を概念上`UseCaseResult = UseCaseSuccess | UseCaseFailure`として扱い、Haskellの`Either failure result`では`Right result`を`UseCaseSuccess`、`Left failure`を`UseCaseFailure`として表せる
 - [ ] 1回の利用者操作全体を概念上`OperationResult = OperationSuccess | OperationFailure`として扱い、必要な場合だけ内側の`UseCaseResult`を含める。`UseCaseFailure`とUseCase前後の通常失敗を`OperationFailure`の原因として扱え、`UseCaseSuccess`だけを理由に`OperationSuccess`を確定しない
 - [ ] Haskellの利用者操作境界を`Either OperationFailure result`で表し、`Right result`を`OperationSuccess`、`Left operationFailure`を`OperationFailure`として扱い、結果区分だけを表す共通`OperationResult` ADTを導入していない
+- [ ] logging failureの成否と利用者操作本体の成否を分離し、利用者操作本体が成功していればlogging failureが発生しても`OperationSuccess`を維持し、利用者操作本体が失敗していればloggingの成否にかかわらず操作本体のfailureを保持した`OperationFailure`を返す
 - [ ] 共通`OperationFailure`が`ToErrorType` instanceを持つ具体的なfailure値を`OperationFailure failure`として保持し、利用者操作ごとのfailure ADTやInput / UseCase / Outputなど処理段階ごとのconstructorを要求しない
 - [ ] UseCaseの`Left failure`、UseCase前の通常failure、UseCase後の通常failureを、その具体型を必要とする処理が終わった後に`OperationFailure failure`として保持でき、先に`ErrorType`へ変換して具体failure値を失わない
 - [ ] failure型の所有側が`ToErrorType` instanceを提供し、event所有側が`event -> LogSpec`の名前付き純粋関数を提供できる一方、UseCaseやOperation自身へ観測用表現・ログ表現への実変換を要求せず、その表現を必要とする処理またはcompositionが変換を適用できる
@@ -121,6 +123,7 @@ OpenTelemetryはRAGScopeの要求や論理契約を決める正本ではない�
 - [ ] 既存の`ragscope-logging`、`Observation`、`Result`、`AppError`の構造を維持すること自体を要件とせず、現在契約とRAGScopeアプリケーションの責務から必要性を判断している
 - [ ] OpenTelemetryのAPIや内部表現の都合をRAGScope固有の論理契約や公開APIへ不要に持ち込まず、RAGScopeが採用した実行追跡を実現する境界として利用している
 - [ ] `RAGScope.Logging`が`Logger m event`と`record :: Logger m event -> event -> m ()`を公開し、`Contravariant (Logger m)`によって`event -> LogSpec`と`Logger m LogSpec`から`Logger m event`を合成できる
+- [ ] `record`がlogging failureをOperation / Featureへtyped resultとして返さず、logging failureを`OperationResult`から分離したまま、Runtime / Sinkのfailureを通知・保持するLogging内部境界を一意に追える設計になっている
 - [ ] eventから`LogSpec`への変換を名前付き純粋関数として所有側が提供し、`ToLogSpec`型クラス、Feature eventのorphan instance、`RAGScope.Application.LoggingInstances`、instance読み込み専用importを導入していない
 - [ ] 機能固有の閉じたイベント表現から共通logging表現へ変換でき、共通基盤が機能固有イベント名、属性、`error_type`を任意に決定しない
 - [ ] Feature event、利用インターフェース固有event、アプリケーションライフサイクルeventなど、所有者の異なるeventごとに型付き`Logger m event`を組み立てて同じLogging Runtimeへ接続できる一方、共通logging基盤がそれらの具体的なevent名・属性・`error_type`を所有しない
