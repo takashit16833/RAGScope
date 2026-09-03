@@ -23,98 +23,23 @@ OpenTelemetryはRAGScopeの要求や論理契約を決める正本ではない�
 - [RS-0020 共通エラー・構造化ログの論理契約を再設計する](<./RS-0020 共通エラー・構造化ログの論理契約を再設計する.md>)が完了し、OpenTelemetryの`trace`・`span`による実行追跡と構造化ログの基本契約が導入されている
 - [RS-0021 構造化ログJSON Schemaとfixtureを現在契約へ更新する](<./RS-0021 構造化ログJSON Schemaとfixtureを現在契約へ更新する.md>)が完了している。RS-0022で論理契約を追加修正した場合は、同じ作業branchで共有JSON Contractも現在契約へ追随させる
 
-## 現在確定した実装境界
+## 設計正本
 
-### failureと`ErrorType`
+RS-0022で採用する現在設計は、責務ごとに次の`design/`配下の設計書を正本とする。このTicketでは型、公開API、module、package・library依存を再定義せず、実装と検証はこれらの設計に従う。
 
-- `error_type`をHaskellで表す`ErrorType`と、具体的なfailureから`ErrorType`へ分類する能力を表す`ErrorClassifier failure`は、共通local package `ragscope-error`のpublic main libraryにある`RAGScope.ErrorType`で定義する。
-- `ErrorClassifier failure`は概念上`failure -> ErrorType`を保持する名前付きの値とし、型クラスinstanceにはしない。分類規則を利用するmoduleまたはcompositionがClassifier値を明示的にimport・受け渡しする。
-- `classifyError classifier failure`を適用しても、元のfailure値を`ErrorType`へ置き換えない。failureがconstructor引数として数値・文字列などの詳細値を保持する場合も、failure値自体を保持している限りその詳細値を失わない。
-- 各UseCaseが`UseCaseFailure`となった具体的な理由は、そのUseCase固有のfailure型で表す。failure型は`RAGScope.<UseCase>.Failure`が所有し、このmoduleは`RAGScope.ErrorType`へ依存しない。
-- UseCase固有failureに対応する名前付きClassifierは`RAGScope.<UseCase>.ErrorClassification`が所有し、`RAGScope.<UseCase>.Failure`と`RAGScope.ErrorType`をimportして`ErrorClassifier <UseCase>Failure`を定義する。
-- 同じfailure型についてTracing用とLogging用に別のClassifierを定義しない。同じ失敗を`span`と構造化ログへ記録する場合は、所有側の同じ名前付きClassifierを使用して同じ`ErrorType`を得る。
-- `ErrorClassifier`は構造上`Contravariant` instanceを定義できるが、現在のcompositionでその操作を必要としていないためinstanceを追加しない。実際の合成要求が生じた場合だけ再検討する。
+- [ユースケース基本設計](../../../../design/ユースケース基本設計.md)
+- [ユースケース詳細設計](../../../../design/ユースケース詳細設計.md)
+- [利用者操作基本設計](../../../../design/利用者操作基本設計.md)
+- [利用者操作詳細設計](../../../../design/利用者操作詳細設計.md)
+- [ErrorType変換詳細設計](../../../../design/ErrorType変換詳細設計.md)
+- [実行追跡・構造化ログ契約設計](../../../../design/実行追跡・構造化ログ契約設計.md)
+- [RAGScopeアプリケーション実行追跡詳細設計](../../../../design/tracing/RAGScopeアプリケーション実行追跡詳細設計.md)
+- [RAGScopeアプリケーション構造化ログイベント変換詳細設計](../../../../design/logging/RAGScopeアプリケーション構造化ログイベント変換詳細設計.md)
+- [構造化ログ外部表現共通設計](../../../../design/logging/構造化ログ外部表現共通設計.md)
+- [構造化ログJSON表現設計](../../../../design/logging/構造化ログJSON表現設計.md)
+- [構造化ログSQLite表現設計](../../../../design/logging/構造化ログSQLite表現設計.md)
 
-### UseCaseとOperationのfailure
-
-- UseCase実行の結果は概念上`UseCaseResult = UseCaseSuccess | UseCaseFailure`として扱う。HaskellのUseCase境界では`Either failure result`を使い、`Right result`を`UseCaseSuccess`、`Left failure`を`UseCaseFailure`として表す。routing・command判定、入力変換・検証、ユースケース終了後の結果処理などの失敗をUseCase固有failureへ混在させない。
-- 1回のトップレベルな利用者操作全体は、必要な場合だけ`UseCaseResult`を内包する外側の結果を持ち、概念上`OperationResult = OperationSuccess | OperationFailure`として扱う。Haskellの利用者操作境界では`Either OperationFailure result`を使う。
-- すべてのトップレベルな利用者操作は同じ`OperationFailure`型を使う。`OperationFailure`は、具体的なfailure値と、そのfailure型に対応する`ErrorClassifier failure`を1組保持する。
-
-```haskell
-data OperationFailure where
-  OperationFailure
-    :: failure
-    -> ErrorClassifier failure
-    -> OperationFailure
-```
-
-- UseCaseが`Left useCaseFailure`を返した場合、Applicationはその具体的な`useCaseFailure`値を受け取り、利用者操作も失敗として終了する場合に対応Classifierとともに`OperationFailure`へ保持する。入力変換・検証やUseCase後の結果処理のfailureも同じ規則で扱う。
-- 具体failureを先に`ErrorType`へ分類してから`OperationFailure`へ保持しない。failureが保持する詳細値をログ属性などへ利用する処理は、そのfailureを具体型として扱える場所で行える。
-- `OperationFailure`へ`InputFailure`、`UseCaseFailure`、`OutputFailure`など処理段階を表すconstructorを追加せず、利用者操作ごとの`DenseSearchOperationFailure`なども定義しない。
-- `OperationFailure`は`ragscope` packageの`ragscope-application` libraryが所有し、個別UseCase failure型を参照しない。`ErrorClassifier`を保持するため`ragscope-error`へ直接依存する。
-- root `span`などで`OperationFailure`から`ErrorType`を得るため、Application側は`operationFailureErrorClassifier :: ErrorClassifier OperationFailure`を提供する。このClassifierは`OperationFailure`に保存された具体failure値と対応Classifierを取り出し、同じfailure値へそのClassifierを適用する。
-- `OperationFailure`を受け取るOperation境界の外側では、保持されたfailure値を`DenseSearchFailure`などの具体型へ戻して分岐しない。必要な`ErrorType`は`operationFailureErrorClassifier`によって得る。
-
-### TracingとObservability
-
-- 利用インターフェースが1回のトップレベルな操作について操作固有処理を開始する境界から、その操作の処理を完了または失敗として終了して外側へ制御を戻す境界までを1つの`trace`として扱う。Operation境界がObservabilityの`withTrace`を使う。
-- RAGScope ApplicationがUseCaseを呼び出した場合、その呼び出しからApplicationへ制御が戻るまでをroot `span`配下のUseCase実行`span`として追跡する。UseCaseはObservabilityの`withSpan`を使う。
-- 利用側は`TraceId`や`SpanId`を受け取ったり`withSpan`へ渡したりしない。current trace / span状態はTracingの具体実装側が管理する。
-- Tracingが観測する処理結果は`SpanOutcome = SpanSucceeded | SpanFailed ErrorType`で表す。Tracingは`Either`、具体failure、`OperationFailure`、`ErrorClassifier`を扱わない。
-- `RAGScope.Tracing`の公開APIは、`SpanName`、`SpanOutcome`、`Tracing m`を公開し、`withTrace :: forall a. SpanName -> m a -> m a`、`withSpan :: forall a. SpanName -> m a -> m a`、`observeOutcome :: SpanOutcome -> m ()`、`currentTraceContext :: m (Maybe TraceContext)`を提供する。
-- `observeOutcome SpanSucceeded`はcurrent `span`を`Unset`として扱い、`observeOutcome (SpanFailed errorType)`は`Error`と同じ`error_type`を反映する。current `span`がない場合は何も反映しない。
-- `RAGScope.Observability`はfailure型へ特殊化した`Observability m failure`を公開する。
-
-```haskell
-data Observability m failure = Observability
-  { withTrace
-      :: forall result
-       . SpanName
-      -> m (Either failure result)
-      -> m (Either failure result)
-  , withSpan
-      :: forall result
-       . SpanName
-      -> m (Either failure result)
-      -> m (Either failure result)
-  }
-```
-
-- `RAGScope.Observability.Runtime.makeObservability`は`Tracing m`と`ErrorClassifier failure`を受けて`Observability m failure`を組み立てる。
-
-```haskell
-makeObservability
-  :: Monad m
-  => Tracing m
-  -> ErrorClassifier failure
-  -> Observability m failure
-```
-
-- Observability Runtimeが`Either failure result`をpattern matchし、`Right _`を`SpanSucceeded`、`Left failure`を`SpanFailed (classifyError classifier failure)`へ変換してTracingへ渡す。`Either`はApplication / UseCaseの結果表現であり、Tracingへ解釈を委譲しない。
-- Application composition rootはUseCase固有ClassifierとTracingからUseCase向け`Observability m <UseCase>Failure`を組み立て、`operationFailureErrorClassifier`とTracingからOperation向け`Observability m OperationFailure`を組み立てる。
-- UseCaseへはClassifier、`ErrorType`、`SpanOutcome`、Tracingを渡さず、UseCase所有の依存recordを通して`Observability m <UseCase>Failure`を渡す。
-- current `TraceContext`は`AppEnv`の固定値として保持せず、Tracingの具体実装が`withTrace` / `withSpan`の実行scopeごとに管理する。並行するトップレベル操作間でTrace Contextを混在させない。
-- `makeOpenTelemetryTracing`はTracing実装の初期化であり、それ自体では利用者操作の`trace`を開始しない。Application / process全体を1つの利用者操作`trace`として扱わない。
-
-### package・libraryの依存
-
-- `ragscope-observability`は独立local packageとし、public main libraryの`RAGScope.Observability`と、composition rootが利用する`runtime` libraryの`RAGScope.Observability.Runtime`だけを持つ。`internal` libraryや`RAGScope.Observability.Runner`は設けない。
-- `ragscope-observability` mainは公開APIに`ErrorClassifier`を出さないため`ragscope-error`へ直接依存せず、`SpanName`を再exportするため`ragscope-tracing` mainへ依存する。
-- `ragscope-observability:runtime`はObservability main、`ragscope-tracing` main、`ragscope-error` mainへ直接依存する。UseCase側はObservability mainだけを利用し、`runtime`へ依存しない。
-- `ragscope-tracing` mainは`SpanOutcome`が`ErrorType`を保持するため`ragscope-error` mainへ依存するが、具体failureやClassifierを扱わない。
-- `ragscope-use-cases`はObservability main、`ragscope-error` main、Logging main / coreへ依存する。`RAGScope.<UseCase>.ErrorClassification`がClassifierを定義し、`RAGScope.<UseCase>.Logging`が必要に応じて同Classifierを利用する。
-- `ragscope-application`はcomposition rootでObservability、UseCase別Logger、UseCase所有の依存recordを組み立てるため、Observability main / runtime、Tracing main、`ragscope-error`、Logging main / core / Runtime境界、`contravariant`へ直接依存する。
-- Tracing PortのOpenTelemetry具体実装は`ragscope-tracing` packageへ置かず、`ragscope` package内のprivate `ragscope-tracing-otel` libraryに`RAGScope.Application.Tracing.OpenTelemetry`を置く。OpenTelemetry SDKへ直接依存するのはこのprivate libraryだけとする。
-
-### Logging
-
-- `RAGScope.Logging`は`newtype Logger m event = Logger { record :: event -> m () }`を公開し、`Logger m`へ`Contravariant` instanceを定義する。
-- Logging Runtimeは`Logger m LogSpec`を組み立て、Application composition rootはevent所有側が提供する名前付き`event -> LogSpec`純粋関数を`contramap`で合成して`Logger m event`を作る。
-- eventから`LogSpec`への変換に`ToLogSpec`型クラスを使用しない。UseCase eventに対するorphan instance、`RAGScope.Application.LoggingInstances`、instance読み込み専用importも導入しない。
-- UseCase失敗eventで`error_type`が必要な場合、`RAGScope.<UseCase>.Logging`は`RAGScope.<UseCase>.ErrorClassification`の名前付きClassifierを利用する。failureのconstructor引数などの詳細値を他のattributesへ記録する処理は、同じfailureまたはeventから独立して行う。
-- `record`はLogging RuntimeやSinkで発生したlogging failureをtyped resultとしてOperation / UseCaseへ返さない。logging failureだけを理由に`OperationResult`を`OperationFailure`へ変更しない。
-- 構造化ログの共通表現はtrace内ログとtrace外ログを同じ基盤で扱い、特定の`span`へ属するログだけが`TraceId`・`SpanId`を組で持つ。
+現在設計に関する未決定事項は該当する設計書で管理し、このTicketではRS-0022の変更目的、作業範囲、完了条件、実施結果を管理する。
 
 ## 完了条件
 
@@ -217,10 +142,6 @@ makeObservability
 
 ## 実装メモ
 
-最初に、利用側から見たloggingの公開API、Cabal package・library・moduleごとの責務と依存方向、中心となる型、利用者操作root `span`・ユースケース実行`span`・内部`span`の関係、trace内ログとtrace外ログ、Runtime・Sink・JSON / SQLite外部表現・テスト境界、logging自身の失敗とアプリケーション実行の関係を一つの全体像として設計する。実装はその全体像を基準に進め、既存moduleへ変更を積み重ねながら後から構造を決める進め方はしない。
+実装は上記の設計正本を基準に進め、既存moduleへ局所変更を積み重ねながら後から全体構造を決め直す進め方はしない。実装で現在設計が具体化または変更された場合は、その責務を持つ`design/`配下の設計書へ反映する。
 
-UseCase固有failureは`RAGScope.<UseCase>.Failure`、その`ErrorType`分類は`RAGScope.<UseCase>.ErrorClassification`の名前付き`ErrorClassifier`、失敗eventから`LogSpec`への変換は`RAGScope.<UseCase>.Logging`が担当する。Application composition rootは同じClassifierをObservability Runtimeへ渡して`Observability m <UseCase>Failure`を組み立てる。Logging変換も同じClassifierを`error_type`の生成に使用し、failureが保持する詳細値は必要な他のattributesへ独立して反映する。
-
-UseCase固有の閉じたeventから共通loggingへは、所有側の`event -> LogSpec`純粋関数と`Contravariant`な`Logger m event`で接続する。Logging Runtimeは`Logger m LogSpec`を作り、Application composition rootが`contramap`で利用側ごとのLoggerを組み立てる。UseCaseへはApplication全体の`AppEnv`を渡さず、composition rootがUseCase別Logger、UseCase向けObservability、その他そのUseCaseに必要な能力だけをUseCase所有の依存recordへまとめて渡す。
-
-Operation側の依存をどの型へまとめるか、Application全体の長寿命環境として`AppEnv`を導入するかは別の設計判断とし、このUseCase依存recordやClassifierの採用だけを理由には決めない。時刻やTrace Contextなど実行時情報を付加する境界、JSON serializationとSQLite投影を共通モデルから分離する境界、Sinkを差し替える構造は維持する。
+Operation側の依存をどの型へまとめるか、Application全体の長寿命環境として`AppEnv`を導入するかは、全体設計Subtaskで実際のApplication実行構造を確認して確定する。SQLite実装の担当Subtaskは、実装着手前にWorkbench側のTask構成と実branchを一致させる。
