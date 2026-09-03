@@ -63,7 +63,7 @@ instance Contravariant (Logger m) where
     Logger (recordB . f)
 ```
 
-Logging Runtimeは、共通表現を記録できる基礎Loggerを組み立てる。
+Logging Runtimeは、共通表現を記録できる基礎Loggerを組み立てる。次は責務と型を示す概念例であり、関数名は固定しない。
 
 ```haskell
 logSpecLogger :: Logger m LogSpec
@@ -85,7 +85,7 @@ searchLogger =
   contramap searchEventToLogSpec logSpecLogger
 ```
 
-この合成により、Featureは`LogSpec`、`LogRecord`、Logging Runtime、Sinkを扱わず、`SearchEvent`と`Logger m SearchEvent`だけを扱う。変換関数を実行時に適用する責務は、Featureの各記録箇所ではなく、composition時に作られたLogger値へ閉じる。
+この合成により、FeatureのUseCaseやevent記録箇所は`LogSpec`、`LogRecord`、Logging Runtime、Sinkを扱わず、自身のevent型と対応する`Logger m event`だけを扱う。変換関数を実行時に適用する責務は、Featureの各記録箇所ではなく、composition時に作られたLogger値へ閉じる。
 
 ## 4. eventから`LogSpec`への純粋変換
 
