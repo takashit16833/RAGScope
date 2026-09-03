@@ -19,7 +19,7 @@ note_type: experiment
 - [構造化ログ外部表現共通設計](../design/logging/構造化ログ外部表現共通設計.md)
 - [構造化ログJSON表現設計](../design/logging/構造化ログJSON表現設計.md)
 - [構造化ログSQLite表現設計](../design/logging/構造化ログSQLite表現設計.md)
-- [`document.file_not_found`を定義する文書処理設計](../design/features/文書処理設計.md)
+- [`document.file_not_found`を定義する文書処理設計](../design/文書処理設計.md)
 
 試作は`logging-json-sqlite-projection/`へ責務ごとに分け、[verify.py](./logging-json-sqlite-projection/verify.py)を実行入口とした。Python標準ライブラリだけを使用し、検証時の環境はPython 3.13.5、SQLite 3.46.1である。
 

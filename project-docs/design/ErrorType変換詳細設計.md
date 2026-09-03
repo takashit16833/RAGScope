@@ -4,7 +4,7 @@ note_type: design
 # ErrorType変換詳細設計
 
 > [!abstract] この文書の役割
-> RAGScopeアプリケーションのHaskell実装で、具体的なfailure値に`toErrorType`を適用して、実行追跡・構造化ログで共有する`ErrorType`を得るための共通契約を定義する。`ToErrorType`はUseCase固有の仕組みではなく、Feature、利用インターフェース、Applicationなどが所有する具体的なfailure型に対して定義できる。
+> RAGScopeアプリケーションのHaskell実装で、具体的なfailure値に`toErrorType`を適用して、実行追跡・構造化ログで共有する`ErrorType`を得るための共通契約を定義する。`ToErrorType`はUseCase固有の仕組みではなく、UseCase、利用インターフェース、Applicationなどが所有する具体的なfailure型に対して定義できる。
 >
 > `error_type`の論理的な意味と`span`・構造化ログでの利用規則は[実行追跡・構造化ログ契約設計](./実行追跡・構造化ログ契約設計.md)、各failureが表す具体的な失敗条件はそのfailureを所有する機能・利用インターフェース・Applicationの設計を正本とする。正確なHaskell型・class・instance・module・Cabal依存は実装コードと設定を機械可読な正本とする。
 
@@ -21,7 +21,7 @@ class ToErrorType failure where
 
 `toErrorType`は具体的なfailure値を1つ受け取り、その値に対応する`ErrorType`を1つ返す。この宣言は入出力を示す概念表現であり、正確なclass・関数定義は実装コードを正本とする。
 
-`ToErrorType`はUseCase固有failureだけを対象としない。FeatureのUseCase固有failure、利用インターフェースのrouting・command判定・入力変換・検証・結果処理などのfailure、Applicationが所有するfailureなど、そのfailure値から`error_type`を得る必要がある型に対してinstanceを定義する。
+`ToErrorType`はUseCase固有failureだけを対象としない。UseCase固有failure、利用インターフェースのrouting・command判定・入力変換・検証・結果処理などのfailure、Applicationが所有するfailureなど、そのfailure値から`error_type`を得る必要がある型に対してinstanceを定義する。
 
 failure型であることだけを理由に、すべてのfailure型へ`ToErrorType`を要求しない。
 
@@ -42,7 +42,7 @@ failure型であることだけを理由に、すべてのfailure型へ`ToErrorT
 
 ## 3. failure所有者とinstance
 
-`ErrorType`と`ToErrorType`は、Logging、Tracing、Observability、個別のFeatureや利用インターフェースのいずれにも所有させず、共通local package `ragscope-error`のpublic main libraryにある`RAGScope.ErrorType`へ置く。
+`ErrorType`と`ToErrorType`は、Logging、Tracing、Observability、個別のUseCaseや利用インターフェースのいずれにも所有させず、共通local package `ragscope-error`のpublic main libraryにある`RAGScope.ErrorType`へ置く。
 
 ```text
 ragscope-error
@@ -54,12 +54,12 @@ ragscope-error
 
 具体的なfailure型に対する`ToErrorType` instanceは、そのfailure型を所有するmoduleに置く。
 
-UseCase固有failureの場合は、failure型をそのUseCaseを所有するFeatureの`RAGScope.<Feature>.Failure`に置き、`ToErrorType` instanceも同じmoduleに置く。
+UseCase固有failureの場合は、failure型をそのUseCaseが所有する`RAGScope.<UseCase>.Failure`に置き、`ToErrorType` instanceも同じmoduleに置く。
 
 ```text
 ragscope
-└─ private: ragscope-features
-   └─ RAGScope.<Feature>.Failure
+└─ private: ragscope-use-cases
+   └─ RAGScope.<UseCase>.Failure
       ├─ <UseCase>Failure
       └─ ToErrorType instance
 ```
@@ -84,7 +84,7 @@ instance ToErrorType OperationFailure where
 
 たとえば`OperationFailure denseSearchFailure`へ`toErrorType`を適用すると、上のinstanceは`denseSearchFailure`を取り出して`toErrorType denseSearchFailure`を実行する。利用者操作ごとに`DenseSearchOperationFailure`などの型や、その型専用の`ToErrorType` instanceは定義しない。
 
-`OperationFailure`は`ragscope` packageの`ragscope-application` libraryが所有する。Featureや`ragscope-error`には置かない。`ragscope-application`は`OperationFailure`のconstructor制約とinstanceで`ToErrorType`を使うため、`RAGScope.ErrorType`をimportし、`ragscope-error`へ直接依存する。正確な`OperationFailure`のmodule名はApplication実装時にコードで確定する。
+`OperationFailure`は`ragscope` packageの`ragscope-application` libraryが所有する。UseCase側や`ragscope-error`には置かない。`ragscope-application`は`OperationFailure`のconstructor制約とinstanceで`ToErrorType`を使うため、`RAGScope.ErrorType`をimportし、`ragscope-error`へ直接依存する。正確な`OperationFailure`のmodule名はApplication実装時にコードで確定する。
 
 `ragscope-tracing`のpublic main libraryは、`RAGScope.Tracing.observeResult`の`ToErrorType failure`制約のため`ragscope-error` mainへ直接依存する。`ragscope-observability`のpublic main libraryも、公開する`withTrace` / `withSpan`の`ToErrorType failure`制約のため`ragscope-error` mainへ直接依存する。`ragscope-observability`のruntime libraryはObservability mainと`ragscope-tracing` mainを通して必要な契約を利用し、`ragscope-error`へは直接依存しない。Loggingが`ragscope-error`へ直接依存するかは、Loggingの公開APIと内部表現を設計するときに確定する。
 
