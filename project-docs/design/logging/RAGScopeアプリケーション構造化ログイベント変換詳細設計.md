@@ -124,7 +124,31 @@ Sink
 
 Sinkは、timestamp、component、optional Trace Context、`LogSpec`がすべて確定した`LogRecord`を1件受け取り、具体的な出力・保存境界へ渡す責務を持つ。SinkはtimestampやTrace Contextを生成・取得せず、`LogSpec`から`LogRecord`を完成する責務も持たない。JSON / SQLiteへの投影は`LogRecord`から各外部表現境界で行い、Logging RuntimeはJSON object、SQLite table、serialization、transactionを知らない。
 
-Sinkが出力・保存に失敗した場合のLogging内部APIと、そのfailureの通知・保持先はまだ固定しない。Sink failureをOperation / UseCaseへtyped resultとして返さず`OperationResult`を変更しないことだけは既存の決定を維持する。
+Sinkは、完成済み`LogRecord`を出力・保存できなかった場合、その失敗を`LoggingFailure`としてLogging Runtimeへtyped resultで返す。内部境界は次の形を採用する。`LoggingFailure`の正確なconstructorと保持する詳細値、各Sink固有failureから`LoggingFailure`へ変換する実装詳細は後続実装設計で確定する。
+
+```haskell
+newtype Sink m =
+  Sink
+    { write
+        :: LogRecord
+        -> m (Either LoggingFailure ())
+    }
+
+newtype LoggingFailureReporter m =
+  LoggingFailureReporter
+    { reportFailure
+        :: LoggingFailure
+        -> m ()
+    }
+```
+
+Logging Runtimeは`write sink logRecord`が`Right ()`ならそのまま終了し、`Left loggingFailure`なら`LoggingFailureReporter`へそのfailureを1回だけ渡してから`m ()`として終了する。`record :: event -> m ()`の利用側へ`LoggingFailure`を返さず、logging failureだけを理由にUseCase / Operationの結果を変更しない。
+
+`LoggingFailureReporter`は通常の`Logger`、Logging Runtime、同じSinkを再利用しない独立した自己診断経路とする。本番の最初の実装は、最低限の診断情報をstderrへ直接出力するbest-effort reporterとする。stderrへの診断出力自体が失敗しても再通知せず、それ以上の処理を行わず、Application本体へfailureを伝播させない。logging failureをメモリ等へ蓄積・保持することは現在要件とせず、将来その利用要求が生じた場合にReporter実装として追加する。
+
+retry、backoff、transactionなど具体的な出力先に固有の再試行・送信処理が必要な場合はSink側の責務とし、Logging Runtimeへ持ち込まない。
+
+現在の`LoggingFailure`はSinkが`LogRecord`を出力・保存できなかったtyped failureを表す。`m Timestamp`や`m (Maybe TraceContext)`の実行中に発生するExceptionを`LoggingFailure`へ変換するかどうかはここでは決めず、同期・非同期Exception境界の検討へ分離する。`currentTraceContext`が`Nothing`を返すこと自体は、trace外ログを表す正常状態でありfailureではない。
 
 ## 2. `Logger m event`
 
@@ -145,7 +169,7 @@ record logger event
 
 `record`はtrace内eventとtrace外eventで分けない。Logging Runtimeが記録時にcurrent Trace Contextを取得し、`Just traceContext`なら`TraceId`・`SpanId`を組で付加し、`Nothing`なら両方を付加しない。
 
-`record`はLogging RuntimeやSinkで発生したlogging failureをtyped resultとしてOperation / UseCaseへ返さない。logging failureは利用者操作の`OperationResult`を変更せず、Logging側の独立したfailure境界で通知・保持する。利用者操作本体とlogging failureの関係は[利用者操作詳細設計](../利用者操作詳細設計.md)を正本とする。
+`record`はSinkが返した`LoggingFailure`をtyped resultとしてOperation / UseCaseへ返さない。Logging Runtimeが独立した`LoggingFailureReporter`へ通知し、利用者操作の`OperationResult`を変更しない。Reporterは通常の`Logger`や同じSinkを再利用せず、本番の最初の実装ではbest-effortにstderrへ直接診断情報を出す。利用者操作本体とlogging failureの関係は[利用者操作詳細設計](../利用者操作詳細設計.md)を正本とする。
 
 `Logger m event`の`event`はLogger値ごとに固定される。1つのLogging値が任意のevent型を型クラス制約付きで受け取るAPIにはせず、Loggingのevent受付のために`RankNTypes`を使用しない。
 
@@ -258,8 +282,9 @@ UseCase本体は`ErrorClassifier`や`LogSpec`を直接扱わず、UseCase所有�
 | `Logger m event` / `record` / `Contravariant` instance | `RAGScope.Logging`。利用側がeventを記録する型付き能力と、その入力型を変換する合成 |
 | `ErrorType` / `ErrorClassifier` | [ErrorType変換詳細設計](../ErrorType変換詳細設計.md)。具体failureから観測用`ErrorType`へ分類する共通型と規則 |
 | Logging中核型 | `ragscope-logging`のLogging core。`EventName`、`LogLevel`、`AttributeName`、`AttributeValue`、`Attributes`、`Timestamp`、`Component`、`LogSpec`、`LogRecord` |
-| `Logger m LogSpec` / `LogRecord`生成 | Logging Runtime。minimum level以上の`LogSpec`だけを通し、発生時刻、発生元component、current Trace Contextを付加して`LogRecord`を完成しSinkへ渡す |
-| Sink | 完成済み`LogRecord`を受け取り、具体的な出力・保存境界へ渡す。timestamp / component / Trace Contextの付加は行わない |
+| `Logger m LogSpec` / `LogRecord`生成 | Logging Runtime。minimum level以上の`LogSpec`だけを通し、発生時刻、発生元component、current Trace Contextを付加して`LogRecord`を完成しSinkへ渡す。Sinkの`Left LoggingFailure`は`LoggingFailureReporter`へ渡す |
+| Sink | 完成済み`LogRecord`を受け取り、具体的な出力・保存境界へ渡し、`m (Either LoggingFailure ())`で成否をLogging Runtimeへ返す。timestamp / component / Trace Contextの付加は行わず、出力先固有のretry等はSink側で扱う |
+| Logging failure診断 | `LoggingFailureReporter m`。通常Logger / Sinkとは独立し、本番の最初の実装ではbest-effortにstderrへ直接通知する。Reporter自身の失敗は再通知・伝播しない |
 | UseCase別LoggerとUseCase依存recordの組み立て | Application composition root。`event -> LogSpec`と`Logger m LogSpec`を`contramap`で合成し、そのUseCase用Observabilityや他の能力とともに依存recordを構築する |
 | JSON / SQLiteへの投影 | 各構造化ログ外部表現設計と対応する実装 |
 
@@ -277,7 +302,8 @@ UseCase本体は`ErrorClassifier`や`LogSpec`を直接扱わず、UseCase所有�
 - 利用インターフェース固有eventとApplication lifecycle eventの変換関数・Classifierを配置する正確なmoduleと、それに伴うCabal library間の静的依存。
 - UseCase所有の依存recordの正確な型名・field・module名。UseCaseへApplication全体の`AppEnv`を渡さず、UseCaseが必要な能力だけを依存recordで受け取ることは固定する。
 - `Logger m LogSpec`を組み立てる正確な関数名とLogging Runtimeのmodule分割、および`minimumLevel`の具体的な設定元・既定値。Runtimeがminimum level、`Component`、`m Timestamp`、`m (Maybe TraceContext)`、Sinkから`Logger m LogSpec`を組み立てる責務は固定済み。
-- Sinkの正確な型・関数名・module分割と、Sink自身を含むlogging failureをどのLogging内部境界へ通知・保持するか。Sinkが完成済み`LogRecord`だけを受け取る責務と、logging failureをOperation / UseCaseへtyped resultとして返さず`OperationResult`を変更しないことは固定する。
+- `Sink`、`LoggingFailureReporter`、`LoggingFailure`を配置する正確なmodule分割とexport範囲、および`LoggingFailure`のconstructor・保持する詳細値。`Sink`が`LogRecord -> m (Either LoggingFailure ())`として成否を返し、Runtimeが`Left`を独立したReporterへ渡す境界、本番の最初のReporterをbest-effort direct stderrとすることは固定済み。
+- `m Timestamp`と`m (Maybe TraceContext)`の実行中に発生するExceptionをどこでcatchし、`LoggingFailure`へ変換するか否か。Sinkのtyped failureとは分離し、同期・非同期Exception境界で確定する。
 
 実装後の正確な型、関数、module、Cabal `build-depends`はコードとCabal設定を機械可読な正本とする。
 
