@@ -5,7 +5,7 @@ RAGScopeの構造化ログについて、共通契約、RAGScopeアプリケー�
 | 文書 | 確認したいこと |
 |---|---|
 | [実行追跡・構造化ログ契約設計](../実行追跡・構造化ログ契約設計.md) | trace内外の構造化ログ、`TraceId`・`SpanId`との関連、`error_type`、イベント、重要度、属性の共通の意味と規則 |
-| [RAGScopeアプリケーション構造化ログイベント変換詳細設計](./RAGScopeアプリケーション構造化ログイベント変換詳細設計.md) | RAGScopeアプリケーションで所有者定義eventを`ToLogSpec`で`LogSpec`へ変換し、実行時情報を加えて`LogRecord`を作る境界 |
+| [RAGScopeアプリケーション構造化ログイベント変換詳細設計](./RAGScopeアプリケーション構造化ログイベント変換詳細設計.md) | RAGScopeアプリケーションで`Logger m event`、`Contravariant`、`event -> LogSpec`の純粋変換を使い、所有者定義eventから`LogRecord`を作る境界 |
 | [構造化ログ外部表現共通設計](./構造化ログ外部表現共通設計.md) | RAGScope定義の外部形式で共通して使う項目名・値表現、Trace Contextの有無、属性を形式間でどう維持するか |
 | [構造化ログJSON表現設計](./構造化ログJSON表現設計.md) | 共通外部項目と属性をJSONの階層と値へどう配置し、Trace Contextがないログをどう省略表現するか |
 | [構造化ログSQLite表現設計](./構造化ログSQLite表現設計.md) | 共通外部項目をrecordへ、Trace Contextの有無をnullable columnへ、属性と入れ子の値をtable間の関係へどう配置するか |

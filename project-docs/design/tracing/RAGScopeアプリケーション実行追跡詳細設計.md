@@ -10,7 +10,7 @@ note_type: design
 
 ## 1. 全体構成
 
-利用インターフェースのOperation実装 / Featureは、処理を追跡するために`RAGScope.Observability`を利用し、eventを記録するために`RAGScope.Logging`を利用する。Operation実装 / Featureから`RAGScope.Tracing`やOpenTelemetry SDKを直接利用しない。
+利用インターフェースのOperation実装 / Featureは、処理を追跡するために`RAGScope.Observability`を利用し、eventを記録するために`RAGScope.Logging`が公開する`Logger m event`を利用する。Operation実装 / Featureから`RAGScope.Tracing`やOpenTelemetry SDKを直接利用しない。
 
 Application起動時のcompositionでは、OpenTelemetry Adapterから`RAGScope.Tracing`の具体実装を作り、その同じTracing実装を使ってObservability RuntimeとLogging Runtimeを組み立てる。
 
@@ -26,22 +26,19 @@ RAGScope.Application.Tracing.OpenTelemetry
       │
       └─ currentTraceContext ─→ Logging Runtime
                                   ↓
-                                Logging
-
-AppEnv
-  ├─ Observability
-  ├─ Logging
-  └─ その他のApplicationが利用する能力
+                          Logger m LogSpec
+                                  ↓ contramap (event -> LogSpec)
+                          Logger m FeatureEvent
 ```
 
-`Tracing`自体はOperation / Featureが利用する能力として`AppEnv`へ公開しない。Applicationのcomposition rootだけが、Observability RuntimeとLogging Runtimeを組み立てるためにTracing実装を直接扱う。Observability RuntimeはTracing Portを内部依存として保持し、Logging RuntimeにはTracing全体ではなく、現在のTrace Contextを取得するために必要な能力だけを渡す。
+`Tracing`自体はOperation / Featureが利用する能力として`AppEnv`へ公開しない。Applicationのcomposition rootだけが、Observability RuntimeとLogging Runtimeを組み立てるためにTracing実装を直接扱う。Observability RuntimeはTracing Portを内部依存として保持し、Logging RuntimeにはTracing全体ではなく、現在のTrace Contextを取得するために必要な能力だけを渡す。composition rootは、Logging Runtimeが作る`Logger m LogSpec`とevent所有側の純粋変換を`contramap`で合成し、利用側へ必要な`Logger m event`を渡す。
 
 利用側とcomposition rootから見た依存は次のとおりである。
 
 ```text
 Operation / Feature
   ├─ Observability
-  └─ Logging
+  └─ Logger m event
 
 Application composition root
   ├─ Observability Runtime
@@ -235,17 +232,11 @@ trace終了
 tracing <- makeOpenTelemetryTracing ...
 
 let observability = makeObservability tracing
-let logging = makeLogging (currentTraceContext tracing) logSink
-
-let env =
-      AppEnv
-        { observability = observability
-        , logging = logging
-        , ...
-        }
+let logSpecLogger = makeLogSpecLogger (currentTraceContext tracing) logSink
+let searchLogger = contramap searchEventToLogSpec logSpecLogger
 ```
 
-`makeObservability`は`RAGScope.Observability.Runtime`が公開する組み立て関数である。このコードの`AppEnv`、`makeLogging`、`makeOpenTelemetryTracing`の正確な型・関数名は、それぞれの実装コードを機械可読な正本とする。
+`makeObservability`は`RAGScope.Observability.Runtime`が公開する組み立て関数である。`makeLogSpecLogger`と`searchEventToLogSpec`は責務と値の流れを示す概念名であり、正確な関数名はLoggingとFeatureの実装コードを機械可読な正本とする。Feature別Loggerを`AppEnv`のfieldとして渡すか、Feature単位の依存recordへまとめるかはLoggingの詳細設計で未決定として管理する。
 
 実際の`trace`は、利用インターフェースが1回のトップレベルな操作について操作固有処理を開始する境界でObservabilityの`withTrace`を呼んだときに開始する。CLIのプロセス起動時にTracing実装を初期化しても、設定読み込みやTracing初期化など、トップレベル操作より前の処理はその操作の`trace`へ含めない。APIでは1つのプロセスが複数のトップレベル操作を受け付けても、各操作がそれぞれ別の`withTrace` scopeを持つ。
 
@@ -262,7 +253,7 @@ Application process
 
 Observability RuntimeはTracing Portの`withTrace`、`withSpan`、`observeResult`を利用する。Operation / Featureへ公開するObservability APIは、Tracingの具体実装値、`TraceId`、`SpanId`、OpenTelemetry SDK型を要求しない。
 
-Logging Runtimeは、`LogSpec`へ実行時情報を付加して`LogRecord`を作るときに、注入された`currentTraceContext`を呼び出す。`Just traceContext`なら`TraceId`・`SpanId`を組で付加し、`Nothing`ならtrace外ログとして両方を付加しない。Logging RuntimeはTracingのspan開始・終了、Span Status更新を担当しない。
+Logging Runtimeは`Logger m LogSpec`を組み立てる。その`record`が`LogSpec`へ実行時情報を付加して`LogRecord`を作るときに、注入された`currentTraceContext`を呼び出す。`Just traceContext`なら`TraceId`・`SpanId`を組で付加し、`Nothing`ならtrace外ログとして両方を付加しない。Logging RuntimeはTracingのspan開始・終了、Span Status更新を担当しない。
 
 これにより、ObservabilityとLoggingは同じTracing実装が管理するcurrent Trace Contextを利用しながら、Operation / Featureから見た公開責務は分離したまま維持する。
 
@@ -286,18 +277,22 @@ main libraryが`ragscope-error`へ依存するのは、公開する`withTrace` /
 ```text
 ragscope-features
   ├─→ ragscope-observability main
-  └─→ ragscope-error main
+  ├─→ ragscope-error main
+  ├─→ ragscope-logging main
+  └─→ ragscope-logging core
 
 ragscope-application
   ├─→ ragscope-observability main
   ├─→ ragscope-observability:runtime
   ├─→ ragscope-tracing main
-  └─→ ragscope-error main
+  ├─→ ragscope-error main
+  ├─→ ragscope-logging main / core / Runtime境界
+  └─→ contravariant
 ```
 
-`ragscope-features`は`RAGScope.Observability`をimportして`withSpan`を利用できるが、`RAGScope.Observability.Runtime`、`RAGScope.Tracing`、`RAGScope.Tracing.Context`を直接importしない。そのためFeature側の`build-depends`にはObservabilityのmain libraryと`ragscope-error`だけを追加し、Observabilityの`runtime` libraryと`ragscope-tracing`を追加しない。
+`ragscope-features`は`RAGScope.Observability`をimportして`withSpan`を利用し、`RAGScope.Logging`から`Logger`と`record`を利用する。`RAGScope.<Feature>.Logging`はFeature eventとLogging coreの`LogSpec`をimportして純粋変換を定義する。一方、`RAGScope.Observability.Runtime`、`RAGScope.Tracing`、`RAGScope.Tracing.Context`、Logging Runtime、Sink、JSON / SQLite実装は直接importしない。
 
-`ragscope-application`はcomposition rootで`RAGScope.Tracing`値を受け取り、`RAGScope.Observability.Runtime.makeObservability`へ渡して本番用`Observability`を組み立てるため、Observabilityのmain / `runtime` libraryと`ragscope-tracing` mainへ直接依存する。`OperationFailure`と`ToErrorType OperationFailure`のために`ragscope-error`へも直接依存する。OpenTelemetry具体実装を組み立てるApplication側のlibraryは、別途private `ragscope-tracing-otel` libraryを利用する。
+`ragscope-application`はcomposition rootで`RAGScope.Tracing`値を受け取り、`RAGScope.Observability.Runtime.makeObservability`へ渡して本番用`Observability`を組み立てるため、Observabilityのmain / `runtime` libraryと`ragscope-tracing` mainへ直接依存する。`OperationFailure`と`ToErrorType OperationFailure`のために`ragscope-error`へも直接依存する。Logging Runtimeから得た`Logger m LogSpec`とFeature固有の純粋変換を`contramap`で合成するため、Loggingのmain / core / Runtime境界と`contravariant`へ直接依存する。OpenTelemetry具体実装を組み立てるApplication側のlibraryは、別途private `ragscope-tracing-otel` libraryを利用する。
 
 Tracing側は次の責務を維持する。
 
