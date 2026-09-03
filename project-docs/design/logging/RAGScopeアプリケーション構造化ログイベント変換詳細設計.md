@@ -32,6 +32,69 @@ timestamp / component / current Trace Contextを付加
 
 `LogSpec`と`LogRecord`はJSONやSQLiteの外部表現ではない。JSON・SQLiteへの投影は、それぞれの外部表現設計に従って`LogRecord`から行う。
 
+### 1.1 Logging中核型
+
+`ragscope-logging`のLogging coreは、後続実装で次の型構造を採用する。ここで示す型名・constructor・fieldと保持する値の構造は現在設計として固定し、実装後の正確なexport listと定義はコードを機械可読な正本とする。
+
+```haskell
+newtype EventName =
+  EventName Text
+
+data LogLevel
+  = Debug
+  | Info
+  | Warn
+  | Error
+  | Fatal
+
+newtype AttributeName =
+  AttributeName Text
+
+data AttributeValue
+  = AttributeText Text
+  | AttributeNumber Scientific
+  | AttributeBool Bool
+  | AttributeArray [AttributeValue]
+  | AttributeObject (Map AttributeName AttributeValue)
+
+newtype Attributes =
+  Attributes (Map AttributeName AttributeValue)
+
+newtype Timestamp =
+  Timestamp UTCTime
+
+newtype Component =
+  Component Text
+
+data LogSpec =
+  LogSpec
+    { event :: EventName
+    , level :: LogLevel
+    , message :: Maybe Text
+    , attributes :: Attributes
+    }
+
+data LogRecord =
+  LogRecord
+    { timestamp :: Timestamp
+    , component :: Component
+    , traceContext :: Maybe TraceContext
+    , spec :: LogSpec
+    }
+```
+
+`LogLevel`はイベントの重要度だけを表し、`Debug`、`Info`、`Warn`、`Error`、`Fatal`の5値を独立して持つ。通常イベントと失敗イベントの直和や、失敗variantから`Error` levelを固定的に導出する旧構造は現在設計へ持ち込まない。処理が成功したか失敗したかはOperation / UseCaseの結果とspanの`SpanOutcome`が担当し、ログ重要度とは別の情報として扱う。
+
+`Attributes`は`Map AttributeName AttributeValue`を保持し、属性が0件の場合は空の`Map`で表す。`Maybe Attributes`にはしない。これにより「属性なし」を複数の内部状態で表さず、同じ属性名を1件のログ内で重複して保持できない構造にする。JSONへ投影するときだけ、top-levelの`Attributes`が空なら`attributes` property自体を省略する。
+
+`AttributeValue`は文字列、数値、真偽値、array、objectを再帰的に表す。数値は`Scientific`を使用し、`null`に相当するconstructorは持たない。`AttributeArray []`と`AttributeObject Map.empty`は値として存在する空array・空objectなので保持する。objectも`Map AttributeName AttributeValue`とし、同じ名前を重複して保持しない。
+
+`message`は`Maybe Text`とする。`Nothing`はmessageが存在しない状態、`Just ""`は空文字列のmessageが存在する状態であり、両者を区別する。
+
+`LogRecord.traceContext`は`Maybe TraceContext`とし、`TraceId`と`SpanId`を別々の`Maybe` fieldとして持たない。`Nothing`は特定のspanへ属さないログ、`Just traceContext`は`TraceId`と`SpanId`の組を持つログを表すため、片方だけ存在する状態を内部型で表現しない。
+
+`LogRecord`はJSON Schemaと同型にすることを目的としない。`spec.event`、`spec.level`、`spec.message`、`spec.attributes`とRuntimeが付加した共通情報を、serialization境界でJSONまたはSQLiteの外部契約へ投影する。
+
 ## 2. `Logger m event`
 
 Application / UseCaseがeventを記録する能力は、`RAGScope.Logging`が公開する型付き`Logger`で表す。
@@ -163,7 +226,7 @@ UseCase本体は`ErrorClassifier`や`LogSpec`を直接扱わず、UseCase所有�
 | Application lifecycle event | Application lifecycleを担当する設計・実装。eventの意味、発生条件、event固有属性 |
 | `Logger m event` / `record` / `Contravariant` instance | `RAGScope.Logging`。利用側がeventを記録する型付き能力と、その入力型を変換する合成 |
 | `ErrorType` / `ErrorClassifier` | [ErrorType変換詳細設計](../ErrorType変換詳細設計.md)。具体failureから観測用`ErrorType`へ分類する共通型と規則 |
-| `LogSpec` | Logging。event値から決まるログの意味を表す共通内部表現 |
+| Logging中核型 | `ragscope-logging`のLogging core。`EventName`、`LogLevel`、`AttributeName`、`AttributeValue`、`Attributes`、`Timestamp`、`Component`、`LogSpec`、`LogRecord` |
 | `Logger m LogSpec` / `LogRecord`生成 | Logging Runtime。`LogSpec`へ発生時刻、発生元component、current Trace Contextを付加してSinkへ渡す |
 | UseCase別LoggerとUseCase依存recordの組み立て | Application composition root。`event -> LogSpec`と`Logger m LogSpec`を`contramap`で合成し、そのUseCase用Observabilityや他の能力とともに依存recordを構築する |
 | JSON / SQLiteへの投影 | 各構造化ログ外部表現設計と対応する実装 |
@@ -172,13 +235,13 @@ UseCase本体は`ErrorClassifier`や`LogSpec`を直接扱わず、UseCase所有�
 
 `RAGScope.<UseCase>.Logging`はUseCase eventとLogging coreの`LogSpec`を参照し、失敗eventで`error_type`が必要な場合は`RAGScope.<UseCase>.ErrorClassification`のClassifierも参照する。`RAGScope.<UseCase>.Failure`自体は`RAGScope.ErrorType`へ依存しない。
 
-`ragscope-logging`の`RAGScope.Logging`を公開するlibraryは、`Contravariant (Logger m)` instanceを定義するため`contravariant` packageへ直接依存する。composition rootで`contramap`を呼ぶlibraryも`Data.Functor.Contravariant`をimportし、`contravariant` packageへ直接依存する。
+`ragscope-logging`のLogging coreは、`Text`のため`text`、`Map`のため`containers`、`Scientific`のため`scientific`、`UTCTime`のため`time`、`TraceContext`のため`ragscope-tracing`の`core` libraryへ直接依存する。`RAGScope.Logging`を公開するlibraryは、`Contravariant (Logger m)` instanceを定義するため`contravariant` packageへ直接依存する。composition rootで`contramap`を呼ぶlibraryも`Data.Functor.Contravariant`をimportし、`contravariant` packageへ直接依存する。
 
 ## 7. 現在固定していない実装詳細
 
 現時点では次を固定しない。
 
-- `LogSpec`、`LogRecord`、属性値型の正確なHaskell定義。
+- `EventName`、`AttributeName`、`Component`などのconstructorを公開するか、文字列表現の検証を生成APIへ閉じるかというexport / 構築API。保持する型構造は1.1で固定済み。
 - 利用インターフェース固有eventとApplication lifecycle eventの変換関数・Classifierを配置する正確なmoduleと、それに伴うCabal library間の静的依存。
 - UseCase所有の依存recordの正確な型名・field・module名。UseCaseへApplication全体の`AppEnv`を渡さず、UseCaseが必要な能力だけを依存recordで受け取ることは固定する。
 - `Logger m LogSpec`を組み立てる関数名とLogging Runtimeのmodule分割。
