@@ -6,7 +6,7 @@ note_type: design
 > [!abstract] この文書の役割
 > RAGScopeアプリケーションの構造化ログ実装を実装・レビューする開発者向けの詳細設計である。UseCase、利用インターフェース、Application lifecycleなどの所有者が定義するeventを、型付き`Logger`、明示的な純粋変換、Logging Runtimeによって`LogRecord`へ変換する境界を定義する。
 >
-> 構造化ログの論理情報と記録規則は[実行追跡・構造化ログ契約設計](../実行追跡・構造化ログ契約設計.md)、具体的なfailureから共通`ErrorType`への変換は[ErrorType変換詳細設計](../ErrorType変換詳細設計.md)、具体的なeventの意味・記録条件・属性はそのeventを所有する設計、JSON・SQLiteへの投影は各外部表現設計を正本とする。
+> 構造化ログの論理情報と記録規則は[実行追跡・構造化ログ契約設計](../実行追跡・構造化ログ契約設計.md)、具体的なfailureから共通`ErrorType`への分類は[ErrorType変換詳細設計](../ErrorType変換詳細設計.md)、具体的なeventの意味・記録条件・属性はそのeventを所有する設計、JSON・SQLiteへの投影は各外部表現設計を正本とする。
 
 ## 1. eventから`LogRecord`までの変換
 
@@ -107,39 +107,70 @@ UseCase eventの変換関数は、UseCase固有のeventとLogging共通表現の
 
 具体的なfailure型そのものには、failureであることだけを理由に構造化ログ用の変換を要求しない。失敗を構造化ログへ記録する場合は、その失敗を意味として表すeventを失敗の所有者側で定義し、そのeventから`LogSpec`への純粋関数を提供する。
 
-具体的なfailureを`error_type`として観測する場合は、[ErrorType変換詳細設計](../ErrorType変換詳細設計.md)の共通`ToErrorType`契約によって`ErrorType`へ変換する。
+具体的なfailureを`error_type`として観測する場合は、[ErrorType変換詳細設計](../ErrorType変換詳細設計.md)で定義する名前付き`ErrorClassifier failure`によって`ErrorType`へ分類する。
 
 ```text
 具体的なfailure
-        ↓ ToErrorType
-     ErrorType
+        │
+        ├─ ErrorClassifier failure
+        │        ↓
+        │     ErrorType
+        │
+        └─ failureの詳細値
+                 ↓
+          event固有attributes
 
 失敗を表すowner event
         ↓ event -> LogSpec
        LogSpec
 ```
 
-失敗eventが具体的なfailure値を元に`error_type`属性を生成する場合、`LogSpec`には共通`ToErrorType`契約で得られる`ErrorType`に対応する値を反映する。eventへどのfailure情報を保持させるか、`toErrorType`をどの変換関数で適用するか、どの`error_type`を属性として記録するかは、event所有者の設計で定める。
+Classifierは`error_type`の分類だけを担当する。failureがconstructor引数として保持する数値・文字列などの詳細値を消去したり、それらの属性をClassifierへ集約したりしない。
 
-UseCase失敗の場合も同じ契約を使う。UseCase固有failure型自身には構造化ログ用の変換を要求せず、その失敗を表すUseCase eventをUseCase側で定義する。
+失敗eventが具体的なfailure値を保持する場合、`RAGScope.<UseCase>.Logging`などのevent→`LogSpec`変換は、そのfailureをpattern matchして必要な詳細値を`error_type`以外のattributesへ反映できる。同じ変換で`error_type`が必要な場合は、そのfailure所有側が提供する名前付きClassifierを利用する。
+
+UseCase固有failureの場合、`RAGScope.<UseCase>.ErrorClassification`が`ErrorClassifier <UseCase>Failure`を定義する。Observabilityと構造化ログは同じ名前付きClassifierを使用し、同じ具体failureから同じ`ErrorType`を得る。Tracing用とLogging用に別のClassifierを定義しない。
+
+たとえば概念上は次の依存になる。
+
+```text
+RAGScope.<UseCase>.Failure
+        ↑
+        ├───────────────┐
+        │               │
+RAGScope.<UseCase>.ErrorClassification
+        │               │
+        │               ↓
+        │        RAGScope.<UseCase>.Logging
+        │               ↓
+        │          event -> LogSpec
+        │
+        └─ ErrorClassifier <UseCase>Failure
+```
+
+UseCase本体は`ErrorClassifier`や`LogSpec`を直接扱わず、UseCase所有の依存recordから`Logger m <UseCaseEvent>`を受け取ってeventを記録する。
 
 ## 6. 責務と依存
 
 | 対象 | 正本・担当する内容 |
 |---|---|
+| UseCase failure | `RAGScope.<UseCase>.Failure`。UseCase固有failure型と、そのconstructorが保持する詳細値 |
+| UseCase failureの分類 | `RAGScope.<UseCase>.ErrorClassification`。名前付き`ErrorClassifier <UseCase>Failure` |
 | UseCase event | 各UseCase設計。eventの意味、発生条件、event固有属性、必要な`error_type` |
-| UseCase eventの変換関数 | `RAGScope.<UseCase>.Logging`。UseCase eventから`LogSpec`への純粋変換 |
-| UseCase依存record | UseCase。UseCaseが実行時に必要とする能力だけを保持し、UseCase別`Logger m event`もこのrecordを通して受け取る |
+| UseCase eventの変換関数 | `RAGScope.<UseCase>.Logging`。UseCase eventから`LogSpec`への純粋変換。失敗eventでは必要に応じて同UseCaseのClassifierを利用する |
+| UseCase依存record | UseCase。UseCaseが実行時に必要とする能力だけを保持し、`Observability m <UseCase>Failure`とUseCase別`Logger m event`もこのrecordを通して受け取る |
 | 利用インターフェース固有event | 各利用インターフェースの設計・実装。eventの意味、発生条件、event固有属性 |
 | Application lifecycle event | Application lifecycleを担当する設計・実装。eventの意味、発生条件、event固有属性 |
 | `Logger m event` / `record` / `Contravariant` instance | `RAGScope.Logging`。利用側がeventを記録する型付き能力と、その入力型を変換する合成 |
-| `ErrorType` / `ToErrorType` | [ErrorType変換詳細設計](../ErrorType変換詳細設計.md)。具体的なfailureから観測用`ErrorType`へ変換する共通契約 |
+| `ErrorType` / `ErrorClassifier` | [ErrorType変換詳細設計](../ErrorType変換詳細設計.md)。具体failureから観測用`ErrorType`へ分類する共通型と規則 |
 | `LogSpec` | Logging。event値から決まるログの意味を表す共通内部表現 |
 | `Logger m LogSpec` / `LogRecord`生成 | Logging Runtime。`LogSpec`へ発生時刻、発生元component、current Trace Contextを付加してSinkへ渡す |
-| UseCase別LoggerとUseCase依存recordの組み立て | Application composition root。`event -> LogSpec`と`Logger m LogSpec`を`contramap`で合成し、UseCaseに必要な他の能力とともに依存recordを構築する |
+| UseCase別LoggerとUseCase依存recordの組み立て | Application composition root。`event -> LogSpec`と`Logger m LogSpec`を`contramap`で合成し、そのUseCase用Observabilityや他の能力とともに依存recordを構築する |
 | JSON / SQLiteへの投影 | 各構造化ログ外部表現設計と対応する実装 |
 
-`RAGScope.<UseCase>.UseCase`とeventの記録箇所はUseCase所有の依存recordから`RAGScope.Logging`の`Logger m <UseCaseEvent>`を受け取り、`record`を利用する。UseCase側はApplication全体の`AppEnv`、`LogSpec`、`LogRecord`、Logging Runtime、Sink、JSON / SQLite実装をimportしない。`RAGScope.<UseCase>.Logging`だけがUseCase eventと`LogSpec`を参照して純粋変換を定義する。
+`RAGScope.<UseCase>.UseCase`とeventの記録箇所はUseCase所有の依存recordから`RAGScope.Logging`の`Logger m <UseCaseEvent>`を受け取り、`record`を利用する。UseCase側はApplication全体の`AppEnv`、`LogSpec`、`LogRecord`、Logging Runtime、Sink、JSON / SQLite実装をimportしない。
+
+`RAGScope.<UseCase>.Logging`はUseCase eventとLogging coreの`LogSpec`を参照し、失敗eventで`error_type`が必要な場合は`RAGScope.<UseCase>.ErrorClassification`のClassifierも参照する。`RAGScope.<UseCase>.Failure`自体は`RAGScope.ErrorType`へ依存しない。
 
 `ragscope-logging`の`RAGScope.Logging`を公開するlibraryは、`Contravariant (Logger m)` instanceを定義するため`contravariant` packageへ直接依存する。composition rootで`contramap`を呼ぶlibraryも`Data.Functor.Contravariant`をimportし、`contravariant` packageへ直接依存する。
 
@@ -148,7 +179,7 @@ UseCase失敗の場合も同じ契約を使う。UseCase固有failure型自身�
 現時点では次を固定しない。
 
 - `LogSpec`、`LogRecord`、属性値型の正確なHaskell定義。
-- 利用インターフェース固有eventとApplication lifecycle eventの変換関数を配置する正確なmoduleと、それに伴うCabal library間の静的依存。
+- 利用インターフェース固有eventとApplication lifecycle eventの変換関数・Classifierを配置する正確なmoduleと、それに伴うCabal library間の静的依存。
 - UseCase所有の依存recordの正確な型名・field・module名。UseCaseへApplication全体の`AppEnv`を渡さず、UseCaseが必要な能力だけを依存recordで受け取ることは固定する。
 - `Logger m LogSpec`を組み立てる関数名とLogging Runtimeのmodule分割。
 - Sink自身を含むlogging failureをどのLogging内部境界へ通知・保持するか。logging failureをOperation / UseCaseへtyped resultとして返さず、`OperationResult`を変更しないことは固定する。

@@ -4,100 +4,145 @@ note_type: design
 # ErrorType変換詳細設計
 
 > [!abstract] この文書の役割
-> RAGScopeアプリケーションのHaskell実装で、具体的なfailure値に`toErrorType`を適用して、実行追跡・構造化ログで共有する`ErrorType`を得るための共通契約を定義する。`ToErrorType`はUseCase固有の仕組みではなく、UseCase、利用インターフェース、Applicationなどが所有する具体的なfailure型に対して定義できる。
+> RAGScopeアプリケーションのHaskell実装で、具体的なfailure値を保持したまま、名前付きの`ErrorClassifier failure`を使って実行追跡・構造化ログで共有する`ErrorType`を得るための共通契約を定義する。`ErrorClassifier`は型クラスinstanceではなく値として扱い、どの分類規則を使うかを静的依存とcompositionから追えるようにする。
 >
-> `error_type`の論理的な意味と`span`・構造化ログでの利用規則は[実行追跡・構造化ログ契約設計](./実行追跡・構造化ログ契約設計.md)、各failureが表す具体的な失敗条件はそのfailureを所有する機能・利用インターフェース・Applicationの設計を正本とする。正確なHaskell型・class・instance・module・Cabal依存は実装コードと設定を機械可読な正本とする。
+> `error_type`の論理的な意味と`span`・構造化ログでの利用規則は[実行追跡・構造化ログ契約設計](./実行追跡・構造化ログ契約設計.md)、各failureが表す具体的な失敗条件と保持する詳細値はそのfailureを所有する機能・利用インターフェース・Applicationの設計を正本とする。正確なHaskell型・関数・module・Cabal依存は実装コードと設定を機械可読な正本とする。
 
-## 1. `ErrorType`と`ToErrorType`
+## 1. `ErrorType`と`ErrorClassifier`
 
 `ErrorType`は、RAGScopeの処理が成立しなかった理由を、具体的なfailure型から独立して機械的に識別するためのHaskell上の共通表現である。外部の論理契約では`error_type`として扱う。
 
-Haskell実装上の契約は、概念的には次の変換を提供する。
+具体的なfailureから`ErrorType`への分類能力は、概念上次の値で表す。
+
+```haskell
+newtype ErrorClassifier failure =
+  ErrorClassifier
+    { classifyError :: failure -> ErrorType
+    }
+```
+
+`ErrorClassifier failure`は、`failure`型の値を1つ受け取り、その値に対応する`ErrorType`を返す純粋な分類規則である。具体的なfailure値そのものを`ErrorType`へ置き換えたり、failureが保持する詳細値を破棄したりしない。
+
+たとえばfailureがconstructor引数として数値や文字列を保持する場合、`classifyError classifier failure`を適用して`ErrorType`を得た後も、元のfailure値は呼び出し側が保持している限りその詳細値を含んだままである。失敗eventから構造化ログ属性を作る処理は、必要な詳細値を具体failureまたはeventから利用できる。
+
+`ErrorClassifier`はUseCase固有failureだけを対象としない。UseCase固有failure、利用インターフェースのrouting・command判定・入力変換・検証・結果処理などのfailure、Applicationが所有するfailureなど、そのfailure値から`error_type`を得る必要がある型に対して名前付きClassifier値を定義できる。
+
+failure型であることだけを理由に、すべてのfailure型へ`ErrorClassifier`を要求しない。
+
+この設計では、次の型クラスは導入しない。
 
 ```haskell
 class ToErrorType failure where
-    toErrorType :: failure -> ErrorType
+  toErrorType :: failure -> ErrorType
 ```
 
-`toErrorType`は具体的なfailure値を1つ受け取り、その値に対応する`ErrorType`を1つ返す。この宣言は入出力を示す概念表現であり、正確なclass・関数定義は実装コードを正本とする。
+分類規則を型クラスinstanceへ隠さず、名前付きの値として定義し、利用箇所またはcompositionで明示的に参照する。
 
-`ToErrorType`はUseCase固有failureだけを対象としない。UseCase固有failure、利用インターフェースのrouting・command判定・入力変換・検証・結果処理などのfailure、Applicationが所有するfailureなど、そのfailure値から`error_type`を得る必要がある型に対してinstanceを定義する。
+## 2. 分類規則
 
-failure型であることだけを理由に、すべてのfailure型へ`ToErrorType`を要求しない。
-
-## 2. 変換規則
-
-`toErrorType`はfailure値だけを入力として、そのfailureに対応する`ErrorType`を返す純粋な変換とする。
+`classifyError`はfailure値だけを入力として、そのfailureに対応する`ErrorType`を返す純粋な変換とする。
 
 - 実行中のOperation、利用インターフェース、Trace Contextを入力として受け取らない。
 - IOや状態参照を行わない。
-- 同じfailure値には常に同じ`ErrorType`を返す。
-- `ToErrorType` instanceを持つfailure型のすべての値に対して`ErrorType`を返す。
+- 同じClassifier値と同じfailure値の組には常に同じ`ErrorType`を返す。
+- 1つの名前付きClassifierは、対象failure型のすべての値に対して`ErrorType`を返す。
+- `ErrorType`への分類を行っても、元のfailure値やそのconstructor引数を変更・破棄しない。
 
-具体的なfailure型の所有側は、そのfailureから`ErrorType`への変換規則が必要な場合に`ToErrorType` instanceを定義する。instanceとして変換規則を提供することと、実行時に`toErrorType`を適用することは別の責務である。failureを生成または返す処理は、`ErrorType`を必要としない限り変換を行わない。`ErrorType`を必要とする処理が具体的なfailure値へ`toErrorType`を適用する。
+具体的なfailureから`ErrorType`への分類規則を必要とする所有側は、そのfailure型に対応する名前付き`ErrorClassifier`値を定義する。分類規則を提供することと、実行時に`classifyError`を適用することは別の責務である。failureを生成または返す処理は、`ErrorType`を必要としない限り分類を行わない。
 
-`ErrorType`を必要とする公開境界が具体的なfailure値を受け取る場合、その境界を`DenseSearchFailure`など特定のfailure型へ固定せず、概念上`ToErrorType failure => failure`を受け取れる形とする。境界内で`toErrorType failure`を適用し、具体的なfailure値を必要としない下位処理には変換後の`ErrorType`を渡す。
+同じfailure型について、Tracing用とLogging用に別々の分類規則を定義しない。同じ失敗を`span`と構造化ログの両方へ記録する場合は、所有側が定義した同じ名前付きClassifierを利用し、同じ`ErrorType`を得る。
 
-どの処理または公開APIが`ErrorType`を必要とし、そこで変換を行うか、正確な関数名とmodule分割は各責務の設計・実装で確定する。
+`ErrorClassifier`は入力側に型変数を持つため構造上`Contravariant` instanceを定義できるが、現在のRAGScopeのcompositionではその操作を必要としていない。実際の合成要求が生じるまで`Contravariant ErrorClassifier`は定義しない。
 
-## 3. failure所有者とinstance
+## 3. 所有者とmodule境界
 
-`ErrorType`と`ToErrorType`は、Logging、Tracing、Observability、個別のUseCaseや利用インターフェースのいずれにも所有させず、共通local package `ragscope-error`のpublic main libraryにある`RAGScope.ErrorType`へ置く。
+`ErrorType`と`ErrorClassifier`型は、Logging、Tracing、Observability、個別のUseCaseや利用インターフェースのいずれにも所有させず、共通local package `ragscope-error`のpublic main libraryにある`RAGScope.ErrorType`へ置く。
 
 ```text
 ragscope-error
 └─ public: main
    └─ RAGScope.ErrorType
       ├─ ErrorType
-      └─ ToErrorType
+      └─ ErrorClassifier failure
 ```
 
-具体的なfailure型に対する`ToErrorType` instanceは、そのfailure型を所有するmoduleに置く。
-
-UseCase固有failureの場合は、failure型をそのUseCaseが所有する`RAGScope.<UseCase>.Failure`に置き、`ToErrorType` instanceも同じmoduleに置く。
+UseCase固有failureの場合、failure型そのものはそのUseCaseが所有する`RAGScope.<UseCase>.Failure`へ置く。対応する名前付きClassifierは、failure型と`RAGScope.ErrorType`の境界を担当する`RAGScope.<UseCase>.ErrorClassification`へ置く。
 
 ```text
 ragscope
 └─ private: ragscope-use-cases
-   └─ RAGScope.<UseCase>.Failure
-      ├─ <UseCase>Failure
-      └─ ToErrorType instance
+   ├─ RAGScope.<UseCase>.Failure
+   │    └─ <UseCase>Failure
+   └─ RAGScope.<UseCase>.ErrorClassification
+        └─ <useCase>ErrorClassifier
+             :: ErrorClassifier <UseCase>Failure
 ```
 
-利用者操作全体の通常failureは、Application側の共通`OperationFailure`で保持する。`OperationFailure`は、`ToErrorType` instanceを持つ具体的なfailure値を1つ保持する。
+`RAGScope.<UseCase>.Failure`は`ErrorType`や`ErrorClassifier`をimportしない。`RAGScope.<UseCase>.ErrorClassification`がfailure型と`RAGScope.ErrorType`をimportして分類規則を定義する。これによりfailure型自身へ観測基盤の依存を持ち込まない。
+
+利用インターフェースやApplicationが所有するfailureについても同じ原則を適用し、failure型そのものと`ErrorType`への分類規則を必要に応じて分離する。正確なmodule名は各所有者の設計・実装で確定する。
+
+## 4. `OperationFailure`
+
+利用者操作全体の通常failureは、Application側の共通`OperationFailure`で保持する。`OperationFailure`は、具体的なfailure値と、そのfailure型に対応する`ErrorClassifier failure`を組で保持する。
 
 ```haskell
 data OperationFailure where
   OperationFailure
-    :: ToErrorType failure
-    => failure
+    :: failure
+    -> ErrorClassifier failure
     -> OperationFailure
 ```
 
-`OperationFailure`自身の`ToErrorType` instanceは、constructorから中の`failure`値を取り出し、その値に`toErrorType`を適用して結果を返す。
+`OperationFailure failure classifier`を構築した後も、`failure`値そのものは保持される。failureがconstructor引数として詳細値を持つ場合も、その値を含んだ具体failureを保持する。`ErrorType`を得るためにfailureを先に変換してから保持する構造にはしない。
+
+`OperationFailure`を受け取る側は、中のfailureを`DenseSearchFailure`などの具体型へ戻して分岐しない。root `span`などで`ErrorType`が必要な場合は、Application側が次のClassifierを提供する。
 
 ```haskell
-instance ToErrorType OperationFailure where
-  toErrorType (OperationFailure failure) =
-    toErrorType failure
+operationFailureErrorClassifier
+  :: ErrorClassifier OperationFailure
+
+operationFailureErrorClassifier =
+  ErrorClassifier $ \(OperationFailure failure classifier) ->
+    classifyError classifier failure
 ```
 
-たとえば`OperationFailure denseSearchFailure`へ`toErrorType`を適用すると、上のinstanceは`denseSearchFailure`を取り出して`toErrorType denseSearchFailure`を実行する。利用者操作ごとに`DenseSearchOperationFailure`などの型や、その型専用の`ToErrorType` instanceは定義しない。
+このClassifierは`OperationFailure`に保存されたfailure値と対応Classifierを取り出し、同じfailure値へそのClassifierを適用する。そのため、UseCase実行`span`とroot `span`が同じ具体failureに由来する場合は同じ`ErrorType`を得られる。
 
-`OperationFailure`は`ragscope` packageの`ragscope-application` libraryが所有する。UseCase側や`ragscope-error`には置かない。`ragscope-application`は`OperationFailure`のconstructor制約とinstanceで`ToErrorType`を使うため、`RAGScope.ErrorType`をimportし、`ragscope-error`へ直接依存する。正確な`OperationFailure`のmodule名はApplication実装時にコードで確定する。
+`OperationFailure`と`operationFailureErrorClassifier`は`ragscope` packageの`ragscope-application` libraryが所有する。UseCase側や`ragscope-error`には置かない。`OperationFailure`の型定義は個別のUseCase固有failure型を参照しない。
 
-`ragscope-tracing`のpublic main libraryは、`RAGScope.Tracing.observeResult`の`ToErrorType failure`制約のため`ragscope-error` mainへ直接依存する。`ragscope-observability`のpublic main libraryも、公開する`withTrace` / `withSpan`の`ToErrorType failure`制約のため`ragscope-error` mainへ直接依存する。`ragscope-observability`のruntime libraryはObservability mainと`ragscope-tracing` mainを通して必要な契約を利用し、`ragscope-error`へは直接依存しない。Loggingが`ragscope-error`へ直接依存するかは、Loggingの公開APIと内部表現を設計するときに確定する。
+個々のOperationが`OperationFailure`を構築するときは、具体failure値をその型として扱える場所で、failure所有側が提供する対応Classifierを使用する。UseCase failureであれば`RAGScope.<UseCase>.ErrorClassification`の名前付きClassifierを利用する。Operation側の依存をrecordへまとめるかどうかとは独立して、`OperationFailure`構築に使う分類規則はこの名前付きClassifierを正本とする。
 
-`ErrorType`の内部表現と具体的な値は、この文書では固定せず、実装コードを正本とする。
+## 5. Observability・Tracing・Loggingからの利用
 
-## 4. 各設計との関係
+Observability Runtimeは、対象failure型の`ErrorClassifier failure`をcomposition時に受け取り、`Either failure result`の`Left failure`を観測用`ErrorType`へ分類する。Operation / UseCaseが利用する`Observability m failure`自体は`ErrorClassifier`を公開しない。
+
+Tracing Portは具体failure、`Either`、`ErrorClassifier`を扱わず、Observability Runtimeから渡された`SpanOutcome`だけを扱う。`SpanFailed ErrorType`を受け取るため、`ragscope-tracing` mainは`ragscope-error` mainへ直接依存する。
+
+構造化ログでは、失敗eventから`LogSpec`への名前付き純粋変換が、必要な場合にfailure所有側の同じ名前付きClassifierを利用する。failureが保持する詳細値を`error_type`以外のattributesへ反映する場合は、eventまたは具体failureからその値を取得する。Classifierは`error_type`の分類だけを担当し、詳細属性を代替しない。
+
+依存方向は次のとおりである。
+
+```text
+RAGScope.<UseCase>.Failure
+        ↑
+        │
+RAGScope.<UseCase>.ErrorClassification ──→ RAGScope.ErrorType
+        ↑                                      ↑
+        │                                      │
+UseCase Logging変換                    Observability Runtime / Tracing
+```
+
+`ragscope-observability`のpublic main libraryは公開APIに`ErrorClassifier`を出さないため`ragscope-error`へ直接依存しない。`RAGScope.Observability.Runtime.makeObservability`が`ErrorClassifier failure`を受け取るため、`runtime` libraryは`ragscope-error` mainへ直接依存する。
+
+## 6. 各設計との関係
 
 | 対象 | この共通契約との関係 |
 |---|---|
-| UseCase | UseCase固有failure型の所有側が`ToErrorType` instanceを定義する。UseCase本体はfailure値を返し、UseCase実行`span`などで`ErrorType`を必要とする処理が、その具体的なfailure値へ`toErrorType`を適用する。UseCase境界でのfailureの受け渡しは[ユースケース詳細設計](./ユースケース詳細設計.md)を正本とする |
-| 利用者操作 | UseCase前・UseCase・UseCase後で受け取った具体的なfailure値を`OperationFailure failure`として保持する。root `span`などで`ErrorType`を必要とする処理が`toErrorType operationFailure`を適用し、`ToErrorType OperationFailure` instanceが中のfailure値に`toErrorType`を適用する。`OperationFailure`のHaskell表現は[利用者操作詳細設計](./利用者操作詳細設計.md)を正本とする |
-| 構造化ログ | 失敗eventが具体的なfailureを元に`error_type`を生成する場合、その変換を必要とするeventから`LogSpec`への変換処理がfailure値へ`toErrorType`を適用し、得た`ErrorType`を`LogSpec`へ入れる。eventから`LogSpec`への変換は[RAGScopeアプリケーション構造化ログイベント変換詳細設計](./logging/RAGScopeアプリケーション構造化ログイベント変換詳細設計.md)を正本とする |
-| 実行追跡 | 失敗した`span`へ付ける`error_type`の論理的な意味と、同じ失敗をログと共有する規則は[実行追跡・構造化ログ契約設計](./実行追跡・構造化ログ契約設計.md)を正本とする |
+| UseCase | UseCase固有failure型は`RAGScope.<UseCase>.Failure`が所有し、`RAGScope.<UseCase>.ErrorClassification`が名前付き`ErrorClassifier <UseCase>Failure`を提供する。UseCase本体はfailure値を返し、Classifierや`ErrorType`を直接扱わない。UseCase境界でのfailureの受け渡しは[ユースケース詳細設計](./ユースケース詳細設計.md)を正本とする |
+| 利用者操作 | UseCase前・UseCase・UseCase後で受け取った具体的なfailure値と対応Classifierを`OperationFailure`へ保持する。root `span`では`operationFailureErrorClassifier`が保存されたClassifierを同じfailure値へ適用する。`OperationFailure`のHaskell表現は[利用者操作詳細設計](./利用者操作詳細設計.md)を正本とする |
+| 構造化ログ | 失敗eventが具体failureを元に`error_type`を生成する場合、eventから`LogSpec`への変換処理が所有側の名前付きClassifierを利用する。failureの詳細値を他のattributesへ反映する処理とは分離する。eventから`LogSpec`への変換は[RAGScopeアプリケーション構造化ログイベント変換詳細設計](./logging/RAGScopeアプリケーション構造化ログイベント変換詳細設計.md)を正本とする |
+| 実行追跡 | Observability Runtimeが`Either failure result`を解釈し、Classifierで`ErrorType`へ分類して`SpanOutcome`をTracingへ渡す。Span Statusと`error_type`の論理規則は[実行追跡・構造化ログ契約設計](./実行追跡・構造化ログ契約設計.md)を正本とする |
 
 ## 関連文書
 
