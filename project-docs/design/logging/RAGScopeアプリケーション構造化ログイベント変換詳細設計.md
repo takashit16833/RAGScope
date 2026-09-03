@@ -19,6 +19,8 @@ RAGScopeアプリケーションでは、所有者が定義したeventを次の�
         ↓ event -> LogSpec
       LogSpec
         ↓ Logger m LogSpec
+minimum level filter
+        ↓
 timestamp / component / current Trace Contextを付加
         ↓
      LogRecord
@@ -46,6 +48,7 @@ data LogLevel
   | Warn
   | Error
   | Fatal
+  deriving (Eq, Ord)
 
 newtype AttributeName =
   AttributeName Text
@@ -83,7 +86,7 @@ data LogRecord =
     }
 ```
 
-`LogLevel`はイベントの重要度だけを表し、`Debug`、`Info`、`Warn`、`Error`、`Fatal`の5値を独立して持つ。通常イベントと失敗イベントの直和や、失敗variantから`Error` levelを固定的に導出する旧構造は現在設計へ持ち込まない。処理が成功したか失敗したかはOperation / UseCaseの結果とspanの`SpanOutcome`が担当し、ログ重要度とは別の情報として扱う。
+`LogLevel`はイベントの重要度だけを表し、`Debug`、`Info`、`Warn`、`Error`、`Fatal`の5値を独立して持つ。重要度の順序はconstructorの宣言順と同じ`Debug < Info < Warn < Error < Fatal`とし、`Ord`をderiveしてこの順序をminimum level判定へそのまま使用する。別のseverity数値や順序表を重複して持たない。通常イベントと失敗イベントの直和や、失敗variantから`Error` levelを固定的に導出する旧構造は現在設計へ持ち込まない。処理が成功したか失敗したかはOperation / UseCaseの結果とspanの`SpanOutcome`が担当し、ログ重要度とは別の情報として扱う。
 
 `Attributes`は`Map AttributeName AttributeValue`を保持し、属性が0件の場合は空の`Map`で表す。`Maybe Attributes`にはしない。これにより「属性なし」を複数の内部状態で表さず、同じ属性名を1件のログ内で重複して保持できない構造にする。JSONへ投影するときだけ、top-levelの`Attributes`が空なら`attributes` property自体を省略する。
 
@@ -94,6 +97,34 @@ data LogRecord =
 `LogRecord.traceContext`は`Maybe TraceContext`とし、`TraceId`と`SpanId`を別々の`Maybe` fieldとして持たない。`Nothing`は特定のspanへ属さないログ、`Just traceContext`は`TraceId`と`SpanId`の組を持つログを表すため、片方だけ存在する状態を内部型で表現しない。
 
 `LogRecord`はJSON Schemaと同型にすることを目的としない。`spec.event`、`spec.level`、`spec.message`、`spec.attributes`とRuntimeが付加した共通情報を、serialization境界でJSONまたはSQLiteの外部契約へ投影する。
+
+### 1.2 Logging Runtime / Sink境界
+
+Logging Runtimeは、共通`LogSpec`を受け取る基礎`Logger m LogSpec`を組み立てる。Runtimeへは、minimum level、発生元`Component`、現在時刻を取得する`m Timestamp`、current Trace Contextを取得する`m (Maybe TraceContext)`、完成済み`LogRecord`を受け取るSinkを構成時に渡す。Application composition rootは`Tracing m`全体をLogging Runtimeへ渡さず、同じTracing実装の`currentTraceContext` fieldから得たactionだけを渡す。
+
+Runtimeは`LogSpec.level`と`minimumLevel`を`Ord`で比較し、`LogSpec.level >= minimumLevel`のときだけ出力処理を続ける。minimum level未満なら`m ()`としてそのまま終了し、時刻取得、current Trace Context取得、`LogRecord`生成、Sink呼び出しのいずれも行わない。たとえば`minimumLevel = Info`なら`Debug`を除く4段階を通し、`minimumLevel = Debug`なら5段階すべてを通す。
+
+このminimum level判定は、event所有側が定める「どの条件でeventを発生させて`record`へ渡すか」という記録条件とは別である。event所有側は出来事として記録対象にするかを決め、Logging Runtimeは記録対象として渡された`LogSpec`のうち現在の運用設定で実際に出力する重要度を絞る。これにより、機能側のevent発生条件を変更せず、調査時だけ`Debug`まで出力できる。
+
+minimum level以上の`LogSpec`に対して、Runtimeは次の順序で`LogRecord`を完成する。
+
+```text
+LogSpec
+  ↓ level >= minimumLevel
+timestampを取得
+  ↓
+current Trace Contextを取得
+  ↓
+Componentを付加
+  ↓
+LogRecord
+  ↓
+Sink
+```
+
+Sinkは、timestamp、component、optional Trace Context、`LogSpec`がすべて確定した`LogRecord`を1件受け取り、具体的な出力・保存境界へ渡す責務を持つ。SinkはtimestampやTrace Contextを生成・取得せず、`LogSpec`から`LogRecord`を完成する責務も持たない。JSON / SQLiteへの投影は`LogRecord`から各外部表現境界で行い、Logging RuntimeはJSON object、SQLite table、serialization、transactionを知らない。
+
+Sinkが出力・保存に失敗した場合のLogging内部APIと、そのfailureの通知・保持先はまだ固定しない。Sink failureをOperation / UseCaseへtyped resultとして返さず`OperationResult`を変更しないことだけは既存の決定を維持する。
 
 ## 2. `Logger m event`
 
@@ -227,7 +258,8 @@ UseCase本体は`ErrorClassifier`や`LogSpec`を直接扱わず、UseCase所有�
 | `Logger m event` / `record` / `Contravariant` instance | `RAGScope.Logging`。利用側がeventを記録する型付き能力と、その入力型を変換する合成 |
 | `ErrorType` / `ErrorClassifier` | [ErrorType変換詳細設計](../ErrorType変換詳細設計.md)。具体failureから観測用`ErrorType`へ分類する共通型と規則 |
 | Logging中核型 | `ragscope-logging`のLogging core。`EventName`、`LogLevel`、`AttributeName`、`AttributeValue`、`Attributes`、`Timestamp`、`Component`、`LogSpec`、`LogRecord` |
-| `Logger m LogSpec` / `LogRecord`生成 | Logging Runtime。`LogSpec`へ発生時刻、発生元component、current Trace Contextを付加してSinkへ渡す |
+| `Logger m LogSpec` / `LogRecord`生成 | Logging Runtime。minimum level以上の`LogSpec`だけを通し、発生時刻、発生元component、current Trace Contextを付加して`LogRecord`を完成しSinkへ渡す |
+| Sink | 完成済み`LogRecord`を受け取り、具体的な出力・保存境界へ渡す。timestamp / component / Trace Contextの付加は行わない |
 | UseCase別LoggerとUseCase依存recordの組み立て | Application composition root。`event -> LogSpec`と`Logger m LogSpec`を`contramap`で合成し、そのUseCase用Observabilityや他の能力とともに依存recordを構築する |
 | JSON / SQLiteへの投影 | 各構造化ログ外部表現設計と対応する実装 |
 
@@ -235,7 +267,7 @@ UseCase本体は`ErrorClassifier`や`LogSpec`を直接扱わず、UseCase所有�
 
 `RAGScope.<UseCase>.Logging`はUseCase eventとLogging coreの`LogSpec`を参照し、失敗eventで`error_type`が必要な場合は`RAGScope.<UseCase>.ErrorClassification`のClassifierも参照する。`RAGScope.<UseCase>.Failure`自体は`RAGScope.ErrorType`へ依存しない。
 
-`ragscope-logging`のLogging coreは、`Text`のため`text`、`Map`のため`containers`、`Scientific`のため`scientific`、`UTCTime`のため`time`、`TraceContext`のため`ragscope-tracing`の`core` libraryへ直接依存する。`RAGScope.Logging`を公開するlibraryは、`Contravariant (Logger m)` instanceを定義するため`contravariant` packageへ直接依存する。composition rootで`contramap`を呼ぶlibraryも`Data.Functor.Contravariant`をimportし、`contravariant` packageへ直接依存する。
+`ragscope-logging`のLogging coreは、`Text`のため`text`、`Map`のため`containers`、`Scientific`のため`scientific`、`UTCTime`のため`time`、`TraceContext`のため`ragscope-tracing`の`core` libraryへ直接依存する。Logging Runtimeも`LogRecord`と`m (Maybe TraceContext)`を扱うためLogging coreと`ragscope-tracing`の`core` libraryを参照するが、`RAGScope.Tracing`を公開するmain libraryへは依存しない。Application composition rootが`Tracing m`から`currentTraceContext` actionを取り出してRuntimeへ渡す。`RAGScope.Logging`を公開するlibraryは、`Contravariant (Logger m)` instanceを定義するため`contravariant` packageへ直接依存する。composition rootで`contramap`を呼ぶlibraryも`Data.Functor.Contravariant`をimportし、`contravariant` packageへ直接依存する。
 
 ## 7. 現在固定していない実装詳細
 
@@ -244,8 +276,8 @@ UseCase本体は`ErrorClassifier`や`LogSpec`を直接扱わず、UseCase所有�
 - `EventName`、`AttributeName`、`Component`などのconstructorを公開するか、文字列表現の検証を生成APIへ閉じるかというexport / 構築API。保持する型構造は1.1で固定済み。
 - 利用インターフェース固有eventとApplication lifecycle eventの変換関数・Classifierを配置する正確なmoduleと、それに伴うCabal library間の静的依存。
 - UseCase所有の依存recordの正確な型名・field・module名。UseCaseへApplication全体の`AppEnv`を渡さず、UseCaseが必要な能力だけを依存recordで受け取ることは固定する。
-- `Logger m LogSpec`を組み立てる関数名とLogging Runtimeのmodule分割。
-- Sink自身を含むlogging failureをどのLogging内部境界へ通知・保持するか。logging failureをOperation / UseCaseへtyped resultとして返さず、`OperationResult`を変更しないことは固定する。
+- `Logger m LogSpec`を組み立てる正確な関数名とLogging Runtimeのmodule分割、および`minimumLevel`の具体的な設定元・既定値。Runtimeがminimum level、`Component`、`m Timestamp`、`m (Maybe TraceContext)`、Sinkから`Logger m LogSpec`を組み立てる責務は固定済み。
+- Sinkの正確な型・関数名・module分割と、Sink自身を含むlogging failureをどのLogging内部境界へ通知・保持するか。Sinkが完成済み`LogRecord`だけを受け取る責務と、logging failureをOperation / UseCaseへtyped resultとして返さず`OperationResult`を変更しないことは固定する。
 
 実装後の正確な型、関数、module、Cabal `build-depends`はコードとCabal設定を機械可読な正本とする。
 
