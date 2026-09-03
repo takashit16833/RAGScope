@@ -51,6 +51,8 @@ record logger event
 
 `record`はtrace内eventとtrace外eventで分けない。Logging Runtimeが記録時にcurrent Trace Contextを取得し、`Just traceContext`なら`TraceId`・`SpanId`を組で付加し、`Nothing`なら両方を付加しない。
 
+`record`はLogging RuntimeやSinkで発生したlogging failureをtyped resultとしてOperation / Featureへ返さない。logging failureは利用者操作の`OperationResult`を変更せず、Logging側の独立したfailure境界で通知・保持する。利用者操作本体とlogging failureの関係は[利用者操作詳細設計](../利用者操作詳細設計.md)を正本とする。
+
 `Logger m event`の`event`はLogger値ごとに固定される。1つのLogging値が任意のevent型を型クラス制約付きで受け取るAPIにはせず、Loggingのevent受付のために`RankNTypes`を使用しない。
 
 ## 3. `Contravariant`によるLoggerの変換
@@ -146,7 +148,7 @@ UseCase失敗の場合も同じ契約を使う。UseCase固有failure型自身�
 - 利用インターフェース固有eventとApplication lifecycle eventの変換関数を配置する正確なmoduleと、それに伴うCabal library間の静的依存。
 - Feature別の`Logger m event`を`AppEnv`のfieldとして渡すか、Feature単位の依存recordへまとめるか。
 - `Logger m LogSpec`を組み立てる関数名とLogging Runtimeのmodule分割。
-- Sink自身のfailureを通知・保持する内部境界と、Operation結果との関係。
+- Sink自身を含むlogging failureをどのLogging内部境界へ通知・保持するか。logging failureをOperation / Featureへtyped resultとして返さず、`OperationResult`を変更しないことは固定する。
 
 実装後の正確な型、関数、module、Cabal `build-depends`はコードとCabal設定を機械可読な正本とする。
 
@@ -156,6 +158,7 @@ UseCase失敗の場合も同じ契約を使う。UseCase固有failure型自身�
 - [RAGScopeアプリケーション実行追跡詳細設計](../tracing/RAGScopeアプリケーション実行追跡詳細設計.md)
 - [ErrorType変換詳細設計](../ErrorType変換詳細設計.md)
 - [ユースケース詳細設計](../ユースケース詳細設計.md)
+- [利用者操作詳細設計](../利用者操作詳細設計.md)
 - [構造化ログ外部表現共通設計](./構造化ログ外部表現共通設計.md)
 - [構造化ログJSON表現設計](./構造化ログJSON表現設計.md)
 - [構造化ログSQLite表現設計](./構造化ログSQLite表現設計.md)
