@@ -87,6 +87,8 @@ searchLogger =
   contramap searchEventToLogSpec logSpecLogger
 ```
 
+composition rootは、作成したFeature別LoggerをそのFeatureが所有する依存recordへ他の必要な能力とともに格納し、その依存recordをFeature / UseCaseへ渡す。FeatureへApplication全体の`AppEnv`を渡してそこからLoggerを取り出させる構造にはしない。Featureが必要とする依存能力の受け渡し全体は[ユースケース詳細設計](../ユースケース詳細設計.md)を正本とする。
+
 この合成により、FeatureのUseCaseやevent記録箇所は`LogSpec`、`LogRecord`、Logging Runtime、Sinkを扱わず、自身のevent型と対応する`Logger m event`だけを扱う。変換関数を実行時に適用する責務は、Featureの各記録箇所ではなく、composition時に作られたLogger値へ閉じる。
 
 ## 4. eventから`LogSpec`への純粋変換
@@ -127,16 +129,17 @@ UseCase失敗の場合も同じ契約を使う。UseCase固有failure型自身�
 |---|---|
 | Feature event | 各Feature設計。eventの意味、発生条件、event固有属性、必要な`error_type` |
 | Feature eventの変換関数 | `RAGScope.<Feature>.Logging`。Feature eventから`LogSpec`への純粋変換 |
+| Feature依存record | Feature。Feature / UseCaseが実行時に必要とする能力だけを保持し、Feature別`Logger m event`もこのrecordを通して受け取る |
 | 利用インターフェース固有event | 各利用インターフェースの設計・実装。eventの意味、発生条件、event固有属性 |
 | Application lifecycle event | Application lifecycleを担当する設計・実装。eventの意味、発生条件、event固有属性 |
 | `Logger m event` / `record` / `Contravariant` instance | `RAGScope.Logging`。利用側がeventを記録する型付き能力と、その入力型を変換する合成 |
 | `ErrorType` / `ToErrorType` | [ErrorType変換詳細設計](../ErrorType変換詳細設計.md)。具体的なfailureから観測用`ErrorType`へ変換する共通契約 |
 | `LogSpec` | Logging。event値から決まるログの意味を表す共通内部表現 |
 | `Logger m LogSpec` / `LogRecord`生成 | Logging Runtime。`LogSpec`へ発生時刻、発生元component、current Trace Contextを付加してSinkへ渡す |
-| Feature別Loggerの組み立て | Application composition root。`event -> LogSpec`と`Logger m LogSpec`を`contramap`で合成する |
+| Feature別LoggerとFeature依存recordの組み立て | Application composition root。`event -> LogSpec`と`Logger m LogSpec`を`contramap`で合成し、Featureに必要な他の能力とともに依存recordを構築する |
 | JSON / SQLiteへの投影 | 各構造化ログ外部表現設計と対応する実装 |
 
-`RAGScope.<Feature>.UseCase`とeventの記録箇所は`RAGScope.Logging`の`Logger`と`record`を利用するが、`LogSpec`、`LogRecord`、Logging Runtime、Sink、JSON / SQLite実装をimportしない。`RAGScope.<Feature>.Logging`だけがFeature eventと`LogSpec`を参照して純粋変換を定義する。
+`RAGScope.<Feature>.UseCase`とeventの記録箇所はFeature所有の依存recordから`RAGScope.Logging`の`Logger m <FeatureEvent>`を受け取り、`record`を利用する。FeatureはApplication全体の`AppEnv`、`LogSpec`、`LogRecord`、Logging Runtime、Sink、JSON / SQLite実装をimportしない。`RAGScope.<Feature>.Logging`だけがFeature eventと`LogSpec`を参照して純粋変換を定義する。
 
 `ragscope-logging`の`RAGScope.Logging`を公開するlibraryは、`Contravariant (Logger m)` instanceを定義するため`contravariant` packageへ直接依存する。composition rootで`contramap`を呼ぶlibraryも`Data.Functor.Contravariant`をimportし、`contravariant` packageへ直接依存する。
 
@@ -146,7 +149,7 @@ UseCase失敗の場合も同じ契約を使う。UseCase固有failure型自身�
 
 - `LogSpec`、`LogRecord`、属性値型の正確なHaskell定義。
 - 利用インターフェース固有eventとApplication lifecycle eventの変換関数を配置する正確なmoduleと、それに伴うCabal library間の静的依存。
-- Feature別の`Logger m event`を`AppEnv`のfieldとして渡すか、Feature単位の依存recordへまとめるか。
+- Feature所有の依存recordの正確な型名・field・module名。FeatureへApplication全体の`AppEnv`を渡さず、Featureが必要な能力だけを依存recordで受け取ることは固定する。
 - `Logger m LogSpec`を組み立てる関数名とLogging Runtimeのmodule分割。
 - Sink自身を含むlogging failureをどのLogging内部境界へ通知・保持するか。logging failureをOperation / Featureへtyped resultとして返さず、`OperationResult`を変更しないことは固定する。
 
