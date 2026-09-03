@@ -144,11 +144,11 @@ UseCase Logging変換                    Observability Runtime / Tracing
 | 構造化ログ | 失敗eventが具体failureを元に`error_type`を生成する場合、eventから`LogSpec`への変換処理が所有側の名前付きClassifierを利用する。failureの詳細値を他のattributesへ反映する処理とは分離する。eventから`LogSpec`への変換は[RAGScopeアプリケーション構造化ログイベント変換詳細設計](./logging/RAGScopeアプリケーション構造化ログイベント変換詳細設計.md)を正本とする |
 | 実行追跡 | Observability Runtimeが`Either failure result`を解釈し、Classifierで`ErrorType`へ分類して`SpanOutcome`をTracingへ渡す。Span Statusと`error_type`の論理規則は[実行追跡・構造化ログ契約設計](./実行追跡・構造化ログ契約設計.md)を正本とする |
 
-## 7. 現在の未決定事項
+## 7. 公開境界
 
-`RAGScope.ErrorType`の公開exportについて、`ErrorClassifier`のconstructorを公開するか、constructorを非公開にして`failure -> ErrorType`から`ErrorClassifier failure`を構築する公開APIを設けるかは未決定である。
+`RAGScope.ErrorType`は`ErrorClassifier (..)`を公開し、constructorと`classifyError`を外部moduleから利用できるようにする。`failure -> ErrorType`から`ErrorClassifier failure`を作る専用の生成関数は設けない。
 
-どちらの場合も、failure所有側の`RAGScope.<UseCase>.ErrorClassification`やApplication側など、`RAGScope.ErrorType`の外部moduleが名前付きClassifier値を定義できる必要がある。この未決定事項はClassifierの分類規則、所有責務、`OperationFailure`やObservability Runtimeとの値の流れを変更するものではなく、`RAGScope.ErrorType`が公開する構築境界だけを対象とする。
+現在の`ErrorClassifier`は`failure -> ErrorType`を保持するだけであり、constructorで検証・正規化する追加の不変条件を持たない。failure所有側の`RAGScope.<UseCase>.ErrorClassification`やApplication側は、公開constructorを使って名前付きClassifier値を定義する。
 
 ## 関連文書
 
