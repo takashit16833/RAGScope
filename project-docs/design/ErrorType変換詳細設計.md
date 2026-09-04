@@ -111,11 +111,11 @@ operationFailureErrorClassifier =
 
 `OperationFailure`と`operationFailureErrorClassifier`は`ragscope` packageの`ragscope-application` libraryが所有する。UseCase側や`ragscope-error`には置かない。`OperationFailure`の型定義は個別のUseCase固有failure型を参照しない。
 
-個々のOperationが`OperationFailure`を構築するときは、具体failure値をその型として扱える場所で、failure所有側が提供する対応Classifierを使用する。UseCase failureであれば`RAGScope.<UseCase>.ErrorClassification`の名前付きClassifierを利用する。Operation側の依存をrecordへまとめるかどうかとは独立して、`OperationFailure`構築に使う分類規則はこの名前付きClassifierを正本とする。
+利用インターフェースのhandlerなどが`OperationFailure`を構築するときは、具体failure値をその型として扱える場所で、failure所有側が提供する対応Classifierを使用する。UseCase failureであれば`RAGScope.<UseCase>.ErrorClassification`の名前付きClassifierを利用する。handlerの依存をどう受け渡すかとは独立して、`OperationFailure`構築に使う分類規則はこの名前付きClassifierを正本とする。
 
 ## 5. Observability・Tracing・Loggingからの利用
 
-Observability Runtimeは、対象failure型の`ErrorClassifier failure`をcomposition時に受け取り、`Either failure result`の`Left failure`を観測用`ErrorType`へ分類する。Operation / UseCaseが利用する`Observability m failure`自体は`ErrorClassifier`を公開しない。
+Observability Runtimeは、対象failure型の`ErrorClassifier failure`をcomposition時に受け取り、`Either failure result`の`Left failure`を観測用`ErrorType`へ分類する。Application側の`withOperation` / UseCaseが利用する`Observability m failure`自体は`ErrorClassifier`を公開しない。
 
 Tracing Portは具体failure、`Either`、`ErrorClassifier`を扱わず、Observability Runtimeから渡された`SpanOutcome`だけを扱う。`SpanFailed ErrorType`を受け取るため、`ragscope-tracing` mainは`ragscope-error` mainへ直接依存する。
 

@@ -86,7 +86,7 @@ data LogRecord =
     }
 ```
 
-`LogLevel`はイベントの重要度だけを表し、`Debug`、`Info`、`Warn`、`Error`、`Fatal`の5値を独立して持つ。重要度の順序はconstructorの宣言順と同じ`Debug < Info < Warn < Error < Fatal`とし、`Ord`をderiveしてこの順序をminimum level判定へそのまま使用する。別のseverity数値や順序表を重複して持たない。通常イベントと失敗イベントの直和や、失敗variantから`Error` levelを固定的に導出する旧構造は現在設計へ持ち込まない。処理が成功したか失敗したかはOperation / UseCaseの結果とspanの`SpanOutcome`が担当し、ログ重要度とは別の情報として扱う。
+`LogLevel`はイベントの重要度だけを表し、`Debug`、`Info`、`Warn`、`Error`、`Fatal`の5値を独立して持つ。重要度の順序はconstructorの宣言順と同じ`Debug < Info < Warn < Error < Fatal`とし、`Ord`をderiveしてこの順序をminimum level判定へそのまま使用する。別のseverity数値や順序表を重複して持たない。通常イベントと失敗イベントの直和や、失敗variantから`Error` levelを固定的に導出する旧構造は現在設計へ持ち込まない。処理が成功したか失敗したかは利用者操作 / UseCaseの結果とspanの`SpanOutcome`が担当し、ログ重要度とは別の情報として扱う。
 
 `Attributes`は`Map AttributeName AttributeValue`を保持し、属性が0件の場合は空の`Map`で表す。`Maybe Attributes`にはしない。これにより「属性なし」を複数の内部状態で表さず、同じ属性名を1件のログ内で重複して保持できない構造にする。JSONへ投影するときだけ、top-levelの`Attributes`が空なら`attributes` property自体を省略する。
 
@@ -169,7 +169,7 @@ record logger event
 
 `record`はtrace内eventとtrace外eventで分けない。Logging Runtimeが記録時にcurrent Trace Contextを取得し、`Just traceContext`なら`TraceId`・`SpanId`を組で付加し、`Nothing`なら両方を付加しない。
 
-`record`はSinkが返した`LoggingFailure`をtyped resultとしてOperation / UseCaseへ返さない。Logging Runtimeが独立した`LoggingFailureReporter`へ通知し、利用者操作の`OperationResult`を変更しない。Reporterは通常の`Logger`や同じSinkを再利用せず、本番の最初の実装ではbest-effortにstderrへ直接診断情報を出す。利用者操作本体とlogging failureの関係は[利用者操作詳細設計](../利用者操作詳細設計.md)を正本とする。
+`record`はSinkが返した`LoggingFailure`をtyped resultとして利用インターフェースのhandler / UseCaseへ返さない。Logging Runtimeが独立した`LoggingFailureReporter`へ通知し、利用者操作の`OperationResult`を変更しない。Reporterは通常の`Logger`や同じSinkを再利用せず、本番の最初の実装ではbest-effortにstderrへ直接診断情報を出す。利用者操作本体とlogging failureの関係は[利用者操作詳細設計](../利用者操作詳細設計.md)を正本とする。
 
 `Logger m event`の`event`はLogger値ごとに固定される。1つのLogging値が任意のevent型を型クラス制約付きで受け取るAPIにはせず、Loggingのevent受付のために`RankNTypes`を使用しない。
 

@@ -50,6 +50,9 @@ RS-0022で採用する現在設計は、責務ごとに次の`design/`配下の�
 - [ ] 利用インターフェースが受け付けた1回のトップレベルな操作を1つの`trace`として追跡し、routing・command判定、入力変換・検証、ユースケース呼び出し、ユースケース後の結果処理をその操作に属する範囲でroot `span`に含められる
 - [ ] ユースケースを呼び出した場合はその実行をroot `span`配下の子`span`として追跡し、ユースケースを呼び出さず操作が終了した場合はユースケース実行`span`を作らない
 - [ ] UseCase実行を`Either failure result`、利用者操作全体を`Either OperationFailure result`で表し、結果区分だけを表す共通ADTを追加していない
+- [ ] OperationをUseCaseと1対1で対応する機能固有Application Serviceとして実装せず、利用インターフェースのhandlerがrouting・入力変換・検証・必要なUseCase実行・結果処理を担当している
+- [ ] Application側の薄い`withOperation`が`Observability m OperationFailure`の`withTrace`へ操作全体を委譲し、1回の利用者操作境界を表している。`Observability.withTrace`自体はrenameしていない
+- [ ] `SearchOperation`のような機能固有Operation module、Operation固有依存record、`prepare -> UseCase -> present`を固定する共通Operation Runnerを導入していない
 - [ ] logging failureの成否と利用者操作本体の成否を分離し、logging failureだけを理由に`OperationResult`を変更しない
 - [ ] `ErrorType`と`ErrorClassifier failure`を`ragscope-error`の共通契約として定義し、failure所有側の名前付きClassifierで具体failureから`ErrorType`を得られる
 - [ ] UseCase固有failure型とその`ErrorClassifier`を別moduleへ分離し、failure型自身が`ErrorType`へ依存していない
@@ -99,7 +102,8 @@ RS-0022で採用する現在設計は、責務ごとに次の`design/`配下の�
 - [ ] `ragscope-tracing` packageが公開するのはTracing Portを持つpublic main libraryと`RAGScope.Tracing.Context`を持つpublic `core` libraryであり、OpenTelemetry具体実装とOpenTelemetry SDK依存を含んでいない
 - [ ] `RAGScope.Logging`が`Logger m event`と`record :: Logger m event -> event -> m ()`を公開し、`Contravariant (Logger m)`によって`event -> LogSpec`と`Logger m LogSpec`から`Logger m event`を合成できる
 - [ ] UseCaseがApplication全体の`AppEnv`を直接受けず、UseCase所有の依存recordから`Observability m <UseCase>Failure`、`Logger m <UseCaseEvent>`など自身に必要な能力だけを受け取る
-- [ ] `record`がlogging failureをOperation / UseCaseへtyped resultとして返さず、logging failureを`OperationResult`から分離したまま、Runtime / Sinkのfailureを通知・保持するLogging内部境界を一意に追える設計になっている
+- [ ] Application composition rootがUseCase依存recordをUseCase実行関数へ適用して依存を閉じ、利用インターフェースのhandlerへ必要な能力だけを渡している
+- [ ] `record`がlogging failureを利用インターフェースのhandler / UseCaseへtyped resultとして返さず、logging failureを`OperationResult`から分離したまま、Runtime / Sinkのfailureを通知・保持するLogging内部境界を一意に追える設計になっている
 - [ ] eventから`LogSpec`への変換を名前付き純粋関数として所有側が提供し、`ToLogSpec`型クラス、UseCase eventのorphan instance、`RAGScope.Application.LoggingInstances`、instance読み込み専用importを導入していない
 - [ ] UseCase failureのClassifier、失敗event、event→`LogSpec`変換を所有側のmoduleから追え、共通基盤が機能固有イベント名・詳細属性・`error_type`を任意に決定しない
 - [ ] JSON / SQLite固有の型、依存package、field / table / column、serialization / persistence処理をそれぞれの外部表現moduleへ閉じ、共通logging層を特定の外部表現へ依存させていない
@@ -144,4 +148,4 @@ RS-0022で採用する現在設計は、責務ごとに次の`design/`配下の�
 
 実装は上記の設計正本を基準に進め、既存moduleへ局所変更を積み重ねながら後から全体構造を決め直す進め方はしない。実装で現在設計が具体化または変更された場合は、その責務を持つ`design/`配下の設計書へ反映する。
 
-Operation側の依存をどの型へまとめるか、Application全体の長寿命環境として`AppEnv`を導入するかは、全体設計Subtaskで実際のApplication実行構造を確認して確定する。SQLite実装の担当Subtaskは、実装着手前にWorkbench側のTask構成と実branchを一致させる。
+Operationは機能固有Application Serviceや依存recordとして実装せず、利用インターフェースのhandlerが担当する処理全体をApplication側の薄い`withOperation`で囲む。Application composition rootはUseCase依存recordをUseCase実行関数へ適用して依存を閉じ、`Observability m OperationFailure`、インターフェース固有Loggerとともに必要な能力だけをhandlerへ渡す。Application全体の長寿命環境として`AppEnv`は導入しない。SQLite実装の担当Subtaskは、実装着手前にWorkbench側のTask構成と実branchを一致させる。
