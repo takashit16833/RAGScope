@@ -1,6 +1,6 @@
 ---
 note_type: ticket
-status: planned
+status: cancelled
 milestone: "[[v0.0]]"
 epic: "[[v0.0 共通エラーと構造化ログによる実行追跡]]"
 ---
@@ -64,6 +64,7 @@ RS-0015で実装したRAGScopeアプリケーションの`ragscope-logging`は�
 - [RS-0015 RAGScopeアプリケーションの共通エラー・構造化ログ基盤を実装する](<./RS-0015 RAGScopeアプリケーションの共通エラー・構造化ログ基盤を実装する.md>)
 - [RS-0020 共通エラー・構造化ログの論理契約を再設計する](<./RS-0020 共通エラー・構造化ログの論理契約を再設計する.md>)
 - [RS-0021 構造化ログJSON Schemaとfixtureを現在契約へ更新する](<./RS-0021 構造化ログJSON Schemaとfixtureを現在契約へ更新する.md>)
+- [RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する](<./RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する.md>)
 - [実行追跡・構造化ログ契約設計](../../../../design/logging/実行追跡・構造化ログ契約設計.md)
 - [構造化ログ外部表現共通設計](../../../../design/logging/構造化ログ外部表現共通設計.md)
 - [構造化ログJSON表現設計](../../../../design/logging/構造化ログJSON表現設計.md)
@@ -79,11 +80,6 @@ RS-0021ではHaskellファイルを変更していないため、`SchemaSpec.hs`
 
 ## 結果
 
-> [!note] 完了時に記入
-> - 移行したHaskell logging基盤
-> - 実装したOpenTelemetryによる実行追跡・ログ関連付け
-> - 更新したJSON serializationとSchema適合結果
-> - 維持・変更・削除した旧logging構造
-> - 実行したテスト・品質検査と結果
-> - 既知の制約
-> - 関連Pull Request
+RS-0022は実装へ進まず`cancelled`とした。未mergeの`RS-0022/design-logging-architecture` branchで詳細設計を進めた結果、RAGScope独自のLogging Runtime、`LogRecord`、Sink、JSON / SQLite投影などとOpenTelemetry Logsの責務が重複する可能性が判明し、RS-0022が前提とする現在の実行追跡・構造化ログ契約自体を再評価する必要が生じたためである。
+
+このbranchの設計成果は`main`へmergeせず、現在仕様の正本として扱わない。解決しようとした問題、比較した案、発見した制約を確認する参考資料としてのみ利用する。後続作業は[RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する](<./RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する.md>)で、正本リポジトリの`main`を起点に行う。
