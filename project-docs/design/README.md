@@ -11,7 +11,6 @@ RAGScopeの現在設計を、知りたい内容から参照するための索引
 | [ユースケース設計](./ユースケース設計.md) | 利用者のトップレベルな操作は何で、1回の実行はどこからどこまでか |
 | [システムアーキテクチャ](./システムアーキテクチャ.md) | どのコンポーネントが何を担当し、どうつながるか |
 | [機能設計](./features/README.md) | 個別機能はどの処理規則、入出力、失敗時の扱いで動くか |
-| [実行追跡・構造化ログ設計](./logging/README.md) | 処理と出来事をどう追跡し、失敗理由を`error_type`として共有し、構造化ログへどう記録するか |
 
 ## 全体の関係
 
@@ -32,26 +31,18 @@ flowchart TD
         FeatureDesigns["各機能設計<br>個別機能の処理規則・入出力・失敗時の扱い"]
     end
 
-    subgraph Logging["実行追跡・構造化ログ設計"]
-        LoggingDesigns["各設計<br>実行追跡・構造化ログ・error_typeの共通契約と外部表現"]
-    end
-
     Domain --> UseCase
     Requirements --> UseCase
     Domain --> Architecture
     Requirements --> Architecture
 
     Architecture --> Features
-
-    UseCase --> Logging
-    Architecture --> Logging
-    Logging --> Features
 ```
 
 ## 読み分け
 
 利用者がRAGScopeへ何を依頼し、その1回の操作をどこまで一連の実行として扱うかは[ユースケース設計](./ユースケース設計.md)を確認する。その処理をどのコンポーネントが担当し、AI推論サービスやデータベースとどう連携するかは[システムアーキテクチャ](./システムアーキテクチャ.md)を確認する。
 
-個別機能の設計書は[機能設計](./features/README.md)から参照する。処理が成立しなかった理由をRAGScope全体で共有する`error_type`の契約を含む、実行追跡と構造化ログに関する設計書は[実行追跡・構造化ログ設計](./logging/README.md)から参照する。
+個別機能の設計書は[機能設計](./features/README.md)から参照する。
 
 正確な項目名、型、必須条件、API Schema、DB制約、具体的なテストケースは、コード、JSON Schema、OpenAPI、migration、テストなどの機械可読な正本を参照する。

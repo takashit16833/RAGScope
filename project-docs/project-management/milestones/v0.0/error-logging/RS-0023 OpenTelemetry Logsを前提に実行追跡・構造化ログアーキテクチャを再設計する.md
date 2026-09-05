@@ -1,6 +1,6 @@
 ---
 note_type: ticket
-status: planned
+status: in_progress
 milestone: "[[v0.0]]"
 epic: "[[v0.0 共通エラーと構造化ログによる実行追跡]]"
 ---
@@ -37,9 +37,9 @@ RS-0022の未merge branchで行った設計検討は、解決しようとした�
 - [ ] 通常のtyped failure、unexpected同期Exception、async interruption、Observability基盤自身の失敗について、Application本体の結果とTelemetryへどう反映するかを決定している
 - [ ] ローカル実行でTelemetryを確認する方法と、Exporter / Collector / backend、JSON / SQLiteなど保存・外部表現の責務をどこまでRAGScopeが所有するかを決定している
 
-### 現在設計の再評価
+### これまでの設計の再評価
 
-- [ ] 現在の`error_type` / `ErrorType` / `ErrorClassifier`、型付き`Logger`とevent、`LogSpec` / `LogRecord`、Logging Runtime、Sink、Logging failure処理、JSON Schema、SQLite表現、Operationと`trace`の対応などを、それぞれ要求・制約・採用するOpenTelemetry構成から再評価している
+- [ ] これまでの`error_type` / `ErrorType` / `ErrorClassifier`、型付き`Logger`とevent、`LogSpec` / `LogRecord`、Logging Runtime、Sink、Logging failure処理、JSON Schema、SQLite表現、Operationと`trace`の対応などを、それぞれ要求・制約・採用するOpenTelemetry構成から再評価している
 - [ ] 維持する設計は「現在そうなっている」ことを理由にせず、必要な責務または制約を示して再採用している
 - [ ] 変更または削除する設計について、影響する要求、ADR、設計書、Contract、Schema、Experiment、Epic、後続Ticketを特定している
 
@@ -54,7 +54,7 @@ RS-0022の未merge branchで行った設計検討は、解決しようとした�
 - RAGScopeアプリケーションまたはAI推論サービスの本番向けTracing / Logging実装
 - OpenTelemetry CollectorやTelemetry backendの本番環境構築
 - 文書処理、dense検索など個別機能の具体的な`span`、ログイベント、属性を網羅的に定義すること
-- 現在のHaskell logging実装、JSON Schema、SQLite表現を、新アーキテクチャ決定前に新方式へ移行すること
+- 現在のHaskell logging実装を、新アーキテクチャ決定前に新方式へ移行すること
 
 採用可能性や設計上の制約を確認するために最小限のExperimentまたはPoCが必要になった場合は、本番実装と分離して実施してよい。
 
@@ -63,10 +63,6 @@ RS-0022の未merge branchで行った設計検討は、解決しようとした�
 - [RAGScope要求定義「2.3 信頼性と保守性」](<../../../../RAGScope要求定義.md#2.3 信頼性と保守性>)
 - [システムアーキテクチャ](../../../../design/システムアーキテクチャ.md)
 - [RS-0022 RAGScopeアプリケーションの構造化ログ基盤を現在契約へ移行する](<./RS-0022 RAGScopeアプリケーションの構造化ログ基盤を現在契約へ移行する.md>)
-- [実行追跡・構造化ログ契約設計](../../../../design/logging/実行追跡・構造化ログ契約設計.md)
-- [構造化ログ外部表現共通設計](../../../../design/logging/構造化ログ外部表現共通設計.md)
-- [構造化ログJSON表現設計](../../../../design/logging/構造化ログJSON表現設計.md)
-- [構造化ログSQLite表現設計](../../../../design/logging/構造化ログSQLite表現設計.md)
 - [ADR-0005 — 実行追跡をOpenTelemetryのtrace・spanで表現し、イベントを構造化ログとして記録する](<../../../../adr/ADR-0005 実行追跡をOpenTelemetryのtrace・spanで表現し、イベントを構造化ログとして記録する.md>)
 
 ## 結果
