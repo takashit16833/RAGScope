@@ -30,7 +30,7 @@ OpenTelemetryを単なる出力AdapterではなくTrace / Logs / Metricsの共�
 
 - [x] 1 Invocation = 1 Trace、API / CLIでInvocation全体を追跡するroot Span、UseCase Span、標準Span、Span Status、Trace Context伝播を決定している
 - [x] Span、attributes、EventRecord、通常LogRecordの使い分けと、重複記録を避ける判断基準を決定している
-- [x] typed failure、例外、中断・キャンセル、Telemetry基盤自身の失敗をApplication結果とTelemetryへどう反映するか決定している
+- [x] 具体的なerror typeで表す失敗、例外、中断・キャンセル、Telemetry基盤自身の失敗をApplication結果とTelemetryへどう反映するか決定している
 - [x] 実験結果、Trace / Span、Metricsの役割を分け、RS-0023では独自Metricを定義しないことを決定している
 - [x] ローカルbackendとしてTempo、Loki、Prometheus、Grafanaを使用し、Collectorの有無と具体的な送信経路はローカル配置実装へ委ねることを決定している
 
@@ -71,7 +71,7 @@ OpenTelemetryを単なる出力AdapterではなくTrace / Logs / Metricsの共�
 
 OpenTelemetry Logsを採用し、OpenTelemetryをTrace / Logs / MetricsのObservability共通基盤とする。1つのInvocationを1つの独立Traceとして追跡し、APIではHTTP SERVER Span、CLIではExecution callee SpanをInvocationのroot Spanとする。UseCaseを呼ぶ場合だけUseCase Spanを作り、PostgreSQL、HTTP、GenAIなどはSemantic Conventionに従う標準Spanを優先する。
 
-RAGScope独自の名前付きイベントはOpenTelemetry LogsのEventRecordとして扱い、同じ事実をSpanとEventRecordへ重複記録しない。typed failureやretry途中の失敗だけを理由にEventRecordを生成しない。例外が処理されないままSpanの外へ伝播する場合は対応SpanをErrorとして再throwし、Logsへ同じ例外を表すEventRecordを1件だけ記録する。
+RAGScope独自の名前付きイベントはOpenTelemetry LogsのEventRecordとして扱い、同じ事実をSpanとEventRecordへ重複記録しない。UseCaseや内部処理が具体的なerror typeで失敗を返したことやretry途中の失敗だけを理由にEventRecordを生成しない。例外が処理されないままSpanの外へ伝播する場合は対応SpanをErrorとして再throwし、Logsへ同じ例外を表すEventRecordを1件だけ記録する。
 
 共通`RAGScopeError`やObservability専用の`ErrorType` / `ErrorClassifier`は設けず、具体的なUseCase / 内部処理のerror typeからAPI / CLI表現、実験結果、Telemetryの`error.type`へ必要な境界で直接変換する。旧独自Logging Runtime、Sink、共有`LogRecord`、固定5段階severity、独自JSON / SQLiteログ表現はObservability共通基盤として維持しない。
 

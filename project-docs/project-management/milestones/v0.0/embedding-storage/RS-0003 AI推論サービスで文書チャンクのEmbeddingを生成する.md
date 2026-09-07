@@ -43,7 +43,7 @@ RS-0012で選定・設計したEmbeddingモデルと固定生成条件に従い�
 - [ ] モデルを読み込めない場合とEmbedding生成に失敗した場合を正常終了と区別できる具体的な機能errorとして扱える
 - [ ] 機能errorをHTTP responseへ変換する境界とTelemetryの`error.type`へ変換する境界を区別し、共通`RAGScopeError`を経由しない
 - [ ] SERVER Spanとモデル / GenAI処理に適用できるSemantic Conventionを優先し、同じ処理を表すRAGScope独自SpanやEventRecordを重複して追加していない
-- [ ] unexpected同期ExceptionはRS-0025の共通境界に従ってSpanとLogsへ反映したうえで再throwされる
+- [ ] 例外が処理されないままSpanの外へ伝播する場合は、RS-0025の共通境界に従ってSpanとLogsへ反映したうえで再throwされる
 
 ### 設計反映と検証
 

@@ -34,7 +34,7 @@ JSON、HTTP、DBなどの外部契約は、対応するJSON Schema、OpenAPI、m
 |---|---|
 | Haskellコードのレイアウト | [`ragscope-app/fourmolu.yaml`](../../ragscope-app/fourmolu.yaml) |
 | 文字コード、改行、インデント | [`.editorconfig`](../../.editorconfig) |
-| 言語、依存、warning、公開モジュール | [`ragscope-app/ragscope.cabal`](../../ragscope-app/ragscope.cabal) |
+| 言語、依存、warning、公開モジュール | [`ragscope-app/packages/ragscope/ragscope.cabal`](../../ragscope-app/packages/ragscope/ragscope.cabal) |
 | 具体的な型と関数 | Haskellソースコード |
 | 具体的なテストケース | Haskellテストコード |
 | 整形、ビルド、テスト、Haddockの実行入口 | [`Makefile`](../../Makefile) |
