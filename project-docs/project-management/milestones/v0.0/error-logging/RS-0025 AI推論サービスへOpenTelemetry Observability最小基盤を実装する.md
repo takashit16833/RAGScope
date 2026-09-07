@@ -41,12 +41,12 @@ AI推論サービスのproduction Python実装がまだ存在しないため、�
 - [ ] EventRecordと通常のLogRecordを現在のTrace Contextに関連付けて記録できる
 - [ ] 標準計装が提供するMetricを利用できるSDK構成を持ち、RS-0023で定義していない独自Metricを共通基盤として追加していない
 - [ ] 具体的な機能error typeからTelemetryの`error.type`へ変換でき、共通`RAGScopeError`やObservability専用error分類を設けていない
-- [ ] unexpected同期Exceptionを対応SpanへErrorとして反映し、LogsのException EventRecordを重複なく1件記録して再throwできる
+- [ ] 例外が処理されないままSpanの外へ伝播する場合、そのSpanをErrorとして記録し、Logsへ同じ例外を表すEventRecordを重複なく1件記録して再throwできる
 - [ ] Telemetry基盤自身の失敗が機能処理の成功・失敗を置き換えず、失敗したTelemetry経路へ再帰的に記録されない
 
 ### 検証
 
-- [ ] Context、Span、Logs、Exception、Exporter失敗、flush / shutdownの主要な正常系・異常系を自動テストで確認できる
+- [ ] Context、Span、Logs、例外、Exporter失敗、flush / shutdownの主要な正常系・異常系を自動テストで確認できる
 - [ ] AI推論サービス側のプロジェクト共通テスト・品質検査入口を実行し、追加したテストを含めて成功する
 
 ## 対象外

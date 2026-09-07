@@ -40,17 +40,17 @@ UseCaseや内部処理をOpenTelemetry SDKへ直接依存させず、RAGScope側
 - [ ] OpenTelemetry Metricsを利用できるSDK構成を持ち、標準計装が提供するMetricを後続機能から利用できる
 - [ ] RS-0023で定義していないRAGScope独自Metricを共通基盤として追加していない
 
-### 失敗とException
+### 失敗と例外
 
 - [ ] 具体的なUseCase / 内部処理のerror typeからTelemetryの`error.type`へ変換でき、共通`RAGScopeError`、`ErrorType`、`ErrorClassifier`を新設していない
-- [ ] unexpected同期Exceptionが追跡対象から外へ伝播する場合、対応SpanをErrorとしてExceptionを再throwできる
-- [ ] 同じunexpected同期ExceptionについてLogsのException EventRecordを1件だけ記録し、SDK helperが同じ事実のSpan Eventを重複生成する場合はAdapter側で抑制できる
+- [ ] 例外が処理されないままSpanの外へ伝播する場合、対応SpanをErrorとして例外を再throwできる
+- [ ] 同じ例外についてLogsのEventRecordを1件だけ記録し、SDKのAPIが同じ事実のSpan Eventを自動生成する場合はAdapter側で抑制できる
 - [ ] Telemetryの記録・export失敗だけを理由に、成功した機能処理を機能上の失敗へ変更しない
 - [ ] Telemetry基盤自身の失敗を、失敗した同じTelemetry経路へ再帰的に記録しない
 
 ### 検証
 
-- [ ] Contextの親子関係、Span Status / `error.type`、Logsとの関連付け、Exceptionの重複防止を自動テストで確認できる
+- [ ] Contextの親子関係、Span Status / `error.type`、Logsとの関連付け、例外の重複防止を自動テストで確認できる
 - [ ] flush / shutdownと、制御されたExporter失敗時の挙動を自動テストまたは実行で確認できる
 - [ ] プロジェクトで定めたRAGScopeアプリケーション側のテスト・品質検査を実行し、追加したテストを含めて成功する
 
