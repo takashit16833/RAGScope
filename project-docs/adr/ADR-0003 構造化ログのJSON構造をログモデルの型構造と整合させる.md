@@ -6,6 +6,8 @@ status: superseded
 
 > [!note] 後続ADR
 > 本判断は[ADR-0004 — 構造化ログの内部イベントモデルを通常イベントと失敗イベントの直和として表現する](<./ADR-0004 構造化ログの内部イベントモデルを通常イベントと失敗イベントの直和として表現する.md>)により置き換えられた。JSON上の`spec`への集約、外部表現をHaskellのconstructor名から独立させること、JSON SchemaをJSON契約の正本とすることはADR-0004で引き継ぐ一方、内部モデルを外部表現と同型にすること自体は設計目標としない。
+>
+> その後、ADR-0004、ADR-0005を経て[ADR-0006](<./ADR-0006 OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける.md>)によりObservability全体が再設計された。以下の`structured-logging`設計書名は本ADR採用時点の成果物として保持し、現在設計は[Observability設計](../design/observability/README.md)を参照する。
 
 ## 背景
 
@@ -35,13 +37,15 @@ RS-0015でSchema適合テストを追加する前に、JSON契約も意味上の
 
 - `log-event.schema.json`とvalid / invalid fixtureを新しいJSON構造へ更新する。
 - RAGScopeアプリケーションのJSON変換を、Generic導出と必要最小限の型別変換を中心とした実装へ整理する。
-- 現在設計を[構造化ログ設計](../design/structured-logging/構造化ログ設計.md)、[RAGScopeアプリケーション構造化ログ設計](../design/structured-logging/RAGScopeアプリケーション構造化ログ設計.md)、[構造化ログJSON表現設計](../design/structured-logging/構造化ログJSON表現設計.md)の責務へ分けて管理する。
+- 当時の現在設計を`構造化ログ設計`、`RAGScopeアプリケーション構造化ログ設計`、`構造化ログJSON表現設計`の責務へ分けて管理する。
 - RS-0015のSchema適合テストは、更新後のSchemaとfixtureを対象に実装する。
 
 ## 関連文書
 
 - [ADR-0002 — 共通実行基盤の契約とコンポーネント実装を分離する](<./ADR-0002 共通実行基盤の契約とコンポーネント実装を分離する.md>)
-- [構造化ログ設計](../design/structured-logging/構造化ログ設計.md)
-- [RAGScopeアプリケーション構造化ログ設計](../design/structured-logging/RAGScopeアプリケーション構造化ログ設計.md)
-- [構造化ログJSON表現設計](../design/structured-logging/構造化ログJSON表現設計.md)
+- `構造化ログ設計`（当時の設計書、現在は削除済み）
+- `RAGScopeアプリケーション構造化ログ設計`（当時の設計書、現在は削除済み）
+- `構造化ログJSON表現設計`（当時の設計書、現在は削除済み）
+- [Observability設計](../design/observability/README.md)
+- [ADR-0006](<./ADR-0006 OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける.md>)
 - [RS-0015 RAGScopeアプリケーションの共通エラー・構造化ログ基盤を実装する](<../project-management/milestones/v0.0/error-logging/RS-0015 RAGScopeアプリケーションの共通エラー・構造化ログ基盤を実装する.md>)
