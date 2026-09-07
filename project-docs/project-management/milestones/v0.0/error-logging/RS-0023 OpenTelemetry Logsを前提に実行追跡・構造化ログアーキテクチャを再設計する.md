@@ -28,7 +28,7 @@ OpenTelemetryを単なる出力AdapterではなくTrace / Logs / Metricsの共�
 
 ### 実行追跡・Logs・Metricsアーキテクチャ
 
-- [x] 1 Invocation = 1 Trace、API / CLIのentry Span、UseCase Span、標準Span、Span Status、Trace Context伝播を決定している
+- [x] 1 Invocation = 1 Trace、API / CLIでInvocation全体を追跡するroot Span、UseCase Span、標準Span、Span Status、Trace Context伝播を決定している
 - [x] Span、attributes、EventRecord、通常のLogRecordの使い分けと、重複記録を避ける判断基準を決定している
 - [x] typed failure、unexpected同期Exception、async interruption / cancellation、Telemetry基盤自身の失敗をApplication結果とTelemetryへどう反映するか決定している
 - [x] 実験結果、Trace / Span、Metricsの役割を分け、RS-0023では独自Metricを定義しないことを決定している
@@ -69,7 +69,7 @@ OpenTelemetryを単なる出力AdapterではなくTrace / Logs / Metricsの共�
 
 ## 結果
 
-OpenTelemetry Logsを採用し、OpenTelemetryをTrace / Logs / MetricsのObservability共通基盤とする。1つのInvocationを1つの独立Traceとして追跡し、APIはHTTP SERVER Span、CLIはExecution callee Spanをentry Spanとする。UseCaseを呼ぶ場合だけUseCase Spanを作り、PostgreSQL、HTTP、GenAIなどはSemantic Conventionに従う標準Spanを優先する。
+OpenTelemetry Logsを採用し、OpenTelemetryをTrace / Logs / MetricsのObservability共通基盤とする。1つのInvocationを1つの独立Traceとして追跡し、APIではHTTP SERVER Span、CLIではExecution callee SpanをInvocationのroot Spanとする。UseCaseを呼ぶ場合だけUseCase Spanを作り、PostgreSQL、HTTP、GenAIなどはSemantic Conventionに従う標準Spanを優先する。
 
 RAGScope独自の名前付きイベントはOpenTelemetry LogsのEventRecordとして扱い、同じ事実をSpanとEventRecordへ重複記録しない。typed failureやretry途中の失敗だけを理由にEventRecordを生成しない。unexpected同期Exceptionは対応SpanをErrorにして再throwし、Logsへ同じExceptionを表すEventRecordを1件だけ記録する。
 

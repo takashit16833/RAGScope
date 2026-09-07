@@ -57,7 +57,7 @@ UseCaseや内部処理をOpenTelemetry SDKへ直接依存させず、RAGScope側
 ## 対象外
 
 - 個別UseCaseや文書処理、Embedding通信、DB処理に固有のSpan、EventRecord、属性の網羅的な実装
-- RAGScope API / CLIの具体的なentry Span実装が、そのインターフェース自体の実装と不可分な場合の先行実装
+- RAGScope API / CLIでInvocation全体を追跡するroot Spanの具体的な実装が、そのインターフェース自体の実装と不可分な場合の先行実装
 - AI推論サービス側のOpenTelemetry基盤
 - Tempo、Loki、Prometheus、Grafanaのローカル構成
 - OpenTelemetry Collectorの配置判断
