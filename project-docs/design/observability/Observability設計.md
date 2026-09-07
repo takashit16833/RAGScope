@@ -4,7 +4,7 @@ note_type: design
 # Observability設計
 
 > [!abstract] この文書の役割
-> OpenTelemetryをRAGScopeのObservability共通基盤としてどこまで使用し、Trace・Logs・Metricsをどう分担し、RAGScopeとOpenTelemetryの責務をどこで分けるかを定義する。
+> OpenTelemetryをRAGScopeのObservability共通基盤としてどう使うか、Trace・Logs・Metricsに何を記録するか、RAGScopeとOpenTelemetryがそれぞれ何を担当するかを定義する。
 
 ## 1. 基本方針
 
@@ -21,26 +21,26 @@ RAGScopeはOpenTelemetryをObservabilityの共通基盤として使用する。T
 
 ## 2. RAGScopeとOpenTelemetryの責務境界
 
-RAGScopeアプリケーションは、処理順序、再試行、タイムアウト、fallback、処理継続・終了を決定する。Telemetryはこれらを観測するが、処理制御を決定しない。AI推論サービスも、RAGScopeアプリケーションから依頼されたモデル・Tokenizer依存の処理結果を返し、Telemetryを理由に機能処理の結果を変更しない。
+RAGScopeアプリケーションは、処理順序、再試行、タイムアウト、fallback、処理を続けるか終了するかを決定する。Telemetryはその処理で何が起きたかを記録するが、処理の進め方や機能上の結果は決めない。AI推論サービスも、RAGScopeアプリケーションから依頼されたモデル・Tokenizer依存の処理結果を返し、Telemetryを理由に機能処理の結果を変更しない。
 
-OpenTelemetryのSemantic Conventionが対象の処理・イベント・Metricに適用できる場合は、その名前、属性、Status、`error.type`、Metricを優先する。RAGScope独自のSpan、EventRecord、属性、Metricを、同じ意味を重複して表す目的では追加しない。
+OpenTelemetryのSemantic Conventionが対象の処理・イベント・Metricに適用できる場合は、Semantic Conventionで定められた名前、属性、Status、`error.type`、Metricを使用する。同じ意味を表すRAGScope独自のSpan、EventRecord、属性、Metricは追加しない。
 
-RAGScopeのUseCaseや内部処理を実装するmoduleは、OpenTelemetry SDKを直接利用することを前提にしない。RAGScope側にはTelemetryを使用する境界を置き、その外側のOpenTelemetry AdapterがSDKへ接続する。具体的なpackage、module、型、関数名、公開APIは実装時のコードを正本とする。
+UseCaseや内部処理を実装するmoduleからOpenTelemetry SDKを直接呼ばない。これらの処理は、RAGScope側に用意したTelemetry記録用の窓口を使用する。その窓口のOpenTelemetry Adapter実装がSDKを呼び出す。具体的なpackage、module、型、関数名、公開APIは実装時のコードを正本とする。
 
 OpenTelemetry SDKへ次を委ねる。
 
-- Contextの保持と伝播
+- Trace ContextなどOpenTelemetry Contextの保持と伝播
 - Span / LogRecord / MetricのSDK上の記録
 - Processor / Exporter
 - batching
 - flush / shutdown
 - Telemetryの送信
 
-RAGScope独自のLogging Runtime、Sink、送信キューなど、OpenTelemetry SDKと同じ責務の実行基盤は設けない。
+RAGScope独自のLogging Runtime、Sink、送信キューなど、OpenTelemetry SDKと同じ役割を持つ実行基盤は別に作らない。
 
 ## 3. 失敗の扱い
 
-RAGScope共通の`RAGScopeError`やObservability専用の共通エラー分類は設けない。UseCaseや内部処理が持つ具体的なerror typeから、必要な利用境界へ直接変換する。
+RAGScope全体で共通して使う`RAGScopeError`や、Observabilityのためだけの共通エラー分類は作らない。UseCaseや内部処理は、それぞれの処理に必要な具体的なerror typeを持つ。そのエラーをAPI / CLIで利用者へ返すとき、実験結果へ保存するとき、Telemetryの`error.type`へ記録するときに、それぞれ必要な形へ変換する。
 
 ```text
 具体的なUseCase / 内部処理のerror type
@@ -49,9 +49,11 @@ RAGScope共通の`RAGScopeError`やObservability専用の共通エラー分類�
 └─ Telemetryのerror.type
 ```
 
-RAGScope独自SpanやEventRecordで`error.type`が必要な場合は、具体的なerror typeの値から予測可能で低cardinalityな値へ変換する。詳細な失敗理由やcauseを`error.type`へ詰め込まず、元の具体的なerror値を失わない。
+OpenTelemetryのSemantic Conventionに該当せず、RAGScopeが用途を定めるSpanやEventRecordで`error.type`が必要な場合は、同じ種類のエラーなら同じ`error.type`になるようにする。ID、ファイル名、エラーメッセージなど実行ごとに変わる情報は含めない。これにより、`error.type`に現れる値の種類を限定し、low cardinalityに保つ。
 
-Telemetryの記録・export失敗は、成功していた機能処理を機能上の失敗へ変更しない。Telemetry基盤自身の失敗を、失敗した同じTelemetry経路へ再帰的に記録しない。具体的なSDK呼び出しの失敗処理とshutdown時の扱いは、各コンポーネントの実装・設定・テストを正本とする。
+Telemetry用の`error.type`へ変換しても、UseCaseや内部処理が持つ元のerror値を、その`error.type`で置き換えない。詳細な失敗理由やcauseは元のerror値に残し、`error.type`へ詰め込まない。
+
+Telemetryの記録やexportが失敗しても、成功していたRAGScopeの機能処理を失敗扱いには変更しない。また、OpenTelemetryへの記録自体が失敗した場合、その失敗を同じOpenTelemetry経由で記録しようとしない。具体的なSDK呼び出しの失敗処理とshutdown時の扱いは、各コンポーネントの実装・設定・テストを正本とする。
 
 ## 4. ローカルでの確認
 
@@ -62,7 +64,7 @@ Telemetryの記録・export失敗は、成功していた機能処理を機能�
 - Metrics: Prometheus
 - 横断的な検索・可視化: Grafana
 
-RAGScopeアプリケーションとAI推論サービスはOpenTelemetryでTelemetryを生成し、同じTrace Contextを利用してコンポーネント境界をまたぐ処理を関連付ける。ローカル環境のコンポーネント配置は[システムアーキテクチャ](../システムアーキテクチャ.md)を正本とする。
+RAGScopeアプリケーションとAI推論サービスはOpenTelemetryでTelemetryを生成する。コンポーネント間で同じTrace Contextを引き継ぎ、両方の処理を同じTraceとして追跡できるようにする。ローカル環境のコンポーネント配置は[システムアーキテクチャ](../システムアーキテクチャ.md)を正本とする。
 
 consoleなどのExporterは開発・テスト時の補助確認に使用してよいが、ローカルで一連のTelemetryを確認する主たるbackendにはしない。
 

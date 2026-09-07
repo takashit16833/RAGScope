@@ -20,7 +20,7 @@ Metricsは実験結果を置き換えない。個別の実行結果をMetricsか
 
 RS-0023の共通設計ではRAGScope独自Metricを定義しない。HTTP、PostgreSQL、GenAIなどOpenTelemetry Semantic Conventionで利用できる標準Metricがあり、実装から必要な値を取得できる場合はそのMetricを使用する。
 
-Metric attributesへ、実験ID、評価データID、文書ID、文書チャンクID、TraceId、SpanIdなど実行ごとに高cardinalityとなる識別子を付与しない。
+実験ID、評価データID、文書ID、文書チャンクID、TraceId、SpanIdのように、実行ごとにほぼ異なる値になる識別子はMetric attributesへ付与しない。こうした値を入れると、Metricが実行ごとに異なる属性値の組み合わせを大量に持つことになり、high cardinalityになるためである。
 
 ## 3. 性能値の配置
 
@@ -33,6 +33,8 @@ Metric attributesへ、実験ID、評価データID、文書ID、文書チャン
 | 生成token数 | 1件ごとの正確な値を保存する | 必要なSpan属性が標準規約で定義される場合は従う | 正確な値を取得できる場合は`gen_ai.client.token.usage`を使用する |
 | DB client処理時間 | 実験上必要な場合だけ結果として保存する | DB client Span | `db.client.operation.duration`が適用できる場合に利用する |
 | HTTP client処理時間 | 実験上必要な場合だけ結果として保存する | HTTP client Span | `http.client.request.duration`が適用できる場合に利用する |
+
+TTFTをTrace / Span上でどの属性として表すかは、この共通設計では固定しない。機能固有のSpanや属性を設計するときに、適用できるOpenTelemetry Semantic Conventionと実装から取得できる値を確認して決定する。
 
 TTFTの実験上の正確な値は、AI推論サービスが生成を開始してから最初のtokenを生成するまでを基準とし、RAGScopeアプリケーションが最初のHTTP chunkを受信するまでの時間とは区別する。AI推論サービスからこの値やtoken数をどの通信項目で返すかは、回答生成通信を設計するときの機械可読な契約で定義する。
 
