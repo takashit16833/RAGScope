@@ -36,7 +36,7 @@ UseCaseや内部処理をOpenTelemetry SDKへ直接依存させず、RAGScope側
 ### Span・Logs・Metrics
 
 - [ ] RAGScope独自Spanを開始・終了し、その処理自身の最終結果に応じてStatusと`error.type`を設定できる
-- [ ] OpenTelemetry LogsのEventRecordと通常のLogRecordを現在のTrace Contextに関連付けて記録できる
+- [ ] OpenTelemetry LogsのEventRecordと通常LogRecordを現在のTrace Contextに関連付けて記録できる
 - [ ] OpenTelemetry Metricsを利用できるSDK構成を持ち、標準計装が提供するMetricを後続機能から利用できる
 - [ ] RS-0023で定義していないRAGScope独自Metricを共通基盤として追加していない
 

@@ -38,7 +38,7 @@ AI推論サービスのproduction Python実装がまだ存在しないため、�
 ### Span・Logs・Metricsと失敗
 
 - [ ] RAGScope独自Spanを開始・終了し、その処理自身の最終結果に応じてStatusと`error.type`を設定できる
-- [ ] EventRecordと通常のLogRecordを現在のTrace Contextに関連付けて記録できる
+- [ ] EventRecordと通常LogRecordを現在のTrace Contextに関連付けて記録できる
 - [ ] 標準計装が提供するMetricを利用できるSDK構成を持ち、RS-0023で定義していない独自Metricを共通基盤として追加していない
 - [ ] 具体的な機能error typeからTelemetryの`error.type`へ変換でき、共通`RAGScopeError`やObservability専用error分類を設けていない
 - [ ] 例外が処理されないままSpanの外へ伝播する場合、そのSpanをErrorとして記録し、Logsへ同じ例外を表すEventRecordを重複なく1件記録して再throwできる

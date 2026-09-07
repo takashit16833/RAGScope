@@ -29,7 +29,7 @@ OpenTelemetryを単なる出力AdapterではなくTrace / Logs / Metricsの共�
 ### 実行追跡・Logs・Metricsアーキテクチャ
 
 - [x] 1 Invocation = 1 Trace、API / CLIでInvocation全体を追跡するroot Span、UseCase Span、標準Span、Span Status、Trace Context伝播を決定している
-- [x] Span、attributes、EventRecord、通常のLogRecordの使い分けと、重複記録を避ける判断基準を決定している
+- [x] Span、attributes、EventRecord、通常LogRecordの使い分けと、重複記録を避ける判断基準を決定している
 - [x] typed failure、例外、中断・キャンセル、Telemetry基盤自身の失敗をApplication結果とTelemetryへどう反映するか決定している
 - [x] 実験結果、Trace / Span、Metricsの役割を分け、RS-0023では独自Metricを定義しないことを決定している
 - [x] ローカルbackendとしてTempo、Loki、Prometheus、Grafanaを使用し、Collectorの有無と具体的な送信経路はローカル配置実装へ委ねることを決定している
