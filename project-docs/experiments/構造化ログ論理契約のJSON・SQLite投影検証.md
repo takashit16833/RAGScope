@@ -3,27 +3,30 @@ note_type: experiment
 ---
 # 構造化ログ論理契約のJSON・SQLite投影検証
 
+> [!note] 現在の設計との関係
+> 本ExperimentはRS-0020時点の`design/logging/`配下の設計を対象にした検証記録である。これらの設計はその後のRS-0023・ADR-0006で置き換えられ、現在の正本から削除されている。本Experimentの検証結果は当時の設計に対する実測結果として保持し、現在のObservability設計は[Observability設計](../design/observability/README.md)と[ADR-0006](<../adr/ADR-0006 OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける.md>)を参照する。
+
 ## 仮説
 
-[実行追跡・構造化ログ契約設計](../design/logging/実行追跡・構造化ログ契約設計.md)と[構造化ログ外部表現共通設計](../design/logging/構造化ログ外部表現共通設計.md)で定義した論理ログは、JSONとSQLiteのどちらか一方の物理構造を前提にせず、それぞれへ直接投影して元の論理ログへ復元できる。
+当時の`実行追跡・構造化ログ契約設計`と`構造化ログ外部表現共通設計`で定義した論理ログは、JSONとSQLiteのどちらか一方の物理構造を前提にせず、それぞれへ直接投影して元の論理ログへ復元できる。
 
 この仮説が成立するなら、JSONのobject階層やSQLiteのtable・local keyなど、形式固有の都合を論理契約へ追加する必要はない。
 
 ## 検証条件
 
-検証対象は`RS-0020/json-sqlite-projection` branchの`5e9ee1daf7ee7ac74a2d7603263c7b0316a5b9b4`を開始点とした現在設計である。
+検証対象は`RS-0020/json-sqlite-projection` branchの`5e9ee1daf7ee7ac74a2d7603263c7b0316a5b9b4`を開始点とした当時の現在設計である。
 
 参照した設計は次のとおりである。
 
-- [実行追跡・構造化ログ契約設計](../design/logging/実行追跡・構造化ログ契約設計.md)
-- [構造化ログ外部表現共通設計](../design/logging/構造化ログ外部表現共通設計.md)
-- [構造化ログJSON表現設計](../design/logging/構造化ログJSON表現設計.md)
-- [構造化ログSQLite表現設計](../design/logging/構造化ログSQLite表現設計.md)
+- `実行追跡・構造化ログ契約設計`（当時の設計書、現在は削除済み）
+- `構造化ログ外部表現共通設計`（当時の設計書、現在は削除済み）
+- `構造化ログJSON表現設計`（当時の設計書、現在は削除済み）
+- `構造化ログSQLite表現設計`（当時の設計書、現在は削除済み）
 - [`document.file_not_found`を定義する文書処理設計](../design/features/文書処理設計.md)
 
 試作は`logging-json-sqlite-projection/`へ責務ごとに分け、[verify.py](./logging-json-sqlite-projection/verify.py)を実行入口とした。Python標準ライブラリだけを使用し、検証時の環境はPython 3.13.5、SQLite 3.46.1である。
 
-既存の`contracts/logging/v1/log-event.schema.json`は、現在の論理契約より前の`operation`、`execution_id`、通常・失敗イベントの結合を表すため、本検証の入力契約として使用していない。本検証は現在の論理契約と外部表現設計そのものを対象とする。
+既存の`contracts/logging/v1/log-event.schema.json`は、当時の論理契約より前の`operation`、`execution_id`、通常・失敗イベントの結合を表すため、本検証の入力契約として使用していない。本検証は当時の論理契約と外部表現設計そのものを対象とする。
 
 ## 論理fixtureと同値判定
 
@@ -65,7 +68,7 @@ fixture 1の`document_version_id`はドメイン参照の値を属性として�
 
 ### JSON
 
-論理ログから[構造化ログJSON表現設計](../design/logging/構造化ログJSON表現設計.md)へ直接投影した。
+論理ログから当時の`構造化ログJSON表現設計`へ直接投影した。
 
 - 共通情報はroot objectへ置く。
 - `message`が存在しない場合はpropertyを省略し、空文字列なら残す。
@@ -78,7 +81,7 @@ JSONからSQLiteへの変換は行っていない。
 
 ### SQLite
 
-同じ論理fixtureから[構造化ログSQLite表現設計](../design/logging/構造化ログSQLite表現設計.md)へ直接投影した。
+同じ論理fixtureから当時の`構造化ログSQLite表現設計`へ直接投影した。
 
 - 共通情報は`log_record`へ置く。
 - 属性は`log_attribute`、各論理値は`log_value`へ置く。
@@ -172,6 +175,6 @@ fixture 1に含めた`9007199254740993`と`0.123456789012345678901234567890`も�
 
 仮説は、今回の代表fixtureと不正表現の検証範囲で支持された。
 
-現在の論理契約と共通外部表現は、JSONとSQLiteのどちらにも直接投影して同じ論理ログへ復元できる。今回確認した範囲では、特定の外部形式の都合を理由に[実行追跡・構造化ログ契約設計](../design/logging/実行追跡・構造化ログ契約設計.md)または[構造化ログ外部表現共通設計](../design/logging/構造化ログ外部表現共通設計.md)を変更する必要はない。
+当時の論理契約と共通外部表現は、JSONとSQLiteのどちらにも直接投影して同じ論理ログへ復元できる。今回確認した範囲では、特定の外部形式の都合を理由に当時の`実行追跡・構造化ログ契約設計`または`構造化ログ外部表現共通設計`を変更する必要はない。
 
-後続作業では、現在設計と食い違っている既存Schema・実装を、それぞれの正本の責務で見直す。
+後続作業では、当時の設計と食い違っている既存Schema・実装を、それぞれの正本の責務で見直す。
