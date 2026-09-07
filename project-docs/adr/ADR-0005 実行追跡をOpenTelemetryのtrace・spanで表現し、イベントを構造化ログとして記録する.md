@@ -1,8 +1,11 @@
 ---
 note_type: adr
-status: accepted
+status: superseded
 ---
 # ADR-0005 — 実行追跡をOpenTelemetryのtrace・spanで表現し、イベントを構造化ログとして記録する
+
+> [!note] 後続の判断
+> この判断は[ADR-0006 — OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける](<./ADR-0006 OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける.md>)によって置き換えられた。
 
 ## 背景
 
