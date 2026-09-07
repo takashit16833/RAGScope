@@ -8,113 +8,88 @@ epic: "[[v0.0 文書チャンクのEmbedding生成と保存]]"
 
 ## 目的
 
-v0.0で文書チャンクとEmbeddingをPostgreSQLへ保存するためには、RS-0002で生成した文書チャンクをRAGScopeアプリケーションからAI推論サービスへ渡し、RS-0003で実装した文書チャンクのEmbedding生成APIから、各文書チャンクに対応するEmbeddingを受け取れる必要がある。
+RS-0002で生成した文書チャンクをRAGScopeアプリケーションからAI推論サービスへ渡し、RS-0003の文書チャンクEmbedding生成APIから各文書チャンクに対応するEmbeddingをHTTP / JSONで取得する。
 
-このTicketでは、RS-0012の初期設計とOpenAPIに従い、RAGScopeアプリケーションからHTTP / JSONでAI推論サービスを呼び出す。1回のHTTPリクエストは、RS-0017で実装した再試行の実行機構とタイムアウト制御を通じて実行する。元文書を識別する情報、`chunkIndex`、本文と、AI推論サービスから返されたEmbeddingの対応関係を検証し、後続の保存処理から利用できる値として取得する。
+1回のHTTP requestはRS-0017で実装する再試行・timeout制御を通じて実行する。RAGScopeアプリケーションは現在のOpenTelemetry Trace ContextをAI推論サービスへ伝播し、各HTTP attemptを標準HTTP client計装で追跡する。
 
 ## 前提
 
 - [RS-0012 文書チャンクのEmbedding生成と保存を設計する](<./RS-0012 文書チャンクのEmbedding生成と保存を設計する.md>)が完了している
 - [RS-0003 AI推論サービスで文書チャンクのEmbeddingを生成する](<./RS-0003 AI推論サービスで文書チャンクのEmbeddingを生成する.md>)が完了している
 - [RS-0017 文書チャンクのEmbedding要求に必要なretry executorとtimeout制御を実装する](<../embedding-request-reliability/RS-0017 文書チャンクのEmbedding要求に必要なretry executorとtimeout制御を実装する.md>)が完了している
-- `RS-0002`が完了し、文書チャンクをHaskellの値として取得できる
+- [RS-0024 RAGScopeアプリケーションへOpenTelemetry Observability最小基盤を実装する](<../error-logging/RS-0024 RAGScopeアプリケーションへOpenTelemetry Observability最小基盤を実装する.md>)が完了している
+- RS-0002が完了し、文書チャンクをHaskellの値として取得できる
 
 ## 完了条件
 
-### APIリクエストと実行追跡
+### API requestとTrace Context
 
-- [ ] RAGScopeアプリケーションからAI推論サービスの文書チャンクのEmbedding生成APIへHTTP / JSONでリクエストを送信できる
-- [ ] 1件以上の文書チャンクについて、元文書を識別する情報、`chunkIndex`、本文をAPIリクエストへ変換できる
-- [ ] 現在のCLIコマンドに紐づく`execution_id`をOpenAPIで定めた方法で各HTTPリクエストへ付与し、AI推論サービスへ引き継げる
-- [ ] 再試行による各試行でも同じCLIコマンドの`execution_id`を引き継ぎ、試行ごとに新しい`execution_id`を生成していない
+- [ ] RAGScopeアプリケーションからAI推論サービスのEmbedding生成APIへHTTP / JSONでrequestを送信できる
+- [ ] 1件以上の文書チャンクについて、元文書を識別する情報、`chunkIndex`、本文をAPI requestへ変換できる
+- [ ] 現在のOpenTelemetry Trace Contextを各HTTP requestへinjectし、AI推論サービス側で同じTraceを継続できる
+- [ ] Trace ContextのHTTP表現は採用するOpenTelemetry propagator / HTTP instrumentationに従い、RAGScope独自の`execution_id`を追加していない
+- [ ] retryの各attemptを、適用できるHTTP client Semantic Conventionに従う個別のclient Spanとして追跡できる
 
-### 再試行・タイムアウトの適用
+### 再試行・timeout
 
-- [ ] 1回のHTTPリクエストを表す処理がRS-0017の実行機構へ接続され、独自の再試行処理を実装していない
-- [ ] 機能別設計で定めたタイムアウトが実際の文書チャンクのEmbedding要求へ適用されている
-- [ ] 一時的失敗かつ再試行しても安全な場合にだけ、機能別設計で定めた方針に従って再試行できる
-- [ ] 再試行対象外のHTTP失敗、AI推論サービスの明示的な失敗、不正なJSON、入力・契約違反、ベクトル検証失敗を追加試行せず返せる
-- [ ] 再試行を行わない失敗、再試行後の成功、試行上限到達、タイムアウトを、共通エラーと構造化ログで区別して確認できる
+- [ ] 1回のHTTP requestを表す処理がRS-0017の実行機構へ接続され、独自のretry loopを実装していない
+- [ ] 機能設計で定めたtimeoutが実際のEmbedding requestへ適用されている
+- [ ] 一時的失敗かつ再試行しても安全な場合だけ、定めた方針に従ってretryできる
+- [ ] retry対象外のHTTP失敗、AI推論サービスの明示的失敗、不正JSON、入力・契約違反、vector検証失敗を追加attemptなしで返せる
+- [ ] 中間attemptが失敗しても最終成功したrequest全体を失敗として扱わず、各SpanのStatusをそのSpan自身の最終結果から決定している
 
-### Embeddingの取得と対応検証
+### Embedding取得と検証
 
-- [ ] AI推論サービスから成功応答を受け取り、各文書チャンクに対応するEmbeddingをHaskellの値として取得できる
+- [ ] 成功responseから各文書チャンクに対応するEmbeddingをHaskellの値として取得できる
 - [ ] 入力した文書チャンク件数と返却されたEmbedding件数が一致することを確認できる
-- [ ] 入力した文書チャンクとEmbeddingの対応を、OpenAPIで定めた順序または識別子によって一意に検証できる
-- [ ] 取得した各Embeddingが設計で定めたベクトル次元と一致し、`NaN`や無限大など利用できない値を含まないことを確認できる
-- [ ] 元文書を識別する情報、`chunkIndex`、本文、対応するEmbeddingを保持し、後続の保存処理へ渡せる値を取得できる
-- [ ] 件数不一致、識別子または順序の不整合、ベクトル次元の不一致を検出し、不正な対応関係を後続処理へ渡さない
+- [ ] 文書チャンクとEmbeddingの対応をOpenAPIで定めた順序または識別子によって一意に検証できる
+- [ ] 各Embeddingが設計で定めたvector次元と一致し、`NaN`や無限大を含まないことを確認できる
+- [ ] 元文書を識別する情報、`chunkIndex`、本文、対応するEmbeddingを失わず後続の保存処理へ渡せる
+- [ ] 件数不一致、対応不整合、vector次元不一致を検出し、不正な値を後続へ渡さない
 
-### エラー処理・設計反映・検証
+### 失敗・Telemetry・検証
 
-- [ ] AI推論サービスへ接続できない場合と、AI推論サービスがEmbedding生成失敗を返した場合を、正常なEmbedding取得と区別して扱える
-- [ ] HTTPの失敗ステータス、不正なJSON、必須項目の欠落を、それぞれ正常な応答と区別して扱える
-- [ ] リクエストの組み立て、レスポンスのJSON復元、文書チャンクとEmbeddingの対応、ベクトル検証、主要な異常系を自動テストで確認できる
-- [ ] テスト用サーバーまたは同等の制御された境界で、OpenAPIどおりの`execution_id`が各HTTPリクエストへ付与されていることを確認できる
-- [ ] テスト用サーバーまたは同等の制御された境界を使用し、一時的失敗後の成功、再試行しない失敗、試行上限到達、タイムアウトをAPIクライアントとの結合テストで確認できる
-- [ ] 実際に起動したAI推論サービスをRAGScopeアプリケーションから呼び出し、複数の文書チャンクに対応するEmbeddingを取得できることを結合テストまたは実行によって確認できる
-- [ ] RAGScopeアプリケーション側の実装とOpenAPIの契約が一致している
-- [ ] 実装で具体化または変更された文書チャンクのEmbedding取得フローが`design/Embedding生成設計.md`と`design/リトライ・タイムアウト設計.md`へ反映されている
-- [ ] 実装、OpenAPI、Embedding生成設計、リトライ・タイムアウト設計に解消していない差異がない
-- [ ] プロジェクトで定めたRAGScopeアプリケーション側のテストコマンドを実行し、追加したテストを含めて成功する
+- [ ] 接続失敗、HTTP失敗status、不正JSON、AI推論サービスの機能errorを正常なEmbedding取得と区別して具体的なerror typeで扱える
+- [ ] 具体的なerror typeから利用者側の失敗表現とTelemetryの`error.type`へ必要な境界で変換し、共通`RAGScopeError`を経由しない
+- [ ] HTTP clientのSemantic Conventionと標準計装を優先し、同じrequestを表す独自Span / EventRecordを重複追加していない
+- [ ] test serverまたは同等の境界でTrace Contextがrequestへinjectされ、AI推論サービス側で同じTraceIdを継続できることを確認している
+- [ ] 一時的失敗後の成功、retryしない失敗、上限到達、timeoutをclientとの結合テストで確認できる
+- [ ] 実際のAI推論サービスから複数文書チャンクのEmbeddingを取得できることを結合テストまたは実行で確認できる
+- [ ] RAGScopeアプリケーション側実装とOpenAPIが一致し、設計・契約・テストに解消していない差異がない
+- [ ] RAGScopeアプリケーション側のテスト・品質検査を実行し、追加したテストを含めて成功する
 
 ## 対象外
 
-- AI推論サービスでのモデル選定、モデル・Tokenizerの読み込み、Embedding生成APIの実装
-- Embedding生成APIの契約をゼロから設計する作業
-- 再試行・タイムアウトの方針と実行機構をゼロから設計・実装する作業
-- PostgreSQL / pgvectorの導入、DBスキーマ、マイグレーション
-- 文書チャンクとEmbeddingのPostgreSQLへの保存
-- 保存済みデータの読み出し
-- 質問文の入力と質問Embeddingの生成
-- dense検索、全文検索、hybrid検索、`reranking`
-- 生成モデルによる回答生成と引用
-- 複数のEmbeddingモデルまたは生成条件の切り替え・比較
-- 文書チャンクのEmbedding要求以外の処理種別への再試行・タイムアウト適用
-- 文書チャンクのEmbedding要求以外の処理種別に固有の再実行・重複防止
-- 大規模なバッチ処理、非同期ジョブ、並列リクエスト
+- AI推論サービスでのモデル選定・Embedding生成API実装
+- retry / timeoutの共通方針と実行機構の再設計
+- PostgreSQL / pgvectorへの保存
+- 質問Embedding、dense検索、`reranking`、回答生成
+- 文書チャンクEmbedding request以外の処理へのretry / timeout適用
+- 大規模batch、非同期job、並列request
+- Tempo / Loki / Prometheus / Grafanaのローカル環境構築
 - AWSへの配置
 
 ## 関連文書
 
-- [RAGScope要求定義「2.2 検索」](<../../../../RAGScope要求定義.md#2.2 検索>)
-- [RAGScope要求定義「3.3 信頼性と保守性」](<../../../../RAGScope要求定義.md#3.3 信頼性と保守性>)
-- [システムアーキテクチャ「3.1 RAGScopeアプリケーションの責務境界」](<../../../../design/システムアーキテクチャ.md#3.1 RAGScopeアプリケーションの責務境界>)
-- [システムアーキテクチャ「3.2 AI推論サービスの責務境界」](<../../../../design/システムアーキテクチャ.md#3.2 AI推論サービスの責務境界>)
-- [システムアーキテクチャ「3.4 共通実行基盤の責務境界」](<../../../../design/システムアーキテクチャ.md#3.4 共通実行基盤の責務境界>)
-- [システムアーキテクチャ「5. RAGScopeアプリケーションとAI推論サービスの通信」](<../../../../design/システムアーキテクチャ.md#5. RAGScopeアプリケーションとAI推論サービスの通信>)
-- [システムアーキテクチャ「6. 文書取り込みの全体フロー」](<../../../../design/システムアーキテクチャ.md#6. 文書取り込みの全体フロー>)
-- [ADR-0002 — 共通実行基盤の契約とコンポーネント実装を分離する](<../../../../adr/ADR-0002 共通実行基盤の契約とコンポーネント実装を分離する.md>)
-- [エラー設計](../../../../design/エラー設計.md)
-- [構造化ログ基本設計](../../../../design/構造化ログ基本設計.md)
-- `design/リトライ・タイムアウト設計.md`
-- [文書処理設計](<../../../../design/文書処理設計.md>)
-- `design/Embedding生成設計.md`
-- `design/データモデル設計.md`
-- [RS-0016 文書チャンクのEmbedding要求に必要なretryとtimeoutを設計する](<../embedding-request-reliability/RS-0016 文書チャンクのEmbedding要求に必要なretryとtimeoutを設計する.md>)
-- [RS-0017 文書チャンクのEmbedding要求に必要なretry executorとtimeout制御を実装する](<../embedding-request-reliability/RS-0017 文書チャンクのEmbedding要求に必要なretry executorとtimeout制御を実装する.md>)
+- [システムアーキテクチャ](../../../../design/システムアーキテクチャ.md)
+- [Observability設計](../../../../design/observability/README.md)
+- [実行追跡設計](../../../../design/observability/実行追跡設計.md)
+- [RS-0017](<../embedding-request-reliability/RS-0017 文書チャンクのEmbedding要求に必要なretry executorとtimeout制御を実装する.md>)
+- [RS-0024](<../error-logging/RS-0024 RAGScopeアプリケーションへOpenTelemetry Observability最小基盤を実装する.md>)
 
 ## 実装メモ
 
-- RAGScopeアプリケーションはRAGScopeの処理全体とデータの対応関係を管理し、AI推論サービスはAI推論だけを担当する。
-- APIの正確なパス、リクエスト・レスポンス、項目名、型、エラー形式はOpenAPIを正本として使用する。
-- `execution_id`のHTTP上の表現はOpenAPIを正本とし、RAGScopeアプリケーション側で独自のヘッダー名やリクエスト項目を追加しない。
-- RAGScopeアプリケーション側では、API用の型とRAGScope内部の文書チャンク型を分け、境界で明示的に変換する。
-- AI推論サービスから返された配列を無条件に入力した文書チャンクへ`zip`せず、API契約で定めた対応を検証してから関連付ける。
-- 対応付け後の値は、元文書を識別する情報、`chunkIndex`、元の本文、Embeddingを失わずに保持する。正確な型名や項目名はコードを正本とする。
-- 自動テストではテスト用サーバーまたはHTTPクライアントの差し替えを利用し、実モデルへ毎回依存せずに正常応答と異常応答を確認してよい。
-- 1回のHTTPリクエストを表す処理だけをこのTicketで実装し、試行の反復、待機、タイムアウト、終了判断はRS-0017の実行機構へ委ねる。
-- 初期設計、OpenAPI、再試行・タイムアウト設計を変更する必要が生じた場合は、実装だけを先行させず、同じ変更で正本を更新する。
+- APIの正確なpath、request / response、項目名、型、error形式はOpenAPIを正本とする。
+- Trace ContextのHTTP表現をRAGScope独自fieldとして追加せず、採用するOpenTelemetry propagator / HTTP instrumentationへ委ねる。
+- 各attemptのHTTP client Spanと、retryを含む上位処理のSpanを同一Spanへまとめない。
+- 正確なHaskell型、関数、module、HTTP library、依存packageはコード・設定を正本とする。
 
 ## 結果
 
 > [!note] 完了時に記入
-> - 実装したRAGScopeアプリケーション側のAPIクライアントとデータ変換
-> - 文書チャンクとEmbeddingの対応方法
-> - 適用した再試行・タイムアウトと確認結果
-> - 実行したテストコマンドと結果
-> - AI推論サービスとの実接続確認結果
-> - 確認した主要な異常系
-> - OpenAPI・Embedding生成設計・リトライ・タイムアウト設計へ反映した内容
+> - 実装したAPI clientとデータ変換
+> - Trace Context伝播とHTTP client Spanの確認結果
+> - 適用したretry / timeoutと確認結果
+> - 実行したテスト・品質検査
 > - 既知の制約
 > - 関連Pull Request
