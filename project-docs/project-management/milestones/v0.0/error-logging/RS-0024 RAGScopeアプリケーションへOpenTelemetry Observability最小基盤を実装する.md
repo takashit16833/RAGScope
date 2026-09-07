@@ -1,6 +1,6 @@
 ---
 note_type: ticket
-status: planned
+status: in_progress
 milestone: "[[v0.0]]"
 epic: "[[v0.0 共通エラーと構造化ログによる実行追跡]]"
 ---
