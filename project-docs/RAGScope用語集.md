@@ -17,7 +17,7 @@ DBのテーブル・カラム・制約、APIやJSONの正確な項目、コー�
 
 RAGScopeをどのドメイン領域へ分け、各領域が何を担当するかは[RAGScopeドメインモデル](./design/RAGScopeドメインモデル.md)を正本とする。
 
-この用語集では、ドメインモデルで定義した「文書」「評価データ」「検索・回答生成」「実験・評価」の4領域に沿って、各領域で使用する正式用語と概念の意味を定義する。RAGScopeアプリケーション、AI推論サービス、RAGScope API、RAGScope CLIは、ドメイン領域とは別のシステム上の用語として扱う。
+この用語集では、ドメインモデルで定義した「文書」「評価データ」「検索・回答生成」「実験・評価」の4領域に沿って、各領域で使用する正式用語と概念の意味を定義する。RAGScopeアプリケーション、AI推論サービス、RAGScope API、RAGScope CLI、Invocationは、ドメイン領域とは別のシステム上の用語として扱う。
 
 ### 主要概念の関係
 
@@ -144,6 +144,7 @@ RAGScopeを構成するコンポーネントと、利用者向けインターフ
 | [AI推論サービス](#ai推論サービス) | モデルやTokenizerに依存する計算を担当するコンポーネント |
 | [RAGScope API](#ragscope-api) | RAGScopeアプリケーションを外部から利用するAPIインターフェース |
 | [RAGScope CLI](#ragscope-cli) | RAGScopeアプリケーションをコマンドラインから利用するインターフェース |
+| [Invocation](#invocation) | RAGScope API、RAGScope CLIなどからの1回の外部呼び出し全体 |
 
 ## 1. システム
 
@@ -172,6 +173,14 @@ RAGScopeアプリケーションを利用者や外部ツールから利用する
 RAGScopeアプリケーションをコマンドラインから利用するためのインターフェース。
 
 独立したコンポーネントではない。
+
+### Invocation
+
+RAGScope API、RAGScope CLIなどの利用インターフェースからRAGScopeへ行われた1回の外部呼び出しから、その呼び出しの処理が完了するまでの範囲。
+
+ユースケース実行より広く、入力の受け取り・変換と出力の変換を含む。入力検証などでUseCaseを呼び出さず終了する場合もInvocationは発生する。
+
+Observabilityでは1つのInvocationにつき独立した1つのTraceを作成する。Trace / Spanの構造は[実行追跡設計](./design/observability/実行追跡設計.md)を正本とする。
 
 ## 2. 文書
 
@@ -426,7 +435,7 @@ MarkdownやCSVなどの出力形式そのものは、実験結果の保存デー
 | プロンプト | 正式用語として対象を指す場合は`回答生成用プロンプト`を使う |
 | `評価結果` | `評価データごとの評価結果`または`実験全体の集計結果`を使う |
 | 質問ごとの生データ、質問ごとの詳細な実行結果、質問ごとの結果 | `評価データごとの実行結果` |
-| `実行` | 名詞として単独の正式用語にはしない。実験を指す場合は`実験`、1件の評価データに対する結果を指す場合は`評価データごとの実行結果`を使う |
+| `実行` | 名詞として単独の正式用語にはしない。実験を指す場合は`実験`、1件の評価データに対する結果を指す場合は`評価データごとの実行結果`、利用インターフェースからの1回の外部呼び出し全体を指す場合は`Invocation`を使う |
 | Haskell側 | `RAGScopeアプリケーション` |
 | Python側 | `AI推論サービス` |
 
@@ -438,9 +447,12 @@ MarkdownやCSVなどの出力形式そのものは、実験結果の保存デー
 
 `Embedding`のような一般技術用語でも、RAGScopeで対象を区別する必要がある場合は、`文書チャンクのEmbedding`、`質問Embedding`のように対象を含む正式用語を使用する。
 
+OpenTelemetryのTrace、Span、LogRecord、EventRecord、Metric、Semantic Conventionなどは一般技術用語として扱い、その定義をRAGScope用語集へ複製しない。RAGScope固有のInvocationとこれらの対応関係は[実行追跡設計](./design/observability/実行追跡設計.md)で定める。
+
 ## 関連文書
 
 - [RAGScopeドメインモデル](./design/RAGScopeドメインモデル.md)
 - [RAGScope概要](./RAGScope概要.md)
 - [RAGScope要求定義](./RAGScope要求定義.md)
 - [システムアーキテクチャ](./design/システムアーキテクチャ.md)
+- [実行追跡設計](./design/observability/実行追跡設計.md)
