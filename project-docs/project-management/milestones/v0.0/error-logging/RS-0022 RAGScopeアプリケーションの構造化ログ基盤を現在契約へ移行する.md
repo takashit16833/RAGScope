@@ -6,6 +6,9 @@ epic: "[[v0.0 共通エラーと構造化ログによる実行追跡]]"
 ---
 # RS-0022 RAGScopeアプリケーションの構造化ログ基盤を現在契約へ移行する
 
+> [!note] 後続の設計
+> 本TicketはRS-0023へ移行する前の実装計画を記録する中止済みTicketである。ここで参照した`design/logging/`配下の設計と旧JSON Contractは、その後のRS-0023・ADR-0006で置き換えられ、現在の正本から削除されている。現在のObservability設計は[Observability設計](../../../../design/observability/README.md)と[ADR-0006](<../../../../adr/ADR-0006 OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける.md>)を参照する。
+
 ## 目的
 
 RS-0015で実装したRAGScopeアプリケーションの`ragscope-logging`は、`ExecutionId`、`EventId`、`EventContext`、`OperationName`、通常イベントと失敗イベントの直和、`LogErrorCategory`、`ErrorCode`、`SafeMessage`など、現在の実行追跡・構造化ログ契約で置き換えられた旧論理モデルを表現している。JSON backendも同じ旧構造を既存JSON Schemaへ投影している。
@@ -34,7 +37,7 @@ RS-0015で実装したRAGScopeアプリケーションの`ragscope-logging`は�
 
 ### JSON出力と共有Contract
 
-- [ ] HaskellのJSON serializationが現在の[構造化ログJSON表現設計](../../../../design/logging/構造化ログJSON表現設計.md)へ投影する実装になっている
+- [ ] HaskellのJSON serializationが当時の`構造化ログJSON表現設計`へ投影する実装になっている
 - [ ] JSON出力がRS-0021で更新した共有JSON Schemaへ適合することを自動テストで確認できる
 - [ ] `ragscope-app/test/RAGScope/Logging/SchemaSpec.hs`をRS-0021で更新したfixture名と現在契約へ追随させ、共有fixtureとHaskell生成JSONのSchema適合検証を成功させる
 - [ ] `message`と`attributes`の省略、空文字列・空array・空objectの保持、属性値の再帰構造など、現在のJSON表現に必要な主要境界をテストで確認できる
@@ -65,10 +68,12 @@ RS-0015で実装したRAGScopeアプリケーションの`ragscope-logging`は�
 - [RS-0020 共通エラー・構造化ログの論理契約を再設計する](<./RS-0020 共通エラー・構造化ログの論理契約を再設計する.md>)
 - [RS-0021 構造化ログJSON Schemaとfixtureを現在契約へ更新する](<./RS-0021 構造化ログJSON Schemaとfixtureを現在契約へ更新する.md>)
 - [RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する](<./RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する.md>)
-- [実行追跡・構造化ログ契約設計](../../../../design/logging/実行追跡・構造化ログ契約設計.md)
-- [構造化ログ外部表現共通設計](../../../../design/logging/構造化ログ外部表現共通設計.md)
-- [構造化ログJSON表現設計](../../../../design/logging/構造化ログJSON表現設計.md)
+- `実行追跡・構造化ログ契約設計`（当時の設計書、現在は削除済み）
+- `構造化ログ外部表現共通設計`（当時の設計書、現在は削除済み）
+- `構造化ログJSON表現設計`（当時の設計書、現在は削除済み）
+- [Observability設計](../../../../design/observability/README.md)
 - [ADR-0005 — 実行追跡をOpenTelemetryのtrace・spanで表現し、イベントを構造化ログとして記録する](<../../../../adr/ADR-0005 実行追跡をOpenTelemetryのtrace・spanで表現し、イベントを構造化ログとして記録する.md>)
+- [ADR-0006](<../../../../adr/ADR-0006 OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける.md>)
 
 ## 実装メモ
 
