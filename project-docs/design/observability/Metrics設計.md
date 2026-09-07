@@ -18,7 +18,7 @@ Metricsは実験結果を置き換えない。個別の実行結果をMetricsか
 
 ## 2. Metricの選択
 
-RS-0023の共通設計ではRAGScope独自Metricを定義しない。HTTP、PostgreSQL、GenAIなどOpenTelemetry Semantic Conventionで利用できる標準Metricがあり、実装から必要な値を取得できる場合はそのMetricを使用する。
+RAGScopeで共通に扱うMetricは、OpenTelemetry Semantic Conventionに定義された標準Metricとする。HTTP、PostgreSQL、GenAIなどで利用できる標準Metricがあり、実装から必要な値を取得できる場合にそのMetricを使用する。
 
 実験ID、評価データID、文書ID、文書チャンクID、TraceId、SpanIdのように、実行ごとにほぼ異なる値になる識別子はMetric attributesへ付与しない。こうした値を入れると、Metricが実行ごとに異なる属性値の組み合わせを大量に持つことになり、high cardinalityになるためである。
 
@@ -26,8 +26,8 @@ RS-0023の共通設計ではRAGScope独自Metricを定義しない。HTTP、Post
 
 | 性能値 | 評価データごとの実行結果 | Trace / Span | Metrics |
 |---|---|---|---|
-| 検索全体の処理時間 | 正確な値を保存する | 対応する処理Spanで確認する | 共通のRAGScope独自Metricは作らない |
-| `reranking`全体の処理時間 | 正確な値を保存する | 対応する処理Spanで確認する | 共通のRAGScope独自Metricは作らない |
+| 検索全体の処理時間 | 正確な値を保存する | 対応する処理Spanで確認する | RAGScope独自Metricなし |
+| `reranking`全体の処理時間 | 正確な値を保存する | 対応する処理Spanで確認する | RAGScope独自Metricなし |
 | 回答生成全体の処理時間 | 正確な値を保存する | 対応する処理Spanで確認する | HTTP / GenAIの標準Metricが適用できる部分だけ利用する |
 | TTFT | 1件ごとの正確な値を保存する | 生成開始から最初のtoken生成までをTrace上でも確認できる情報を保持する | 適用できる場合は`gen_ai.server.time_to_first_token`を使用する |
 | 生成token数 | 1件ごとの正確な値を保存する | 必要なSpan属性が標準規約で定義される場合は従う | 正確な値を取得できる場合は`gen_ai.client.token.usage`を使用する |
@@ -40,7 +40,7 @@ TTFTの実験上の正確な値は、AI推論サービスが生成を開始し�
 
 ## 4. 後続で決定するもの
 
-runtime、host、acceleratorなどのMetricは、具体的な監視要求と配置が確定した時点で必要性を判断する。将来必要になる可能性だけを理由に共通Metricやattributesを先行定義しない。
+runtime、host、acceleratorなどのMetricは、現在の共通設計では定義しない。必要な監視要求と配置が決まった時点で、対象Metricとattributesを定義する。
 
 ## 関連文書
 

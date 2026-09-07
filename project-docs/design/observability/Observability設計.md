@@ -36,11 +36,9 @@ OpenTelemetry SDKへ次を委ねる。
 - flush / shutdown
 - Telemetryの送信
 
-RAGScope独自のLogging Runtime、Sink、送信キューなど、OpenTelemetry SDKと同じ役割を持つ実行基盤は別に作らない。
-
 ## 3. 失敗の扱い
 
-RAGScope全体で共通して使う`RAGScopeError`や、Observabilityのためだけの共通エラー分類は作らない。UseCaseや内部処理は、それぞれの処理に必要な具体的なerror typeを持つ。そのエラーをAPI / CLIで利用者へ返すとき、実験結果へ保存するとき、Telemetryの`error.type`へ記録するときに、それぞれ必要な形へ変換する。
+UseCaseや内部処理は、それぞれの処理に必要な具体的なerror typeを持つ。そのerror typeから、API / CLIで利用者へ返す表現、実験結果へ保存する失敗表現、Telemetryの`error.type`へ、それぞれ必要な形へ直接変換する。
 
 ```text
 具体的なUseCase / 内部処理のerror type
