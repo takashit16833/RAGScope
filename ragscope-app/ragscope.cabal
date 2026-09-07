@@ -40,6 +40,22 @@ extra-doc-files: CHANGELOG.md
 common warnings
   ghc-options: -Wall
 
+library
+  -- Import common warning flags.
+  import: warnings
+  -- Modules exported by the library.
+  -- expojed-modules:
+  -- Modules included in this library but not exported.
+  -- other-modules:
+  -- LANGUAGE extensions used by modules in this package.
+  -- other-extensions:
+  -- Other library packages from which modules are imported.
+  build-depends: base ^>=4.21.2.0
+  -- Directories containing source files.
+  hs-source-dirs: src
+  -- Base language which the package is written in.
+  default-language: GHC2021
+
 executable ragscope
   -- Import common warning flags.
   import: warnings
@@ -52,6 +68,7 @@ executable ragscope
   -- Other library packages from which modules are imported.
   build-depends:
     base ^>=4.21.2.0,
+    ragscope,
 
   -- Directories containing source files.
   hs-source-dirs: app
@@ -76,3 +93,4 @@ test-suite ragscope-test
   -- Test dependencies.
   build-depends:
     base ^>=4.21.2.0,
+    ragscope,
