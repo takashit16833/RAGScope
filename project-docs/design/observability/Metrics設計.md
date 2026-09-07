@@ -29,7 +29,7 @@ RS-0023の共通設計ではRAGScope独自Metricを定義しない。HTTP、Post
 | 検索全体の処理時間 | 正確な値を保存する | 対応する処理Spanで確認する | 共通のRAGScope独自Metricは作らない |
 | `reranking`全体の処理時間 | 正確な値を保存する | 対応する処理Spanで確認する | 共通のRAGScope独自Metricは作らない |
 | 回答生成全体の処理時間 | 正確な値を保存する | 対応する処理Spanで確認する | HTTP / GenAIの標準Metricが適用できる部分だけ利用する |
-| TTFT | 1件ごとの正確な値を保存する | 該当処理のTraceで確認できる情報を保持する | 適用できる場合は`gen_ai.server.time_to_first_token`を使用する |
+| TTFT | 1件ごとの正確な値を保存する | 生成開始から最初のtoken生成までをTrace上でも確認できる情報を保持する | 適用できる場合は`gen_ai.server.time_to_first_token`を使用する |
 | 生成token数 | 1件ごとの正確な値を保存する | 必要なSpan属性が標準規約で定義される場合は従う | 正確な値を取得できる場合は`gen_ai.client.token.usage`を使用する |
 | DB client処理時間 | 実験上必要な場合だけ結果として保存する | DB client Span | `db.client.operation.duration`が適用できる場合に利用する |
 | HTTP client処理時間 | 実験上必要な場合だけ結果として保存する | HTTP client Span | `http.client.request.duration`が適用できる場合に利用する |
