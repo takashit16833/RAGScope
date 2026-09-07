@@ -6,6 +6,9 @@ epic: "[[v0.0 共通エラーと構造化ログによる実行追跡]]"
 ---
 # RS-0015 RAGScopeアプリケーションの共通エラー・構造化ログ基盤を実装する
 
+> [!note] 後続の設計
+> 本Ticketは完了時点で実装した旧Logging基盤の履歴を記録する。ここで参照した共通エラー・構造化ログ設計と旧JSON Contractは、その後のRS-0023・ADR-0006で置き換えられ、関連する設計書・Contractは現在の正本から削除されている。現在のObservability設計は[Observability設計](../../../../design/observability/README.md)と[ADR-0006](<../../../../adr/ADR-0006 OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける.md>)を参照する。
+
 ## 目的
 
 RS-0014で定義した共通エラー契約と構造化ログを、文書処理以降のRAGScopeアプリケーション実装から実際に利用できる最小基盤として提供する必要がある。
@@ -82,14 +85,16 @@ RS-0014で定義した共通エラー契約と構造化ログを、文書処理�
 
 ## 関連文書
 
-- [RAGScope要求定義「3.3 信頼性と保守性」](<../../../../RAGScope要求定義.md#3.3 信頼性と保守性>)
-- [システムアーキテクチャ「3.4 共通実行基盤の責務境界」](<../../../../design/システムアーキテクチャ.md#3.4 共通実行基盤の責務境界>)
-- [システムアーキテクチャ「4. 依存方向」](<../../../../design/システムアーキテクチャ.md#4. 依存方向>)
+- [RAGScope要求定義](../../../../RAGScope要求定義.md)
+- [システムアーキテクチャ](../../../../design/システムアーキテクチャ.md)
 - [ADR-0002 — 共通実行基盤の契約とコンポーネント実装を分離する](<../../../../adr/ADR-0002 共通実行基盤の契約とコンポーネント実装を分離する.md>)
-- [エラー設計](../../../../design/エラー設計.md)
-- [構造化ログ設計](../../../../design/structured-logging/構造化ログ設計.md)
-- [RAGScopeアプリケーション構造化ログ設計](../../../../design/structured-logging/RAGScopeアプリケーション構造化ログ設計.md)
-- [構造化ログJSON表現設計](../../../../design/structured-logging/構造化ログJSON表現設計.md)
+- `エラー設計`（当時の設計書、現在は削除済み）
+- `構造化ログ設計`（当時の設計書、現在は削除済み）
+- `RAGScopeアプリケーション構造化ログ設計`（当時の設計書、現在は削除済み）
+- `構造化ログJSON表現設計`（当時の設計書、現在は削除済み）
+- `contracts/logging/v1/log-event.schema.json`（当時のJSON Schema、現在は削除済み）
+- [Observability設計](../../../../design/observability/README.md)
+- [ADR-0006](<../../../../adr/ADR-0006 OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける.md>)
 
 ## 実装メモ
 
