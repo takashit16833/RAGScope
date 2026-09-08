@@ -56,6 +56,35 @@ library
   -- Base language which the package is written in.
   default-language: GHC2021
 
+-- RAGScope内部処理が利用するSDK非依存のTelemetry境界。
+library telemetry-boundary
+  import: warnings
+  visibility: private
+  exposed-modules:
+    RAGScope.Telemetry
+
+  build-depends:
+    base ^>=4.21.2.0
+
+  hs-source-dirs: telemetry-boundary
+  default-language: GHC2021
+
+-- OpenTelemetry SDKへの依存をRAGScope内部処理から隔離するAdapter。
+library opentelemetry-adapter
+  import: warnings
+  visibility: private
+  exposed-modules:
+    RAGScope.Telemetry.OpenTelemetry
+
+  build-depends:
+    base ^>=4.21.2.0,
+    hs-opentelemetry-api ^>=1.0.0.0,
+    hs-opentelemetry-sdk ^>=1.0.0.0,
+    ragscope:telemetry-boundary,
+
+  hs-source-dirs: opentelemetry-adapter
+  default-language: GHC2021
+
 executable ragscope
   -- Import common warning flags.
   import: warnings
