@@ -62,11 +62,15 @@ library telemetry-boundary
   visibility: private
   exposed-modules:
     RAGScope.Telemetry
+    RAGScope.Telemetry.Logs
     RAGScope.Telemetry.Trace
 
   build-depends:
     base ^>=4.21.2.0,
+    bytestring ^>=0.12.2.0,
+    containers ^>=0.7,
     text ^>=2.1.4,
+    time ^>=1.15,
 
   hs-source-dirs: telemetry-boundary
   default-language: GHC2021
@@ -116,8 +120,8 @@ test-suite ragscope-test
   -- Modules included in this executable, other than Main.
   other-modules:
     RAGScope.Telemetry.OpenTelemetryBehaviorSpec
-    RAGScope.Telemetry.OpenTelemetryTraceSpec
     RAGScope.Telemetry.OpenTelemetryTestSupport
+    RAGScope.Telemetry.OpenTelemetryTraceSpec
 
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:
