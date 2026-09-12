@@ -1,8 +1,11 @@
 ---
 note_type: adr
-status: accepted
+status: superseded
 ---
 # ADR-0006 — OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける
+
+> [!note]
+> 本ADRは[ADR-0009 — RAGScopeのLogs SeverityをDebug・Info・Warn・Errorに限定する](<./ADR-0009 RAGScopeのLogs SeverityをDebug・Info・Warn・Errorに限定する.md>)で置き換えられた。Severityに関する判断を変更し、それ以外の決定はADR-0009で維持している。
 
 ## 背景
 
