@@ -4,8 +4,8 @@
 -- boundaries.
 --
 -- These tests verify that one synchronous exception can mark every Span it
--- escapes while producing exactly one Logs EventRecord correlated with the
--- first escaped Span.
+-- propagates through while producing exactly one Logs EventRecord correlated
+-- with the first Span it escapes.
 module RAGScope.Telemetry.OpenTelemetryExceptionEventSpec (spec) where
 
 import Control.Exception (
@@ -19,7 +19,7 @@ import Data.IORef (
   readIORef,
   writeIORef,
  )
-import OpenTelemetry.Exporter.InMemory.Assertions (
+import OpenTelemetry.Exporter.InMemory (
   assertSpanNamed,
   assertSpanStatus,
  )
@@ -137,8 +137,8 @@ spec =
               spansRef
               "root-span"
 
-          -- The same exception escaped all three Span boundaries, so every
-          -- Span represents its own failed execution.
+          -- The same exception propagated through all three Span boundaries,
+          -- so every Span represents its own failed execution.
           mapM_
             assertTestExceptionSpan
             [ internalSpan
@@ -149,9 +149,9 @@ spec =
           ownerContext <-
             readIORef ownerContextRef
 
-          -- The exception itself is represented in Logs only once. Because the
-          -- first escape occurred at internal-span, that EventRecord must carry
-          -- the internal Span's tracing details.
+          -- The exception is represented by exactly one EventRecord. Because
+          -- it first escaped internal-span, that EventRecord must carry the
+          -- internal Span's tracing details.
           assertSingleExceptionEvent
             loggerProvider
             logRecordsRef
@@ -238,7 +238,7 @@ spec =
 -- integration tests.
 --
 -- The Trace Adapter receives only the EventRecord emission capability it needs;
--- normal LogRecord emission remains outside its dependency surface.
+-- LogRecord emission remains outside its dependency surface.
 withTestExceptionEventEnvironment ::
   (TestExceptionEventEnvironment -> IO ()) ->
   IO ()
@@ -274,8 +274,8 @@ assertSingleExceptionEvent loggerProvider logRecordsRef ownerContext =
     loggerProvider
     logRecordsRef
     $ \record -> do
-      -- This is the generic OpenTelemetry exception event rather than an
-      -- ordinary unnamed LogRecord.
+      -- This is the generic OpenTelemetry exception EventRecord rather than a
+      -- RAGScope LogRecord.
       toBaseMaybe
         (logRecordEventName record)
         `shouldBe` Just "exception"
