@@ -273,6 +273,34 @@ spec =
           spanEventCount exceptionSpan
             `shouldReturn` 0
 
+      it "keeps each escaping Span current while its callback handles a nested exception" $
+        \(tracer, _) -> do
+          result :: Either TestException () <-
+            try @TestException
+              $ inSpan''
+                tracer
+                "root-span"
+                defaultSpanArguments
+              $ \rootSpan ->
+                inSpan''
+                  tracer
+                  "use-case-span"
+                  defaultSpanArguments
+                  ( \useCaseSpan ->
+                      inSpan''
+                        tracer
+                        "internal-span"
+                        defaultSpanArguments
+                        ( \internalSpan ->
+                            throwIO TestException
+                              `catch` assertCurrentSpanAndRethrow internalSpan
+                        )
+                        `catch` assertCurrentSpanAndRethrow useCaseSpan
+                  )
+                  `catch` assertCurrentSpanAndRethrow rootSpan
+          result
+            `shouldBe` Left TestException
+
 -- | Provide each example with a fresh Tracer built from the shared
 -- TracerProvider fixture.
 --
@@ -310,5 +338,20 @@ markTestException span exception = do
     span
     "error.type"
     testExceptionTypeAttribute
+
+  throwIO exception
+
+-- | Verify the OpenTelemetry Context visible from a Span-local exception
+-- handler, then propagate the same exception to the next outer Span.
+assertCurrentSpanAndRethrow ::
+  Span ->
+  TestException ->
+  IO result
+assertCurrentSpanAndRethrow span exception = do
+  expectedContext <-
+    getSpanContext span
+
+  getActiveSpanContext
+    `shouldReturn` Just expectedContext
 
   throwIO exception
