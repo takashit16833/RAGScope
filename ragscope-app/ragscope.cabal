@@ -124,6 +124,7 @@ test-suite ragscope-test
   -- Modules included in this executable, other than Main.
   other-modules:
     RAGScope.Telemetry.OpenTelemetryBehaviorSpec
+    RAGScope.Telemetry.OpenTelemetryExceptionEventSpec
     RAGScope.Telemetry.OpenTelemetryLogsSpec
     RAGScope.Telemetry.OpenTelemetryTestSupport
     RAGScope.Telemetry.OpenTelemetryTraceSpec
