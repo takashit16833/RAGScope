@@ -10,6 +10,7 @@ import Control.Exception (
   SomeAsyncException,
   SomeException (..),
   catchNoPropagate,
+  mask,
   rethrowIO,
  )
 import Control.Exception.Annotation (
@@ -59,6 +60,14 @@ import RAGScope.Telemetry.Trace (
   mkTraceBoundary,
  )
 
+-- | Preserve both the original exception and its propagation context.
+type CapturedException = ExceptionWithContext SomeException
+
+-- | Adapter-local transport across the SDK's normal return path.
+--
+-- Right may itself contain an application-level Left failure.
+type SpanExit result = Either CapturedException result
+
 -- | Marks one exception propagation after its exception EventRecord has been
 -- recorded.
 --
@@ -98,20 +107,25 @@ runOpenTelemetrySpan ::
   EventRecordEmitter ->
   SpanRunner
 runOpenTelemetrySpan tracer eventRecordEmitter (SpanName spanName) classify action =
-  inSpan''
-    tracer
-    spanName
-    defaultSpanArguments
-    $ \span ->
-      handleSynchronousException
-        eventRecordEmitter
-        span
-        $ do
-          result <- action
+  mask $ \restore -> do
+    exit <-
+      inSpan''
+        tracer
+        spanName
+        defaultSpanArguments
+        $ \span ->
+          handleSynchronousException
+            eventRecordEmitter
+            span
+            $ restore
+            $ do
+              result <- action
 
-          applySpanOutcome span (classify result)
+              applySpanOutcome span (classify result)
 
-          pure result
+              pure result
+
+    either rethrowIO pure exit
 
 -- | Reflect the final RAGScope result on the Span.
 applySpanOutcome ::
@@ -137,25 +151,27 @@ handleSynchronousException ::
   EventRecordEmitter ->
   Span ->
   IO result ->
-  IO result
+  IO (SpanExit result)
 handleSynchronousException eventRecordEmitter span action =
-  action `catchNoPropagate` \exceptionWithContext@(ExceptionWithContext _ exception) ->
-    if isSynchronousException exception
-      then
-        markSynchronousException
-          eventRecordEmitter
-          span
-          exceptionWithContext
-      else
-        rethrowIO exceptionWithContext
+  (Right <$> action)
+    `catchNoPropagate` \exceptionWithContext@(ExceptionWithContext _ exception) ->
+      if isSynchronousException exception
+        then
+          Left
+            <$> markSynchronousException
+              eventRecordEmitter
+              span
+              exceptionWithContext
+        else
+          rethrowIO exceptionWithContext
 
 -- | Mark one Span as failed by a synchronous exception and record the
 -- exception EventRecord only when this Span gets the first claim.
 markSynchronousException ::
   EventRecordEmitter ->
   Span ->
-  ExceptionWithContext SomeException ->
-  IO result
+  CapturedException ->
+  IO CapturedException
 markSynchronousException
   eventRecordEmitter
   span
@@ -181,14 +197,14 @@ markSynchronousException
 
     case claimExceptionEvent exceptionContext of
       Nothing ->
-        rethrowIO exceptionWithContext
+        pure exceptionWithContext
       Just claimedContext -> do
         emitExceptionEvent
           eventRecordEmitter
           exceptionType
           exceptionMessage
 
-        rethrowIO $
+        pure $
           ExceptionWithContext
             claimedContext
             exception
