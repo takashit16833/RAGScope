@@ -1,6 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
+-- | OpenTelemetry implementation of the RAGScope Trace boundary.
+--
+-- Manages Span lifecycle, maps RAGScope outcomes to Span status, and records
+-- synchronous exceptions without duplicating exception EventRecords.
 module RAGScope.Telemetry.OpenTelemetry.Trace (mkOpenTelemetryTraceBoundary) where
 
 import Control.Exception (
@@ -60,19 +64,20 @@ import RAGScope.Telemetry.Trace (
   mkTraceBoundary,
  )
 
--- | Preserve both the original exception and its propagation context.
+-- | Preserve the ExceptionContext carrying exception propagation state.
 type CapturedException = ExceptionWithContext SomeException
 
--- | Adapter-local transport across the SDK's normal return path.
+-- | Carry a synchronous exception through inSpan'' as an ordinary return value.
 --
--- Right may itself contain an application-level Left failure.
+-- This avoids hs-opentelemetry's SomeException rethrow path, which would lose
+-- the ExceptionContext used for exactly-once EventRecord ownership.
 type SpanExit result = Either CapturedException result
 
 -- | Marks one exception propagation after its exception EventRecord has been
 -- recorded.
 --
--- The annotation belongs to ExceptionContext rather than to the exception type
--- because recording state differs between individual exception propagations.
+-- The annotation belongs to ExceptionContext because recording state is
+-- specific to each exception propagation.
 data ExceptionEventRecorded
   = ExceptionEventRecorded
   deriving (Show)
@@ -107,6 +112,8 @@ runOpenTelemetrySpan ::
   EventRecordEmitter ->
   SpanRunner
 runOpenTelemetrySpan tracer eventRecordEmitter (SpanName spanName) classify action =
+  -- Keep exception transport masked while preserving normal async-exception
+  -- behavior inside the wrapped application action.
   mask $ \restore -> do
     exit <-
       inSpan''
@@ -125,6 +132,7 @@ runOpenTelemetrySpan tracer eventRecordEmitter (SpanName spanName) classify acti
 
               pure result
 
+    -- Rethrow outside inSpan'' so the ExceptionContext survives propagation.
     either rethrowIO pure exit
 
 -- | Reflect the final RAGScope result on the Span.
@@ -144,9 +152,8 @@ applySpanOutcome span (SpanFailed errorType) = do
 
 -- | Handle a synchronous exception that propagates out of a RAGScope Span.
 --
--- The exception context is preserved so an exception EventRecord recorded by
--- the first Span remains marked while the same exception propagates through
--- outer Span boundaries.
+-- Synchronous exceptions become SpanExit values so inSpan'' can finish through
+-- its normal return path. Async exceptions keep their normal propagation.
 handleSynchronousException ::
   EventRecordEmitter ->
   Span ->
@@ -165,8 +172,10 @@ handleSynchronousException eventRecordEmitter span action =
         else
           rethrowIO exceptionWithContext
 
--- | Mark one Span as failed by a synchronous exception and record the
--- exception EventRecord only when this Span gets the first claim.
+-- | Mark one Span as failed by a synchronous exception.
+--
+-- The exception is returned rather than rethrown here so its ExceptionContext
+-- does not pass through hs-opentelemetry's SomeException rethrow path.
 markSynchronousException ::
   EventRecordEmitter ->
   Span ->
@@ -209,10 +218,10 @@ markSynchronousException
             claimedContext
             exception
 
--- | Claim exception EventRecord ownership for one exception propagation.
+-- | Claim EventRecord ownership for one exception propagation.
 --
--- Nothing means that another inner Span already recorded the EventRecord.
--- Just returns the ExceptionContext carrying the marker for the first claim.
+-- The first Span adds the marker; outer Spans see it and do not emit another
+-- exception EventRecord.
 claimExceptionEvent ::
   ExceptionContext ->
   Maybe ExceptionContext
@@ -256,18 +265,18 @@ exceptionEventName =
         "exceptionEventName: failed to construct static exception EventName: "
           <> show failure
 
--- | hs-opentelemetry must not automatically add another exception Span Event
--- for synchronous exceptions already handled above.
+-- | Prevent hs-opentelemetry from adding a duplicate exception Span Event for
+-- synchronous exceptions already handled by this adapter.
 ignoreSynchronousException :: ExceptionHandler
 ignoreSynchronousException =
   ignoreExceptionMatching @SomeException isSynchronousException
 
--- | UserInterrupt represents an intentional user interruption and must not
--- be recorded as a Span error.
+-- | UserInterrupt is intentional and must not be recorded as a Span error.
 ignoreIntentionalInterruption :: ExceptionHandler
 ignoreIntentionalInterruption =
   ignoreExceptionMatching @AsyncException (== UserInterrupt)
 
+-- | Distinguish synchronous exceptions from asynchronous interruption.
 isSynchronousException :: SomeException -> Bool
 isSynchronousException exception =
   case fromException exception :: Maybe SomeAsyncException of
