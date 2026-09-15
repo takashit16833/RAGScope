@@ -11,4 +11,4 @@ RAGScopeのObservabilityについて、確認したい内容ごとの正本を�
 
 OpenTelemetryのTrace、Span、LogRecord、EventRecord、Metric、Semantic Conventionなど一般技術用語の定義はOpenTelemetryを正本とし、RAGScope固有の意味へ読み替えない。
 
-RAGScope全体のコンポーネント構成とローカル実行環境は[システムアーキテクチャ](../システムアーキテクチャ.md)、利用者操作とユースケース実行の境界は[ユースケース設計](../ユースケース設計.md)を参照する。
+RAGScope全体のコンポーネント構成とローカル実行環境は[システムアーキテクチャ](../システムアーキテクチャ.md)、利用者操作とユースケース実行の境界は[ユースケース設計](../ユースケース設計.md)を参照する。RAGScopeアプリケーションで具体的なfailureをどの処理が所有し、外部依存・CLI / API・実験・Telemetryとの境界をどう分けるかは[RAGScopeアプリケーション失敗設計](../RAGScopeアプリケーション失敗設計.md)を参照する。

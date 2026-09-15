@@ -62,11 +62,15 @@ library telemetry-boundary
   visibility: private
   exposed-modules:
     RAGScope.Telemetry
+    RAGScope.Telemetry.Logs
     RAGScope.Telemetry.Trace
 
   build-depends:
     base ^>=4.21.2.0,
+    bytestring ^>=0.12.2.0,
+    containers ^>=0.7,
     text ^>=2.1.4,
+    time ^>=1.15,
 
   hs-source-dirs: telemetry-boundary
   default-language: GHC2021
@@ -77,14 +81,18 @@ library opentelemetry-adapter
   visibility: private
   exposed-modules:
     RAGScope.Telemetry.OpenTelemetry
+    RAGScope.Telemetry.OpenTelemetry.Logs
     RAGScope.Telemetry.OpenTelemetry.Trace
 
   build-depends:
     base ^>=4.21.2.0,
+    containers ^>=0.7,
     hs-opentelemetry-api ^>=1.0.0.0,
     hs-opentelemetry-sdk ^>=1.0.0.0,
     ragscope:telemetry-boundary,
     text ^>=2.1.4,
+    time ^>=1.15,
+    unordered-containers ^>=0.2.19.1,
 
   hs-source-dirs: opentelemetry-adapter
   default-language: GHC2021
@@ -116,8 +124,9 @@ test-suite ragscope-test
   -- Modules included in this executable, other than Main.
   other-modules:
     RAGScope.Telemetry.OpenTelemetryBehaviorSpec
-    RAGScope.Telemetry.OpenTelemetryTraceSpec
+    RAGScope.Telemetry.OpenTelemetryLogsSpec
     RAGScope.Telemetry.OpenTelemetryTestSupport
+    RAGScope.Telemetry.OpenTelemetryTraceSpec
 
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:
@@ -130,8 +139,10 @@ test-suite ragscope-test
   -- Test dependencies.
   build-depends:
     base ^>=4.21.2.0,
+    containers ^>=0.7,
     hs-opentelemetry-api ^>=1.0.0.0,
     hs-opentelemetry-exporter-in-memory ^>=1.0.0.0,
+    hs-opentelemetry-sdk ^>=1.0.0.0,
     hspec ^>=2.11.17,
     ragscope,
     ragscope:opentelemetry-adapter,

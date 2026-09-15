@@ -15,8 +15,8 @@ UseCaseや内部処理をOpenTelemetry SDKへ直接依存させず、RAGScope側
 ## 前提
 
 - [RS-0023](<./RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する.md>)が完了している
-- [ADR-0006](<../../../../adr/ADR-0006 OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける.md>)がacceptedである
-- [Observability設計](../../../../design/observability/README.md)が現在設計として確定している
+- [ADR-0010](<../../../../adr/ADR-0010 RAGScopeアプリケーションの失敗を処理単位の具体型で扱う.md>)がacceptedである
+- [Observability設計](../../../../design/observability/README.md)と[RAGScopeアプリケーション失敗設計](../../../../design/RAGScopeアプリケーション失敗設計.md)が現在設計として確定している
 
 ## 完了条件
 
@@ -42,7 +42,7 @@ UseCaseや内部処理をOpenTelemetry SDKへ直接依存させず、RAGScope側
 
 ### 失敗と例外
 
-- [ ] 具体的なUseCase / 内部処理のerror typeからTelemetryの`error.type`へ変換でき、共通`RAGScopeError`、`ErrorType`、`ErrorClassifier`を新設していない
+- [ ] 具体的なUseCase / 内部処理の失敗型からTelemetryの`error.type`へ変換でき、共通`RAGScopeError`、`ErrorType`、`ErrorClassifier`を新設していない
 - [ ] 例外が処理されないままSpanの外へ伝播する場合、対応SpanをErrorとして例外を再throwできる
 - [ ] 同じ例外についてLogsのEventRecordを1件だけ記録し、SDKのAPIが同じ事実のSpan Eventを自動生成する場合はAdapter側で抑制できる
 - [ ] Telemetryの記録・export失敗だけを理由に、成功した機能処理を機能上の失敗へ変更しない
@@ -65,10 +65,12 @@ UseCaseや内部処理をOpenTelemetry SDKへ直接依存させず、RAGScope側
 
 ## 関連文書
 
+- [RAGScopeアプリケーション失敗設計](../../../../design/RAGScopeアプリケーション失敗設計.md)
 - [Observability設計](../../../../design/observability/Observability設計.md)
 - [実行追跡設計](../../../../design/observability/実行追跡設計.md)
 - [ログ・イベント設計](../../../../design/observability/ログ・イベント設計.md)
 - [Metrics設計](../../../../design/observability/Metrics設計.md)
+- [ADR-0010](<../../../../adr/ADR-0010 RAGScopeアプリケーションの失敗を処理単位の具体型で扱う.md>)
 - [RS-0023](<./RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する.md>)
 
 ## 結果

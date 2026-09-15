@@ -36,20 +36,23 @@ OpenTelemetry SDKへ次を委ねる。
 - flush / shutdown
 - Telemetryの送信
 
-## 3. 失敗の扱い
+## 3. 機能の失敗とTelemetry
 
-UseCaseや内部処理は、それぞれの処理に必要な具体的なerror typeを持つ。そのerror typeから、API / CLIで利用者へ返す表現、実験結果へ保存する失敗表現、Telemetryの`error.type`へ、それぞれ必要な形へ直接変換する。
+RAGScopeアプリケーションで具体的なfailureをどの処理が所有し、外部依存からどこで変換し、CLI / APIや実験・評価がどう利用するかは[RAGScopeアプリケーション失敗設計](../RAGScopeアプリケーション失敗設計.md)を正本とする。この文書では、それらのfailureをTelemetryへどう反映するかだけを扱う。
+
+処理自身の最終結果が失敗であり、Telemetryでその失敗を表す必要がある場合は、具体的なfailureからSpan Status、OpenTelemetryの`error.type`、必要な属性などの観測用表現を作る。Telemetry用の共通`RAGScopeError`やObservability専用のerror分類は設けない。
 
 ```text
-具体的なUseCase / 内部処理のerror type
-├─ RAGScope API / CLIの利用者向け表現
-├─ 実験結果へ保存する失敗表現
-└─ Telemetryのerror.type
+具体的なfailure
+└─ Telemetryで必要な場合
+   ├─ Span Status
+   ├─ error.type
+   └─ 必要なattributes
 ```
 
-OpenTelemetryのSemantic Conventionに該当せず、RAGScopeが用途を定めるSpanやEventRecordで`error.type`が必要な場合は、同じ種類のエラーなら同じ`error.type`になるようにする。ID、ファイル名、エラーメッセージなど実行ごとに変わる情報は含めない。これにより、`error.type`に現れる値の種類を限定し、low cardinalityに保つ。
+OpenTelemetryのSemantic Conventionに該当せず、RAGScopeが用途を定めるSpanやEventRecordで`error.type`が必要な場合は、同じ種類の失敗なら同じ`error.type`になるようにする。ID、ファイル名、エラーメッセージなど実行ごとに変わる情報は含めない。これにより、`error.type`に現れる値の種類を限定し、low cardinalityに保つ。
 
-Telemetry用の`error.type`へ変換しても、UseCaseや内部処理が持つ元のerror値を、その`error.type`で置き換えない。詳細な失敗理由やcauseは元のerror値に残し、`error.type`へ詰め込まない。
+Telemetry用の`error.type`へ変換しても、UseCaseや内部処理が持つ元のfailure値を、その`error.type`で置き換えない。詳細な失敗理由やcauseは元のfailure値に残し、`error.type`へ詰め込まない。
 
 Telemetryの記録やexportが失敗しても、成功していたRAGScopeの機能処理を失敗扱いには変更しない。また、OpenTelemetryへの記録自体が失敗した場合、その失敗を同じOpenTelemetry経由で記録しようとしない。具体的なSDK呼び出しの失敗処理とshutdown時の扱いは、各コンポーネントの実装・設定・テストを正本とする。
 
@@ -74,13 +77,15 @@ consoleなどのExporterは開発・テスト時の補助確認に使用して�
 - SDKからbackendまでの具体的な送信経路・protocol設定
 - production環境のTelemetry backend、保持期間、冗長化、運用設定
 - Haskell / Pythonで使用する具体的なpackage version、module構成、型、関数
-- 機能固有のSpan、EventRecord、属性、具体的なerror typeの変換値
+- 機能固有のSpan、EventRecord、属性、具体的なfailureから`error.type`への変換値
 
 ## 関連文書
 
+- [RAGScopeアプリケーション失敗設計](../RAGScopeアプリケーション失敗設計.md)
 - [実行追跡設計](./実行追跡設計.md)
 - [ログ・イベント設計](./ログ・イベント設計.md)
 - [Metrics設計](./Metrics設計.md)
 - [システムアーキテクチャ](../システムアーキテクチャ.md)
 - [ユースケース設計](../ユースケース設計.md)
 - [RAGScope要求定義](../../RAGScope要求定義.md)
+- [ADR-0010 — RAGScopeアプリケーションの失敗を処理単位の具体型で扱う](<../../adr/ADR-0010 RAGScopeアプリケーションの失敗を処理単位の具体型で扱う.md>)
