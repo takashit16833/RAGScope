@@ -1,16 +1,28 @@
 {-# LANGUAGE OverloadedStrings #-}
 
--- | Integrated tests for an unhandled exception crossing nested RAGScope
--- Spans.
+-- | Integrated tests for exception EventRecords crossing RAGScope Span
+-- boundaries.
 --
--- This module verifies the Trace behavior that exactly-once exception
--- EventRecord implementation must preserve when Trace and Logs are connetced.
+-- These tests verify that one synchronous exception can mark every Span it
+-- escapes while producing exactly one Logs EventRecord correlated with the
+-- first escaped Span.
 module RAGScope.Telemetry.OpenTelemetryExceptionEventSpec (spec) where
 
-import Control.Exception (throwIO, try)
-import Data.IORef (IORef, newIORef, readIORef, writeIORef)
-import Data.Maybe (isJust)
-import OpenTelemetry.Exporter.InMemory (assertSpanNamed)
+import Control.Exception (
+  catch,
+  throwIO,
+  try,
+ )
+import Data.IORef (
+  IORef,
+  newIORef,
+  readIORef,
+  writeIORef,
+ )
+import OpenTelemetry.Exporter.InMemory.Assertions (
+  assertSpanNamed,
+  assertSpanStatus,
+ )
 import OpenTelemetry.Internal.Log.Types (
   ImmutableLogRecord (logRecordEventName),
   LoggerProvider,
@@ -20,7 +32,7 @@ import OpenTelemetry.Internal.Log.Types (
 import OpenTelemetry.Trace.Core (
   ImmutableSpan,
   SpanContext,
-  getActiveSpan,
+  SpanStatus (Unset),
   getActiveSpanContext,
  )
 import Test.Hspec (
@@ -31,19 +43,24 @@ import Test.Hspec (
   it,
   shouldBe,
   shouldReturn,
-  shouldSatisfy,
  )
 
-import RAGScope.Telemetry.Logs (emitEventRecord)
-import RAGScope.Telemetry.OpenTelemetry.Logs (mkOpenTelemetryLogsBoundary)
-import RAGScope.Telemetry.OpenTelemetry.Trace (mkOpenTelemetryTraceBoundary)
+import RAGScope.Telemetry.Logs (
+  emitEventRecord,
+ )
+import RAGScope.Telemetry.OpenTelemetry.Logs (
+  mkOpenTelemetryLogsBoundary,
+ )
+import RAGScope.Telemetry.OpenTelemetry.Trace (
+  mkOpenTelemetryTraceBoundary,
+ )
 import RAGScope.Telemetry.OpenTelemetryTestSupport (
   TestException (TestException),
+  assertNoErrorType,
   assertSingleExportedLogRecord,
   assertTestExceptionSpan,
   assertTracingDetails,
   withTestLoggerProvider,
-  withTestTraceBoundary,
   withTestTracerProvider,
  )
 import RAGScope.Telemetry.Trace (
@@ -62,10 +79,7 @@ type TestExceptionEventEnvironment =
 
 spec :: Spec
 spec =
-  -- The shared fixture gives each example its own real TracerProvider and
-  -- in-memory Span exporter while exposing only the RAGScope TraceBoundary
-  -- needed by the test.
-  around withTestTraceBoundary $
+  around withTestExceptionEventEnvironment $
     describe "OpenTelemetry exception EventRecord" $ do
       it "records one EventRecord on the first Span escaped by an unhandled exception" $
         \(traceBoundary, spansRef, loggerProvider, logRecordsRef) -> do
@@ -221,7 +235,7 @@ spec =
             ownerContext
 
 -- | Build the real Trace and Logs Adapter environment used by the exception
--- integration test.
+-- integration tests.
 --
 -- The Trace Adapter receives only the EventRecord emission capability it needs;
 -- normal LogRecord emission remains outside its dependency surface.
@@ -260,7 +274,8 @@ assertSingleExceptionEvent loggerProvider logRecordsRef ownerContext =
     loggerProvider
     logRecordsRef
     $ \record -> do
-      -- This is the generic OpenTelemetry exception event rather than a LogRecord.
+      -- This is the generic OpenTelemetry exception event rather than an
+      -- ordinary unnamed LogRecord.
       toBaseMaybe
         (logRecordEventName record)
         `shouldBe` Just "exception"
