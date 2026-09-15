@@ -6,12 +6,23 @@ module RAGScope.Telemetry.OpenTelemetry.Trace (mkOpenTelemetryTraceBoundary) whe
 import Control.Exception (
   AsyncException (UserInterrupt),
   Exception (displayException, fromException),
+  ExceptionWithContext (ExceptionWithContext),
   SomeAsyncException,
   SomeException (..),
-  catch,
-  throwIO,
+  catchNoPropagate,
+  rethrowIO,
+ )
+import Control.Exception.Annotation (
+  ExceptionAnnotation,
+ )
+import Control.Exception.Context (
+  ExceptionContext,
+  addExceptionAnnotation,
+  getExceptionAnnotations,
  )
 import Data.Data (typeOf)
+import Data.Map.Strict qualified as Map
+import Data.Text (Text)
 import Data.Text qualified as Text
 import OpenTelemetry.Trace.Core (
   ExceptionHandler,
@@ -27,15 +38,48 @@ import OpenTelemetry.Trace.Core (
   setStatus,
   tracerOptions,
  )
-import OpenTelemetry.Trace.ExceptionHandler (ignoreExceptionMatching)
+import OpenTelemetry.Trace.ExceptionHandler (
+  ignoreExceptionMatching,
+ )
 
-import RAGScope.Telemetry.Trace (SpanName (SpanName), SpanOutcome (SpanFailed, SpanSucceeded), SpanRunner, TraceBoundary, mkTraceBoundary)
+import RAGScope.Telemetry.Logs (
+  EventName,
+  EventRecord (..),
+  EventRecordEmitter,
+  EventTimestamp (EventNow),
+  LogValue (LogText),
+  mkEventName,
+ )
+import RAGScope.Telemetry.Logs qualified as Logs
+import RAGScope.Telemetry.Trace (
+  SpanName (SpanName),
+  SpanOutcome (SpanFailed, SpanSucceeded),
+  SpanRunner,
+  TraceBoundary,
+  mkTraceBoundary,
+ )
+
+-- | Marks one exception propagation after its exception EventRecord has been
+-- recorded.
+--
+-- The annotation belongs to ExceptionContext rather than to the exception type
+-- because recording state differs between individual exception propagations.
+data ExceptionEventRecorded
+  = ExceptionEventRecorded
+  deriving (Show)
+
+instance ExceptionAnnotation ExceptionEventRecorded
 
 -- | Build the RAGScope Trace boundary backed by OpenTelemetry.
-mkOpenTelemetryTraceBoundary :: TracerProvider -> TraceBoundary
-mkOpenTelemetryTraceBoundary tracerProvider =
+mkOpenTelemetryTraceBoundary ::
+  TracerProvider ->
+  EventRecordEmitter ->
+  TraceBoundary
+mkOpenTelemetryTraceBoundary tracerProvider eventRecordEmitter =
   mkTraceBoundary $
-    runOpenTelemetrySpan tracer
+    runOpenTelemetrySpan
+      tracer
+      eventRecordEmitter
  where
   tracer =
     makeTracer
@@ -48,20 +92,26 @@ mkOpenTelemetryTraceBoundary tracerProvider =
             ]
         }
 
--- | Run one RAGScope action inside on OpenTelemetry Span.
-runOpenTelemetrySpan :: Tracer -> SpanRunner
-runOpenTelemetrySpan tracer (SpanName spanName) classify action =
+-- | Run one RAGScope action inside an OpenTelemetry Span.
+runOpenTelemetrySpan ::
+  Tracer ->
+  EventRecordEmitter ->
+  SpanRunner
+runOpenTelemetrySpan tracer eventRecordEmitter (SpanName spanName) classify action =
   inSpan''
     tracer
     spanName
     defaultSpanArguments
     $ \span ->
-      handleSynchronousException span $ do
-        result <- action
+      handleSynchronousException
+        eventRecordEmitter
+        span
+        $ do
+          result <- action
 
-        applySpanOutcome span (classify result)
+          applySpanOutcome span (classify result)
 
-        pure result
+          pure result
 
 -- | Reflect the final RAGScope result on the Span.
 applySpanOutcome ::
@@ -78,37 +128,117 @@ applySpanOutcome span (SpanFailed errorType) = do
     "error.type"
     errorType
 
--- | Mark an unbandled synchronous exception on the Span and rethrow it.
+-- | Handle a synchronous exception that propagates out of a RAGScope Span.
 --
--- Asynchronous exceptions are left ot the surrounding runtime/SDK handling.
+-- The exception context is preserved so an exception EventRecord recorded by
+-- the first Span remains marked while the same exception propagates through
+-- outer Span boundaries.
 handleSynchronousException ::
+  EventRecordEmitter ->
   Span ->
   IO result ->
   IO result
-handleSynchronousException span action =
-  action `catch` \exception ->
+handleSynchronousException eventRecordEmitter span action =
+  action `catchNoPropagate` \exceptionWithContext@(ExceptionWithContext _ exception) ->
     if isSynchronousException exception
-      then markSynchronousException span exception
-      else throwIO exception
+      then
+        markSynchronousException
+          eventRecordEmitter
+          span
+          exceptionWithContext
+      else
+        rethrowIO exceptionWithContext
 
+-- | Mark one Span as failed by a synchronous exception and record the
+-- exception EventRecord only when this Span gets the first claim.
 markSynchronousException ::
+  EventRecordEmitter ->
   Span ->
-  SomeException ->
+  ExceptionWithContext SomeException ->
   IO result
-markSynchronousException span exception@(SomeException inner) = do
-  setStatus span $
-    Error $
-      Text.pack $
-        displayException inner
+markSynchronousException
+  eventRecordEmitter
+  span
+  exceptionWithContext@(ExceptionWithContext exceptionContext exception@(SomeException inner)) = do
+    let
+      exceptionMessage =
+        Text.pack $
+          displayException inner
 
-  addAttribute
-    span
-    "error.type"
-    $ Text.pack
-    $ show
-    $ typeOf inner
+      exceptionType =
+        Text.pack $
+          show $
+            typeOf inner
 
-  throwIO exception
+    setStatus
+      span
+      (Error exceptionMessage)
+
+    addAttribute
+      span
+      "error.type"
+      exceptionType
+
+    case claimExceptionEvent exceptionContext of
+      Nothing ->
+        rethrowIO exceptionWithContext
+      Just claimedContext -> do
+        emitExceptionEvent
+          eventRecordEmitter
+          exceptionType
+          exceptionMessage
+
+        rethrowIO $
+          ExceptionWithContext
+            claimedContext
+            exception
+
+-- | Claim exception EventRecord ownership for one exception propagation.
+--
+-- Nothing means that another inner Span already recorded the EventRecord.
+-- Just returns the ExceptionContext carrying the marker for the first claim.
+claimExceptionEvent ::
+  ExceptionContext ->
+  Maybe ExceptionContext
+claimExceptionEvent exceptionContext =
+  case getExceptionAnnotations @ExceptionEventRecorded exceptionContext of
+    [] ->
+      Just $
+        addExceptionAnnotation
+          ExceptionEventRecorded
+          exceptionContext
+    _ ->
+      Nothing
+
+-- | Record the generic OpenTelemetry exception EventRecord.
+emitExceptionEvent ::
+  EventRecordEmitter ->
+  Text ->
+  Text ->
+  IO ()
+emitExceptionEvent eventRecordEmitter exceptionType exceptionMessage =
+  eventRecordEmitter $
+    EventRecord
+      { eventName = exceptionEventName
+      , eventTimestamp = EventNow
+      , eventSeverity = Logs.Error
+      , eventAttributes =
+          Map.fromList
+            [ ("exception.type", LogText exceptionType)
+            , ("exception.message", LogText exceptionMessage)
+            ]
+      }
+
+-- | Generic OpenTelemetry exception EventName.
+exceptionEventName :: EventName
+exceptionEventName =
+  case mkEventName "exception" of
+    Right eventName ->
+      eventName
+    Left failure ->
+      error $
+        "exceptionEventName: failed to construct static exception EventName: "
+          <> show failure
 
 -- | hs-opentelemetry must not automatically add another exception Span Event
 -- for synchronous exceptions already handled above.

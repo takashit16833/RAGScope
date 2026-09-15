@@ -74,6 +74,9 @@ import Test.Hspec (
   shouldReturn,
  )
 
+import RAGScope.Telemetry.Logs (
+  EventRecordEmitter,
+ )
 import RAGScope.Telemetry.OpenTelemetry.Trace (
   mkOpenTelemetryTraceBoundary,
  )
@@ -129,8 +132,9 @@ withTestTracerProvider =
 
 -- | Run a test example with an isolated OpenTelemetry-backed TraceBoundary.
 --
--- TracerProvider remains a test/setup concern. Tests exercising the RAGScope
--- boundary receive the SDK-independent TraceBoundary plus completed Spans.
+-- TracerProvider remains a test/setup concern. Tests exercising only the
+-- RAGScope Trace boundary receive the SDK-independent TraceBoundary plus
+-- completed Spans. Exception EventRecord integration is tested separately.
 withTestTraceBoundary ::
   ((TraceBoundary, IORef [ImmutableSpan]) -> IO ()) ->
   IO ()
@@ -138,12 +142,19 @@ withTestTraceBoundary action =
   withTestTracerProvider $
     \(tracerProvider, spansRef) -> do
       let traceBoundary =
-            mkOpenTelemetryTraceBoundary tracerProvider
+            mkOpenTelemetryTraceBoundary
+              tracerProvider
+              ignoreEventRecord
 
       action
         ( traceBoundary
         , spansRef
         )
+
+-- | EventRecord emitter for tests that exercise only Trace behavior.
+ignoreEventRecord :: EventRecordEmitter
+ignoreEventRecord _ =
+  pure ()
 
 -- | Run a test example with an isolated LoggerProvider and in-memory
 -- LogRecord exporter.
