@@ -13,5 +13,4 @@ main =
     OpenTelemetryBehaviorSpec.spec
     OpenTelemetryTraceSpec.spec
     OpenTelemetryLogsSpec.spec
-
--- OpenTelemetryExceptionEventSpec.spec
+    OpenTelemetryExceptionEventSpec.spec
