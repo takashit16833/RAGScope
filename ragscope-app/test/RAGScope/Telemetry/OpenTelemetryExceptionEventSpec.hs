@@ -8,22 +8,57 @@
 module RAGScope.Telemetry.OpenTelemetryExceptionEventSpec (spec) where
 
 import Control.Exception (throwIO, try)
-import Data.IORef (newIORef, readIORef, writeIORef)
+import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Data.Maybe (isJust)
 import OpenTelemetry.Exporter.InMemory (assertSpanNamed)
-import OpenTelemetry.Trace.Core (getActiveSpan, getActiveSpanContext)
+import OpenTelemetry.Internal.Log.Types (
+  ImmutableLogRecord (logRecordEventName),
+  LoggerProvider,
+  ReadableLogRecord,
+  toBaseMaybe,
+ )
+import OpenTelemetry.Trace.Core (
+  ImmutableSpan,
+  SpanContext,
+  getActiveSpan,
+  getActiveSpanContext,
+ )
 import Test.Hspec (
   Spec,
   around,
   describe,
+  expectationFailure,
   it,
   shouldBe,
   shouldReturn,
   shouldSatisfy,
  )
 
-import RAGScope.Telemetry.OpenTelemetryTestSupport (TestException (TestException), assertTestExceptionSpan, withTestTraceBoundary)
-import RAGScope.Telemetry.Trace (SpanName (SpanName), SpanOutcome (SpanSucceeded), withSpan)
+import RAGScope.Telemetry.Logs (emitEventRecord)
+import RAGScope.Telemetry.OpenTelemetry.Logs (mkOpenTelemetryLogsBoundary)
+import RAGScope.Telemetry.OpenTelemetry.Trace (mkOpenTelemetryTraceBoundary)
+import RAGScope.Telemetry.OpenTelemetryTestSupport (
+  TestException (TestException),
+  assertSingleExportedLogRecord,
+  assertTestExceptionSpan,
+  assertTracingDetails,
+  withTestLoggerProvider,
+  withTestTraceBoundary,
+  withTestTracerProvider,
+ )
+import RAGScope.Telemetry.Trace (
+  SpanName (SpanName),
+  SpanOutcome (SpanSucceeded),
+  TraceBoundary,
+  withSpan,
+ )
+
+type TestExceptionEventEnvironment =
+  ( TraceBoundary
+  , IORef [ImmutableSpan]
+  , LoggerProvider
+  , IORef [ReadableLogRecord]
+  )
 
 spec :: Spec
 spec =
@@ -31,16 +66,13 @@ spec =
   -- in-memory Span exporter while exposing only the RAGScope TraceBoundary
   -- needed by the test.
   around withTestTraceBoundary $
-    describe "OpenTelemetry unhandled exception propagation" $ do
-      it "marks every Span crossed by one unhandled synchronous exception" $
-        \(traceBoundary, spansRef) -> do
+    describe "OpenTelemetry exception EventRecord" $ do
+      it "records one EventRecord on the first Span escaped by an unhandled exception" $
+        \(traceBoundary, spansRef, loggerProvider, logRecordsRef) -> do
           contextBefore <-
             getActiveSpanContext
 
-          -- Preserve the Context active at the actual throw site. The later
-          -- EventRecord test will use this exact SpanContext to determine
-          -- which Span owns the single exception record.
-          throwContextRef <-
+          ownerContextRef <-
             newIORef Nothing
 
           result <-
@@ -58,33 +90,23 @@ spec =
                 (SpanName "internal-span")
                 (const SpanSucceeded)
               $ do
-                throwContext <-
-                  getActiveSpan
+                ownerContext <-
+                  getActiveSpanContext
 
                 writeIORef
-                  throwContextRef
-                  throwContext
+                  ownerContextRef
+                  ownerContext
 
                 (throwIO TestException :: IO ())
 
-          -- The exception crosses all three Span boundaries, but Trace
-          -- instrumentation must preserve the original exception value.
+          -- Telemetry must not replace or consume the application exception.
           result
             `shouldBe` Left TestException
 
-          -- Unwinding every nested Span must restore the Context that existed
-          -- before entering the outermost Span.
+          -- All nested Span scopes must restore the Context that was active
+          -- before entering the root Span.
           getActiveSpanContext
             `shouldReturn` contextBefore
-
-          throwContext <-
-            readIORef throwContextRef
-
-          -- The throw must have happened with a real Span current. This saved
-          -- SpanContext becomes the correlation reference when Logs are added
-          -- to this integration test.
-          throwContext
-            `shouldSatisfy` isJust
 
           internalSpan <-
             assertSpanNamed
@@ -101,12 +123,153 @@ spec =
               spansRef
               "root-span"
 
-          -- One exception escapes all three scopes. Each Span therefore owns
-          -- its own Status/error.type representation, while the future Logs
-          -- representation must still be emitted only once.
+          -- The same exception escaped all three Span boundaries, so every
+          -- Span represents its own failed execution.
           mapM_
             assertTestExceptionSpan
             [ internalSpan
             , useCaseSpan
             , rootSpan
             ]
+
+          ownerContext <-
+            readIORef ownerContextRef
+
+          -- The exception itself is represented in Logs only once. Because the
+          -- first escape occurred at internal-span, that EventRecord must carry
+          -- the internal Span's tracing details.
+          assertSingleExceptionEvent
+            loggerProvider
+            logRecordsRef
+            ownerContext
+
+      it "keeps the first-escape EventRecord when an outer Span catches and recovers" $
+        \(traceBoundary, spansRef, loggerProvider, logRecordsRef) -> do
+          ownerContextRef <-
+            newIORef Nothing
+
+          result <-
+            withSpan
+              traceBoundary
+              (SpanName "root-span")
+              (const SpanSucceeded)
+              $ withSpan
+                traceBoundary
+                (SpanName "use-case-span")
+                (const SpanSucceeded)
+              $ do
+                withSpan
+                  traceBoundary
+                  (SpanName "internal-span")
+                  (const SpanSucceeded)
+                  ( do
+                      ownerContext <-
+                        getActiveSpanContext
+
+                      writeIORef
+                        ownerContextRef
+                        ownerContext
+
+                      throwIO TestException
+                  )
+                  `catch` \TestException ->
+                    pure ()
+
+          -- The application handled the exception and recovered successfully.
+          result
+            `shouldBe` ()
+
+          internalSpan <-
+            assertSpanNamed
+              spansRef
+              "internal-span"
+
+          useCaseSpan <-
+            assertSpanNamed
+              spansRef
+              "use-case-span"
+
+          rootSpan <-
+            assertSpanNamed
+              spansRef
+              "root-span"
+
+          -- The exception escaped internal-span before application code caught
+          -- it, so that Span remains an error and owns the EventRecord.
+          assertTestExceptionSpan internalSpan
+
+          -- The exception never escaped these outer Span boundaries because
+          -- the UseCase application logic recovered from it.
+          assertSpanStatus
+            useCaseSpan
+            Unset
+
+          assertNoErrorType useCaseSpan
+
+          assertSpanStatus
+            rootSpan
+            Unset
+
+          assertNoErrorType rootSpan
+
+          ownerContext <-
+            readIORef ownerContextRef
+
+          assertSingleExceptionEvent
+            loggerProvider
+            logRecordsRef
+            ownerContext
+
+-- | Build the real Trace and Logs Adapter environment used by the exception
+-- integration test.
+--
+-- The Trace Adapter receives only the EventRecord emission capability it needs;
+-- normal LogRecord emission remains outside its dependency surface.
+withTestExceptionEventEnvironment ::
+  (TestExceptionEventEnvironment -> IO ()) ->
+  IO ()
+withTestExceptionEventEnvironment action =
+  withTestTracerProvider $
+    \(tracerProvider, spansRef) ->
+      withTestLoggerProvider $
+        \(loggerProvider, logRecordsRef) -> do
+          let
+            logsBoundary =
+              mkOpenTelemetryLogsBoundary loggerProvider
+
+            traceBoundary =
+              mkOpenTelemetryTraceBoundary
+                tracerProvider
+                (emitEventRecord logsBoundary)
+
+          action
+            ( traceBoundary
+            , spansRef
+            , loggerProvider
+            , logRecordsRef
+            )
+
+-- | Verify the single exception EventRecord and its first-escape correlation.
+assertSingleExceptionEvent ::
+  LoggerProvider ->
+  IORef [ReadableLogRecord] ->
+  Maybe SpanContext ->
+  IO ()
+assertSingleExceptionEvent loggerProvider logRecordsRef ownerContext =
+  assertSingleExportedLogRecord
+    loggerProvider
+    logRecordsRef
+    $ \record -> do
+      -- This is the generic OpenTelemetry exception event rather than a LogRecord.
+      toBaseMaybe
+        (logRecordEventName record)
+        `shouldBe` Just "exception"
+
+      case ownerContext of
+        Nothing ->
+          expectationFailure
+            "expected a SpanContext at the first exception escape"
+        Just spanContext ->
+          assertTracingDetails
+            spanContext
+            record
