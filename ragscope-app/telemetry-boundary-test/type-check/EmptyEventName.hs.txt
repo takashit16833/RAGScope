@@ -1,0 +1,15 @@
+{-# LANGUAGE DataKinds #-}
+
+-- | Negative compile fixture: an empty EventName must be rejected.
+-- Intentionally invalid; do not register this module in a Cabal test suite.
+-- check-type-safety.sh verifies the expected compiler error.
+module EmptyEventName where
+
+import RAGScope.Telemetry.Logs (
+  EventName,
+  eventNameLiteral,
+ )
+
+invalidEventName :: EventName
+invalidEventName =
+  eventNameLiteral @""

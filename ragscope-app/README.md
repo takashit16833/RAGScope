@@ -36,7 +36,9 @@ make format-check-app
 make check-app
 ```
 
-`make check-app`では、整形状態の確認、ビルド、テスト、Haddock生成を順に実行します。
+`make check-app`では、整形状態の確認、ビルド、テスト、Telemetry境界のコンパイル時検査、Haddock生成を順に実行します。
+
+Telemetry境界のコンパイル時検査では、正常なコードがコンパイルできることに加え、空のEventNameや非公開コンストラクタの使用が期待した理由で拒否されることを確認します。意図的にコンパイルできないfixtureを使用するため、この検査は`cabal test all`には含まれません。`make check-app`を実行してください。
 
 ## Cabalコマンドを個別に実行する
 

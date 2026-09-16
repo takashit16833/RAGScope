@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-missing-fields #-}
 
@@ -50,7 +51,7 @@ import RAGScope.Telemetry.Logs (
   EventRecordEmitter,
   EventTimestamp (EventNow),
   LogValue (LogText),
-  mkEventName,
+  eventNameLiteral,
  )
 import RAGScope.Telemetry.Logs qualified as Logs
 
@@ -205,17 +206,10 @@ exceptionEventRecord exceptionType exceptionMessage =
           ]
     }
 
--- | Construct the static EventName once instead of weakening EventName's
--- non-empty invariant for a value that cannot fail at runtime in practice.
+-- | Construct the fixed exception event name with compile-time validation.
 exceptionEventName :: EventName
 exceptionEventName =
-  case mkEventName "exception" of
-    Right eventName ->
-      eventName
-    Left failure ->
-      error $
-        "exceptionEventName: failed to construct static exception EventName: "
-          <> show failure
+  eventNameLiteral @"exception"
 
 -- | Prevent the SDK from duplicating exception observation that RAGScope
 -- performs itself.

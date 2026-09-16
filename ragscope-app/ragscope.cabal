@@ -34,6 +34,17 @@ license: NONE
 build-type: Simple
 -- Extra doc files to be distributed with the package, such as a CHANGELOG or a README.
 extra-doc-files: CHANGELOG.md
+-- These fixtures include intentionally invalid Haskell modules.
+-- Keep them as .hs.txt files so HLS does not load them as Cabal modules.
+-- Do not add them to other-modules: ordinary cabal test would fail
+-- while compiling the negative fixtures, before executing any tests.
+-- check-type-safety.sh compiles temporary .hs copies and checks
+-- that each fixture succeeds or fails for the expected reason.
+extra-source-files:
+  telemetry-boundary-test/check-type-safety.sh
+  telemetry-boundary-test/type-check/EmptyEventName.hs.txt
+  telemetry-boundary-test/type-check/HiddenEventNameConstructor.hs.txt
+  telemetry-boundary-test/type-check/ValidEventName.hs.txt
 
 -- Extra source files to be distributed with the package, such as examples, or a tutorial module.
 -- extra-source-files:
@@ -149,3 +160,22 @@ test-suite ragscope-test
     ragscope,
     ragscope:opentelemetry-adapter,
     ragscope:telemetry-boundary,
+
+-- Verify that application components can convert typed event into EventRecords
+-- and use Logs/Trace boundaries without depending on the OpenTelemetry SDK.
+test-suite telemetry-boundary-test
+  import: warnings
+  type: exitcode-stdio-1.0
+  hs-source-dirs: telemetry-boundary-test
+  main-is: Main.hs
+  other-modules:
+    RAGScope.Telemetry.BoundaryUsageSpec
+
+  build-depends:
+    base ^>=4.21.2.0,
+    containers ^>=0.7,
+    hspec ^>=2.11.17,
+    ragscope:telemetry-boundary,
+    text ^>=2.1.4,
+
+  default-language: GHC2021

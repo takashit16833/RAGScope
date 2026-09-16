@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 -- | Tests the OpenTelemetry Logs Adapter for the RAGScope Logs boundary.
@@ -58,7 +59,7 @@ import RAGScope.Telemetry.Logs (
   Severity (Info, Warn),
   emitEventRecord,
   emitLogRecord,
-  mkEventName,
+  eventNameLiteral,
  )
 import RAGScope.Telemetry.OpenTelemetry.Logs (
   mkOpenTelemetryLogsBoundary,
@@ -281,14 +282,7 @@ testEventRecord =
     , eventAttributes = Map.empty
     }
 
--- | Construct the fixture through the public validation path because EventName
--- hides its constructor and production RAGScope code must follow the same path.
+-- | Construct the fixed test event name through the public literal API.
 testEventName :: EventName
 testEventName =
-  case mkEventName "ragscope.test.event" of
-    Right eventName ->
-      eventName
-    Left failure ->
-      error $
-        "testEventName: unexpected validation failure: "
-          <> show failure
+  eventNameLiteral @"ragscope.test.event"

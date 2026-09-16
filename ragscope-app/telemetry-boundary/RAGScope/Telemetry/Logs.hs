@@ -1,3 +1,8 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 -- | SDK-independent capability for recording OpenTelemetry Logs
 -- from RAGScope internal processing.
 --
@@ -10,8 +15,8 @@ module RAGScope.Telemetry.Logs (
   LogRecord (..),
   EventRecord (..),
   EventName,
-  EventNameValidationFailure (..),
-  mkEventName,
+  NonEmptyEventName,
+  eventNameLiteral,
   eventNameText,
   EventTimestamp (..),
   Severity (..),
@@ -26,10 +31,14 @@ module RAGScope.Telemetry.Logs (
 
 import Data.ByteString (ByteString)
 import Data.Int (Int64)
+import Data.Kind (Constraint)
 import Data.Map.Strict (Map)
+import Data.Proxy (Proxy (Proxy))
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Time (UTCTime)
+import GHC.TypeLits (KnownSymbol, Symbol, symbolVal)
+import GHC.TypeLits qualified as TypeLits
 
 -- | Name carried by @EventRecord@.
 --
@@ -41,23 +50,24 @@ import Data.Time (UTCTime)
 newtype EventName = EventName Text
   deriving (Eq, Show)
 
--- | Reason why an @EventName@ could not be constructed.
-data EventNameValidationFailure
-  = EmptyEventName
-  deriving (Eq, Show)
+-- | Reject empty event names at compile time.
+type family NonEmptyEventName (name :: Symbol) :: Constraint where
+  NonEmptyEventName "" =
+    TypeLits.TypeError
+      ('TypeLits.Text "EventName must not be empty")
+  NonEmptyEventName name = ()
 
--- | Build an @EventName@.
+-- | Construct an EventName from a compile-time string literal.
 --
--- The event name must be non-empty. The @ragscope.*@ namespace is not
--- enforced here because standard OpenTelemetry event names are also valid.
-mkEventName ::
-  Text ->
-  Either EventNameValidationFailure EventName
-mkEventName name
-  | Text.null name =
-      Left EmptyEventName
-  | otherwise =
-      Right (EventName name)
+-- An empty literal is rejected at compile time.
+-- RAGScope-defined names use the @ragscope.*@ namespace, while standard
+-- OpenTelemetry event names may also be used.
+eventNameLiteral ::
+  forall (name :: Symbol).
+  (KnownSymbol name, NonEmptyEventName name) =>
+  EventName
+eventNameLiteral =
+  EventName (Text.pack (symbolVal (Proxy @name)))
 
 -- | Return the underlying OpenTelemetry event name.
 eventNameText :: EventName -> Text

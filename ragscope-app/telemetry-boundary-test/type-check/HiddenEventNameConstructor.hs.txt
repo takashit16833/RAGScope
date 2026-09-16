@@ -1,0 +1,14 @@
+{-# LANGUAGE OverloadedStrings #-}
+
+-- | Negative compile fixture: EventName's hidden constructor must be rejected.
+-- Intentionally invalid; do not register this module in a Cabal test suite.
+-- check-type-safety.sh verifies the expected compiler error.
+module HiddenEventNameConstructor where
+
+import RAGScope.Telemetry.Logs (
+  EventName (EventName),
+ )
+
+invalidEventName :: EventName
+invalidEventName =
+  EventName ""

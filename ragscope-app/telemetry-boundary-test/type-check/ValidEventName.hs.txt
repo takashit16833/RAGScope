@@ -1,0 +1,14 @@
+{-# LANGUAGE DataKinds #-}
+
+-- | Positive control: a non-empty EventName must compile successfully.
+-- This fixture is compiled separately by check-type-safety.sh.
+module ValidEventName where
+
+import RAGScope.Telemetry.Logs (
+  EventName,
+  eventNameLiteral,
+ )
+
+validEventName :: EventName
+validEventName =
+  eventNameLiteral @"exception"
