@@ -2,7 +2,7 @@
 -- from RAGScope internal processing.
 --
 -- This module defines the values that RAGScope code may use when
--- recording 'LogRecord' and 'EventRecord' values.
+-- recording @LogRecord@ and @EventRecord@ values.
 -- Conversion to OpenTelemetry SDK types and correlation with the current
 -- Trace Context are responsibilities of the OpenTelemetry Adapter.
 module RAGScope.Telemetry.Logs (
@@ -31,22 +31,22 @@ import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Time (UTCTime)
 
--- | Name carried by 'EventRecord'.
+-- | Name carried by @EventRecord@.
 --
 -- OpenTelemetry Semantic Convention event names may be used directly.
 -- RAGScope-defined event names use the @ragscope.*@ namespace.
 --
--- The constructor is intentionally hidden so that an 'EventName' always
+-- The constructor is intentionally hidden so that an @EventName@ always
 -- contains a non-empty name.
 newtype EventName = EventName Text
   deriving (Eq, Show)
 
--- | Reason why an 'EventName' could not be constructed.
+-- | Reason why an @EventName@ could not be constructed.
 data EventNameValidationFailure
   = EmptyEventName
   deriving (Eq, Show)
 
--- | Build an 'EventName'.
+-- | Build an @EventName@.
 --
 -- The event name must be non-empty. The @ragscope.*@ namespace is not
 -- enforced here because standard OpenTelemetry event names are also valid.
@@ -64,13 +64,13 @@ eventNameText :: EventName -> Text
 eventNameText (EventName name) =
   name
 
--- | Occurrence time carried by 'EventRecord'.
+-- | Occurrence time carried by @EventRecord@.
 --
--- 'EventNow' means that the OpenTelemetry Adapter records the current time
+-- @EventNow@ means that the OpenTelemetry Adapter records the current time
 -- as the event timestamp.
 --
--- 'EventAt' is used when the occurrence time is already known and may differ
--- from the time at which RAGScope emits the 'EventRecord'.
+-- @EventAt@ is used when the occurrence time is already known and may differ
+-- from the time at which RAGScope emits the @EventRecord@.
 data EventTimestamp
   = EventNow
   | EventAt UTCTime
@@ -89,8 +89,8 @@ data Severity
 
 -- | SDK-independent OpenTelemetry log value.
 --
--- This value space can be used as 'LogRecord' body and for
--- 'LogRecord' or 'EventRecord' attributes.
+-- This value space can be used as @LogRecord@ body and for
+-- @LogRecord@ or @EventRecord@ attributes.
 data LogValue
   = LogText Text
   | LogBool Bool
@@ -102,7 +102,7 @@ data LogValue
   | LogNull
   deriving (Eq, Show)
 
--- | Attributes attached to 'LogRecord' or 'EventRecord'.
+-- | Attributes attached to @LogRecord@ or @EventRecord@.
 type LogAttributes = Map Text LogValue
 
 -- | RAGScope record without an event name.
@@ -110,12 +110,12 @@ data LogRecord = LogRecord
   { logTimestamp :: Maybe UTCTime
   -- ^ Time when the logged occurrence happened at its source.
   --
-  -- 'Nothing' means that RAGScope does not provide an explicit source
+  -- @Nothing@ means that RAGScope does not provide an explicit source
   -- timestamp. The OpenTelemetry SDK still records its observed timestamp.
   , logSeverity :: Severity
-  -- ^ Severity assigned to this 'LogRecord'.
+  -- ^ Severity assigned to this @LogRecord@.
   , logBody :: LogValue
-  -- ^ Body of this 'LogRecord'.
+  -- ^ Body of this @LogRecord@.
   , logAttributes :: LogAttributes
   -- ^ Structured information associated with this occurrence.
   }
@@ -123,37 +123,37 @@ data LogRecord = LogRecord
 
 -- | RAGScope record with a stable event name.
 --
--- Feature-specific code determines when the 'EventRecord' is recorded and
+-- Feature-specific code determines when the @EventRecord@ is recorded and
 -- defines its name, timestamp semantics, severity, and attributes.
 data EventRecord = EventRecord
   { eventName :: EventName
-  -- ^ Stable non-empty name identifying the 'EventRecord' structure.
+  -- ^ Stable non-empty name identifying the @EventRecord@ structure.
   , eventTimestamp :: EventTimestamp
-  -- ^ Occurrence time carried by this 'EventRecord'.
+  -- ^ Occurrence time carried by this @EventRecord@.
   , eventSeverity :: Severity
-  -- ^ Severity assigned to this 'EventRecord'.
+  -- ^ Severity assigned to this @EventRecord@.
   , eventAttributes :: LogAttributes
   -- ^ Structured information associated with this occurrence.
   }
   deriving (Eq, Show)
 
--- | Emitter for 'LogRecord' values.
+-- | Emitter for @LogRecord@ values.
 type LogRecordEmitter =
   LogRecord ->
   IO ()
 
--- | Emitter for 'EventRecord' values.
+-- | Emitter for @EventRecord@ values.
 type EventRecordEmitter =
   EventRecord ->
   IO ()
 
--- | SDK-independent capability for recording 'LogRecord' and 'EventRecord'.
+-- | SDK-independent capability for recording @LogRecord@ and @EventRecord@.
 data LogsBoundary
   = LogsBoundary
       LogRecordEmitter
       EventRecordEmitter
 
--- | Build a 'LogsBoundary' from its concrete implementations.
+-- | Build a @LogsBoundary@ from its concrete implementations.
 mkLogsBoundary ::
   LogRecordEmitter ->
   EventRecordEmitter ->
@@ -161,7 +161,7 @@ mkLogsBoundary ::
 mkLogsBoundary =
   LogsBoundary
 
--- | Record 'LogRecord'.
+-- | Record @LogRecord@.
 emitLogRecord ::
   LogsBoundary ->
   LogRecord ->
@@ -169,7 +169,7 @@ emitLogRecord ::
 emitLogRecord (LogsBoundary emit _) =
   emit
 
--- | Record 'EventRecord'.
+-- | Record @EventRecord@.
 emitEventRecord ::
   LogsBoundary ->
   EventRecord ->

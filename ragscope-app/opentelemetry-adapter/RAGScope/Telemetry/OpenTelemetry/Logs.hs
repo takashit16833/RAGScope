@@ -2,13 +2,13 @@
 
 -- | OpenTelemetry Adapter for the RAGScope Logs boundary.
 --
--- This module converts SDK-independent RAGScope 'Logs.LogRecord' and
--- 'Logs.EventRecord' values to OpenTelemetry LogRecords. Trace correlation is
+-- This module converts SDK-independent RAGScope @Logs.LogRecord@ and
+-- @Logs.EventRecord@ values to OpenTelemetry LogRecords. Trace correlation is
 -- delegated to OpenTelemetry by using the current Context when each record is
 -- emitted.
 --
--- Converted 'Logs.EventRecord' values carry the OpenTelemetry LogRecord event
--- name, while converted 'Logs.LogRecord' values do not.
+-- Converted @Logs.EventRecord@ values carry the OpenTelemetry LogRecord event
+-- name, while converted @Logs.LogRecord@ values do not.
 module RAGScope.Telemetry.OpenTelemetry.Logs (mkOpenTelemetryLogsBoundary) where
 
 import Control.Monad (void)
@@ -34,7 +34,7 @@ import OpenTelemetry.Log.Core qualified as OpenTelemetry
 
 import RAGScope.Telemetry.Logs qualified as Logs
 
--- | Build the ROGScope Logs boundary backed by OpenTelemetry.
+-- | Build the RAGScope Logs boundary backed by OpenTelemetry.
 mkOpenTelemetryLogsBoundary ::
   LoggerProvider ->
   Logs.LogsBoundary
@@ -48,7 +48,7 @@ mkOpenTelemetryLogsBoundary loggerProvider =
       loggerProvider
       "ragscope"
 
--- | Record 'LogRecord' through OpenTelemetry.
+-- | Record @Logs.LogRecord@ through OpenTelemetry.
 emitOpenTelemetryLogRecord ::
   Logger ->
   Logs.LogRecord ->
@@ -59,7 +59,7 @@ emitOpenTelemetryLogRecord logger record = do
       logger
       (toOpenTelemetryLogRecordArguments record)
 
--- | Record 'EventRecord' through OpenTelemetry.
+-- | Record @Logs.EventRecord@ through OpenTelemetry.
 emitOpenTelemetryEventRecord ::
   Logger ->
   Logs.EventRecord ->
@@ -73,7 +73,7 @@ emitOpenTelemetryEventRecord logger record = do
       logger
       arguments
 
--- | Convert 'LogRecord' to OpenTelemetry arguments.
+-- | Convert @Logs.LogRecord@ to OpenTelemetry arguments.
 toOpenTelemetryLogRecordArguments ::
   Logs.LogRecord ->
   LogRecordArguments
@@ -97,7 +97,7 @@ toOpenTelemetryLogRecordArguments record =
     , eventName = Nothing
     }
 
--- | Convert 'EventRecord' to OpenTelemetry arguments.
+-- | Convert @Logs.EventRecord@ to OpenTelemetry arguments.
 toOpenTelemetryEventRecordArguments ::
   Logs.EventRecord ->
   IO LogRecordArguments
@@ -126,7 +126,7 @@ toOpenTelemetryEventRecordArguments record = do
               Logs.eventName record
       }
 
--- | Resolve the occurence time of 'EventRecord'.
+-- | Resolve the occurrence time of @Logs.EventRecord@.
 resolveEventTimestamp ::
   Logs.EventTimestamp ->
   IO Timestamp

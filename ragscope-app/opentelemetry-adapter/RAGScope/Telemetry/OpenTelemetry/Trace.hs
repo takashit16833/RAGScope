@@ -1,20 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# OPTIONS_GHC -Wno-name-shadowing #-}
 
+-- | OpenTelemetry Adapter for the RAGScope Trace boundary.
+--
+-- This module owns Span lifecycle and reflects returned RAGScope outcomes on
+-- OpenTelemetry Spans. Exception-specific observation is delegated to the
+-- adapter-private exception module.
 module RAGScope.Telemetry.OpenTelemetry.Trace (mkOpenTelemetryTraceBoundary) where
 
 import Control.Exception (
-  AsyncException (UserInterrupt),
-  Exception (displayException, fromException),
-  SomeAsyncException,
-  SomeException (..),
-  catch,
-  throwIO,
+  mask,
+  rethrowIO,
  )
-import Data.Data (typeOf)
-import Data.Text qualified as Text
 import OpenTelemetry.Trace.Core (
-  ExceptionHandler,
   Span,
   SpanStatus (Error),
   Tracer,
@@ -27,15 +24,29 @@ import OpenTelemetry.Trace.Core (
   setStatus,
   tracerOptions,
  )
-import OpenTelemetry.Trace.ExceptionHandler (ignoreExceptionMatching)
 
-import RAGScope.Telemetry.Trace (SpanName (SpanName), SpanOutcome (SpanFailed, SpanSucceeded), SpanRunner, TraceBoundary, mkTraceBoundary)
+import RAGScope.Telemetry.Logs (
+  EventRecordEmitter,
+ )
+import RAGScope.Telemetry.OpenTelemetry.Exception qualified as Exception
+import RAGScope.Telemetry.Trace (
+  SpanName (SpanName),
+  SpanOutcome (SpanFailed, SpanSucceeded),
+  SpanRunner,
+  TraceBoundary,
+  mkTraceBoundary,
+ )
 
 -- | Build the RAGScope Trace boundary backed by OpenTelemetry.
-mkOpenTelemetryTraceBoundary :: TracerProvider -> TraceBoundary
-mkOpenTelemetryTraceBoundary tracerProvider =
+mkOpenTelemetryTraceBoundary ::
+  TracerProvider ->
+  EventRecordEmitter ->
+  TraceBoundary
+mkOpenTelemetryTraceBoundary tracerProvider eventRecordEmitter =
   mkTraceBoundary $
-    runOpenTelemetrySpan tracer
+    runOpenTelemetrySpan
+      tracer
+      exceptionHandler
  where
   tracer =
     makeTracer
@@ -43,25 +54,39 @@ mkOpenTelemetryTraceBoundary tracerProvider =
       "ragscope"
       tracerOptions
         { tracerExceptionHandlerOptions =
-            [ ignoreSynchronousException
-            , ignoreIntentionalInterruption
-            ]
+            Exception.tracerExceptionHandlers
         }
 
--- | Run one RAGScope action inside on OpenTelemetry Span.
-runOpenTelemetrySpan :: Tracer -> SpanRunner
-runOpenTelemetrySpan tracer (SpanName spanName) classify action =
-  inSpan''
-    tracer
-    spanName
-    defaultSpanArguments
-    $ \span ->
-      handleSynchronousException span $ do
-        result <- action
+  exceptionHandler =
+    Exception.mkSpanExceptionHandler
+      eventRecordEmitter
 
-        applySpanOutcome span (classify result)
+-- | Run one RAGScope action inside an OpenTelemetry Span.
+runOpenTelemetrySpan ::
+  Tracer ->
+  Exception.SpanExceptionHandler ->
+  SpanRunner
+runOpenTelemetrySpan tracer handleException (SpanName spanName) classify action =
+  mask $ \restore -> do
+    spanExit <-
+      inSpan''
+        tracer
+        spanName
+        defaultSpanArguments
+        $ \otelSpan ->
+          handleException
+            otelSpan
+            $ restore
+            $ do
+              result <- action
 
-        pure result
+              applySpanOutcome
+                otelSpan
+                (classify result)
+
+              pure result
+
+    either rethrowIO pure spanExit
 
 -- | Reflect the final RAGScope result on the Span.
 applySpanOutcome ::
@@ -70,62 +95,12 @@ applySpanOutcome ::
   IO ()
 applySpanOutcome _ SpanSucceeded =
   pure ()
-applySpanOutcome span (SpanFailed errorType) = do
-  setStatus span $ Error ""
+applySpanOutcome otelSpan (SpanFailed errorType) = do
+  setStatus
+    otelSpan
+    (Error "")
 
   addAttribute
-    span
+    otelSpan
     "error.type"
     errorType
-
--- | Mark an unbandled synchronous exception on the Span and rethrow it.
---
--- Asynchronous exceptions are left ot the surrounding runtime/SDK handling.
-handleSynchronousException ::
-  Span ->
-  IO result ->
-  IO result
-handleSynchronousException span action =
-  action `catch` \exception ->
-    if isSynchronousException exception
-      then markSynchronousException span exception
-      else throwIO exception
-
-markSynchronousException ::
-  Span ->
-  SomeException ->
-  IO result
-markSynchronousException span exception@(SomeException inner) = do
-  setStatus span $
-    Error $
-      Text.pack $
-        displayException inner
-
-  addAttribute
-    span
-    "error.type"
-    $ Text.pack
-    $ show
-    $ typeOf inner
-
-  throwIO exception
-
--- | hs-opentelemetry must not automatically add another exception Span Event
--- for synchronous exceptions already handled above.
-ignoreSynchronousException :: ExceptionHandler
-ignoreSynchronousException =
-  ignoreExceptionMatching @SomeException isSynchronousException
-
--- | UserInterrupt represents an intentional user interruption and must not
--- be recorded as a Span error.
-ignoreIntentionalInterruption :: ExceptionHandler
-ignoreIntentionalInterruption =
-  ignoreExceptionMatching @AsyncException (== UserInterrupt)
-
-isSynchronousException :: SomeException -> Bool
-isSynchronousException exception =
-  case fromException exception :: Maybe SomeAsyncException of
-    Just _ ->
-      False
-    Nothing ->
-      True

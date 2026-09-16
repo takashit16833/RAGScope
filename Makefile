@@ -12,7 +12,7 @@ format-app:
 
 # 整形済みか確認する。ファイルは変更しない
 format-check-app:
-	find "#(APP_DIR)" \
+	find "$(APP_DIR)" \
 		-path "$(APP_DIR)/dist-newstyle" -prune -o \
 		-type f -name "*.hs" -print0 \
 		| xargs -0 -r fourmolu --mode check

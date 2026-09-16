@@ -1,3 +1,7 @@
+-- | SDK-independent capability for running RAGScope actions inside Spans.
+--
+-- This module defines Span names, outcomes, and the execution boundary
+-- without depending on a concrete telemetry SDK.
 module RAGScope.Telemetry.Trace (
   TraceBoundary,
   SpanName (..),
@@ -24,7 +28,7 @@ data SpanOutcome
   | SpanFailed Text
   deriving (Eq, Show)
 
--- | A polymorphic furction for running an IO action inside a Span.
+-- | A polymorphic function for running an IO action inside a Span.
 --
 -- One SpanRunner value can wrap actions returning any result type.
 -- The classifier maps returned result to the telemetry-only SpanOutcome,
