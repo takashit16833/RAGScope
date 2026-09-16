@@ -95,6 +95,7 @@ library opentelemetry-adapter
 
   other-modules:
     RAGScope.Telemetry.OpenTelemetry.Exception
+    RAGScope.Telemetry.OpenTelemetry.Lifecycle
 
   build-depends:
     base ^>=4.21.2.0,
