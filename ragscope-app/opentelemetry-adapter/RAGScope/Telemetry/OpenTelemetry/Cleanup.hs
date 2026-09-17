@@ -18,8 +18,7 @@ import OpenTelemetry.Internal.Common.Types (
 
 -- | Preserve the SDK result without converting a failure into success.
 data CleanupResult
-  = CleanupCompleted
-  | CleanupFlushResult FlushResult
+  = CleanupFlushResult FlushResult
   | CleanupShutdownResult ShutdownResult
   | CleanupExportResult ExportResult
 

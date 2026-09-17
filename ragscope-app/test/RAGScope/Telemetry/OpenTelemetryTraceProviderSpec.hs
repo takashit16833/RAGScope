@@ -34,6 +34,7 @@ import Test.Hspec (
   Spec,
   describe,
   it,
+  pendingWith,
   shouldBe,
   shouldReturn,
  )
@@ -56,7 +57,10 @@ import RAGScope.Telemetry.OpenTelemetryTestSupport (
  )
 
 spec :: Spec
-spec = undefined
+spec =
+  describe "TraceProvider" $
+    it "acquires and releases the SDK provider" $
+      pendingWith "TraceProvider tests are not implemented yet"
 
 -- | Connect a real Trace provider to the existing three-provider lifecycle.
 mkOperations ::

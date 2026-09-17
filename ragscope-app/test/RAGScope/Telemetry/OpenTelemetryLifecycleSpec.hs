@@ -16,6 +16,7 @@ import Data.IORef (
   readIORef,
  )
 import Data.Maybe (isJust)
+import OpenTelemetry.Exporter.LogRecord (ShutdownResult (ShutdownSuccess))
 import Test.Hspec (
   Spec,
   describe,
@@ -311,7 +312,7 @@ spec =
                   record $
                     CleanupOutcome
                       "metrics.exporter.rollback"
-                      (Right CleanupCompleted)
+                      (Right (CleanupShutdownResult ShutdownSuccess))
 
                   throwIO TestException
               }

@@ -10,7 +10,7 @@ module RAGScope.Telemetry.OpenTelemetry.Construction (
   withProviders,
 ) where
 
-import Control.Exception (bracket)
+import Control.Exception (SomeException (SomeException), bracket, tryWithContext)
 import Control.Monad (void)
 
 import RAGScope.Telemetry.OpenTelemetry.Cleanup (
@@ -96,8 +96,13 @@ releaseSafely ::
   ((CleanupOutcome -> IO ()) -> resource -> IO ()) ->
   resource ->
   IO ()
-releaseSafely record name release resource =
-  void $
-    attemptCleanup record name $ do
+releaseSafely record name release resource = do
+  result <-
+    tryWithContext @SomeException $
       release record resource
-      pure CleanupCompleted
+
+  case result of
+    Left exception ->
+      record (CleanupOutcome name (Left exception))
+    Right () ->
+      pure ()
