@@ -90,13 +90,14 @@ library opentelemetry-adapter
   visibility: private
   exposed-modules:
     RAGScope.Telemetry.OpenTelemetry
+    RAGScope.Telemetry.OpenTelemetry.Construction
     RAGScope.Telemetry.OpenTelemetry.Logs
     RAGScope.Telemetry.OpenTelemetry.Trace
 
   other-modules:
+    RAGScope.Telemetry.OpenTelemetry.Cleanup
     RAGScope.Telemetry.OpenTelemetry.Exception
     RAGScope.Telemetry.OpenTelemetry.Lifecycle
-    RAGScope.Telemetry.OpenTelemetry.Cleanup
 
   build-depends:
     base ^>=4.21.2.0,
@@ -139,6 +140,7 @@ test-suite ragscope-test
   other-modules:
     RAGScope.Telemetry.OpenTelemetryBehaviorSpec
     RAGScope.Telemetry.OpenTelemetryExceptionEventSpec
+    RAGScope.Telemetry.OpenTelemetryLifecycleSpec
     RAGScope.Telemetry.OpenTelemetryLogsSpec
     RAGScope.Telemetry.OpenTelemetryTestSupport
     RAGScope.Telemetry.OpenTelemetryTraceSpec
