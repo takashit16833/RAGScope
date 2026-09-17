@@ -5,10 +5,7 @@ import Control.Exception (
   throwIO,
   try,
  )
-import Data.Either (
-  isLeft,
-  isRight,
- )
+import Data.Either (isLeft)
 import Data.IORef (
   IORef,
   modifyIORef',
@@ -78,22 +75,22 @@ spec =
       -- Publish exactly one report for the complete lifecycle.
       length savedReports `shouldBe` 1
 
-      -- Retain release outcomes in execution order, not acquisition order.
+      -- Retain individual SDK shutdown results in release order.
       map
         (map cleanupOutcomeName . lifecycleCleanupOutcomes)
         savedReports
         `shouldBe` [
-                     [ "metrics.release"
-                     , "logs.release"
-                     , "trace.release"
+                     [ "metrics.shutdown"
+                     , "logs.shutdown"
+                     , "trace.shutdown"
                      ]
                    ]
 
-      -- Each release callback must finish without throwing an exception.
+      -- Record actual SDK result variants, not a synthetic release completion.
       map
-        (all (isRight . cleanupOutcomeResult) . lifecycleCleanupOutcomes)
+        (map isSuccessfulShutdown . lifecycleCleanupOutcomes)
         savedReports
-        `shouldBe` [True]
+        `shouldBe` [[True, True, True]]
 
       -- A successful callback must not be reported as an original exception.
       map
@@ -138,11 +135,16 @@ spec =
 
       savedReports <- readIORef reports
 
-      -- Report only the release of the successfolly acquired Trace provider.
+      -- Report the Trace shutdown operation, not synthetic release completion.
       map
         (map cleanupOutcomeName . lifecycleCleanupOutcomes)
         savedReports
-        `shouldBe` [["trace.release"]]
+        `shouldBe` [["trace.shutdown"]]
+
+      map
+        (map isSuccessfulShutdown . lifecycleCleanupOutcomes)
+        savedReports
+        `shouldBe` [[True]]
 
       -- Preserve the acquisition exception in the lifecycle report.
       map
@@ -218,7 +220,12 @@ spec =
 
       savedReports <- readIORef reports
 
-      -- Record only the Logs release as exceptional, preserving outcome order.
+      -- Preserve SDK outcomes around the unexpected Logs release exception.
+      map
+        (map cleanupOutcomeName . lifecycleCleanupOutcomes)
+        savedReports
+        `shouldBe` [["metrics.shutdown", "logs.release", "trace.shutdown"]]
+
       map
         (map (isLeft . cleanupOutcomeResult) . lifecycleCleanupOutcomes)
         savedReports
@@ -267,7 +274,12 @@ spec =
         savedReports
         `shouldBe` [True]
 
-      -- Record the Metrics interruption without marking other releases as failed.
+      -- Record the interruption and both later SDK shutdown results in order.
+      map
+        (map cleanupOutcomeName . lifecycleCleanupOutcomes)
+        savedReports
+        `shouldBe` [["metrics.release", "logs.shutdown", "trace.shutdown"]]
+
       map
         (map (isLeft . cleanupOutcomeResult) . lifecycleCleanupOutcomes)
         savedReports
@@ -306,7 +318,7 @@ spec =
               { acquireMetricsProvider = \record -> do
                   recordEvent events "metrics.acquisition.started"
 
-                  -- Simulate a rollback attempt and its completed outcome during acquisition.
+                  -- Simulate a rollback attempt and its SDK shutdown outcome.
                   recordEvent events "metrics.exporter.rollback.attempted"
 
                   record $
@@ -341,25 +353,38 @@ spec =
 
       savedReports <- readIORef reports
 
-      -- Include the partial-acquisition rollback before outer release outcomes.
+      -- Include the partial-acquisition rollback before outer SDK shutdowns.
       map
         (map cleanupOutcomeName . lifecycleCleanupOutcomes)
         savedReports
         `shouldBe` [
                      [ "metrics.exporter.rollback"
-                     , "logs.release"
-                     , "trace.release"
+                     , "logs.shutdown"
+                     , "trace.shutdown"
                      ]
                    ]
+
+      map
+        (map isSuccessfulShutdown . lifecycleCleanupOutcomes)
+        savedReports
+        `shouldBe` [[True, True, True]]
 
 -- | Record an in-memory test event in execution order; no telemetry is emitted.
 recordEvent :: IORef [String] -> String -> IO ()
 recordEvent events name =
   modifyIORef' events (<> [name])
 
+-- | Check that the SDK's shutdown result is retained, not just a release marker.
+isSuccessfulShutdown :: CleanupOutcome -> Bool
+isSuccessfulShutdown outcome =
+  case cleanupOutcomeResult outcome of
+    Right (CleanupShutdownResult ShutdownSuccess) -> True
+    _ -> False
+
 -- | Create three test-only provider operations.
 --
 -- Each resource is (); the labels track execution, not OpenTelemetry events.
+-- The release mocks record the SDK shutdown result through the injected callback.
 mkOperations ::
   IORef [String] ->
   ProviderOperations () () ()
@@ -367,14 +392,17 @@ mkOperations events =
   ProviderOperations
     { acquireTraceProvider = \_ ->
         recordEvent events "trace.acquired"
-    , releaseTraceProvider = \_ _ ->
+    , releaseTraceProvider = \record _ -> do
         recordEvent events "trace.release.attempted"
+        record $ CleanupOutcome "trace.shutdown" (Right (CleanupShutdownResult ShutdownSuccess))
     , acquireLogsProvider = \_ ->
         recordEvent events "logs.acquired"
-    , releaseLogsProvider = \_ _ ->
+    , releaseLogsProvider = \record _ -> do
         recordEvent events "logs.release.attempted"
+        record $ CleanupOutcome "logs.shutdown" (Right (CleanupShutdownResult ShutdownSuccess))
     , acquireMetricsProvider = \_ ->
         recordEvent events "metrics.acquired"
-    , releaseMetricsProvider = \_ _ ->
+    , releaseMetricsProvider = \record _ -> do
         recordEvent events "metrics.release.attempted"
+        record $ CleanupOutcome "metrics.shutdown" (Right (CleanupShutdownResult ShutdownSuccess))
     }
