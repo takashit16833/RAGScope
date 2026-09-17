@@ -1,7 +1,8 @@
--- | Resource cleanup support for the OpenTelemetry Adapter.
+-- | Resource lifetime support for the OpenTelemetry Adapter.
 --
--- Each cleanup step is attempted independently. The caller is responsible
--- for inspecting the outcomes and propagating any deferred interruption.
+-- Cleanup execution and outcomes are defined in the Cleanup module.
+-- The resource-management implementation in this module will be replaced
+-- by bracket-based ownership and a single outer exception decision.
 module RAGScope.Telemetry.OpenTelemetry.Lifecycle (
   CleanupResult (..),
   CleanupStep (..),
@@ -30,33 +31,13 @@ import Data.IORef (
   newIORef,
   readIORef,
  )
-import OpenTelemetry.Internal.Common.Types (
-  ExportResult,
-  FlushResult,
-  ShutdownResult,
+
+import RAGScope.Telemetry.OpenTelemetry.Cleanup (
+  CleanupOutcome (..),
+  CleanupResult (..),
+  CleanupStep (..),
+  runCleanupSteps,
  )
-
--- | Preserve the SDK result without converting a failure into success.
-data CleanupResult
-  = CleanupCompleted
-  | CleanupFlushResult FlushResult
-  | CleanupShutdownResult ShutdownResult
-  | CleanupExportResult ExportResult
-
--- | A named cleanup operation.
-data CleanupStep = CleanupStep
-  { cleanupStepName :: String
-  , cleanupStepAction :: IO CleanupResult
-  }
-
--- | Both the operation name and its complete outcome are retained.
-data CleanupOutcome = CleanupOutcome
-  { cleanupOutcomeName :: String
-  , cleanupOutcomeResult ::
-      Either
-        (ExceptionWithContext SomeException)
-        CleanupResult
-  }
 
 -- | Results collected during one lifecycle invocation.
 --
@@ -119,26 +100,6 @@ recordSupersededException journal exception =
   modifyIORef'
     (journalSupersededExceptions journal)
     (<> [exception])
-
--- | Attempt every cleanup step, retaining failures and interruptions.
---
--- This function does not decide which exception to rethrow. The outer
--- lifecycle must inspect the returned outcomes before returning to its caller.
-runCleanupSteps :: [CleanupStep] -> IO [CleanupOutcome]
-runCleanupSteps steps =
-  mask $ \_ ->
-    traverse runStep steps
- where
-  runStep step = do
-    result <-
-      tryWithContext @SomeException $
-        cleanupStepAction step
-
-    pure
-      CleanupOutcome
-        { cleanupOutcomeName = cleanupStepName step
-        , cleanupOutcomeResult = result
-        }
 
 -- | Acquire a resource, run its callback, and attempt all cleanup steps.
 --
