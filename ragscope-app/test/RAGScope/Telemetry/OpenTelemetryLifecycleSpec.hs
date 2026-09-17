@@ -46,14 +46,14 @@ spec =
       result <-
         withProviders
           (mkOperations events)
-          (\report -> do
-            recordEvent events "report.publication.started"
-            modifyIORef' reports (report :)
+          ( \report -> do
+              recordEvent events "report.publication.started"
+              modifyIORef' reports (report :)
           )
-          (\_ _ _ -> do
-            recordEvent events "callback.started"
-            modifyIORef' callbackCount (+ 1)
-            pure (42 :: Int)
+          ( \_ _ _ -> do
+              recordEvent events "callback.started"
+              modifyIORef' callbackCount (+ 1)
+              pure (42 :: Int)
           )
 
       -- Preserve the callback's return value and invoke it exactly once.
@@ -81,7 +81,8 @@ spec =
       map
         (map cleanupOutcomeName . lifecycleCleanupOutcomes)
         savedReports
-        `shouldBe` [ [ "metrics.release"
+        `shouldBe` [
+                     [ "metrics.release"
                      , "logs.release"
                      , "trace.release"
                      ]
@@ -115,12 +116,12 @@ spec =
         try @TestException $
           withProviders
             operations
-            (\report ->
-              modifyIORef' reports (report :)
+            ( \report ->
+                modifyIORef' reports (report :)
             )
-            (\_ _ _ -> do
-              modifyIORef' callbackCount (+ 1)
-              pure ()
+            ( \_ _ _ -> do
+                modifyIORef' callbackCount (+ 1)
+                pure ()
             )
 
       -- Propagate the Logs acquisition exception without running the callback.
@@ -136,7 +137,7 @@ spec =
 
       savedReports <- readIORef reports
 
-      -- Report only the release of the successfully acquired Trace provider.
+      -- Report only the release of the successfolly acquired Trace provider.
       map
         (map cleanupOutcomeName . lifecycleCleanupOutcomes)
         savedReports
@@ -164,9 +165,9 @@ spec =
           withProviders
             operations
             (\_ -> pure ())
-            (\_ _ _ -> do
-              modifyIORef' callbackCount (+ 1)
-              pure ()
+            ( \_ _ _ -> do
+                modifyIORef' callbackCount (+ 1)
+                pure ()
             )
 
       -- Propagate the Metrics acquisition exception without running the callback.
@@ -196,8 +197,8 @@ spec =
       result <-
         withProviders
           operations
-          (\report ->
-            modifyIORef' reports (report :)
+          ( \report ->
+              modifyIORef' reports (report :)
           )
           (\_ _ _ -> pure (42 :: Int))
 
@@ -237,11 +238,11 @@ spec =
         try @AsyncException $
           withProviders
             operations
-            (\report ->
-              modifyIORef' reports (report :)
+            ( \report ->
+                modifyIORef' reports (report :)
             )
-            (\_ _ _ ->
-              throwIO TestException :: IO ()
+            ( \_ _ _ ->
+                throwIO TestException :: IO ()
             )
 
       -- Prefer the cleanup interruption to the callback's synchronous exception.
@@ -278,8 +279,8 @@ spec =
         withProviders
           (mkOperations events)
           (\_ -> pure ())
-          (\_ _ _ ->
-            pure (Left "feature-failed" :: Either String ())
+          ( \_ _ _ ->
+              pure (Left "feature-failed" :: Either String ())
           )
 
       -- A returned Left is an application value, not an exception to replace.
@@ -319,8 +320,8 @@ spec =
         try @TestException $
           withProviders
             operations
-            (\report ->
-              modifyIORef' reports (report :)
+            ( \report ->
+                modifyIORef' reports (report :)
             )
             (\_ _ _ -> pure ())
 
@@ -343,7 +344,8 @@ spec =
       map
         (map cleanupOutcomeName . lifecycleCleanupOutcomes)
         savedReports
-        `shouldBe` [ [ "metrics.exporter.rollback"
+        `shouldBe` [
+                     [ "metrics.exporter.rollback"
                      , "logs.release"
                      , "trace.release"
                      ]
