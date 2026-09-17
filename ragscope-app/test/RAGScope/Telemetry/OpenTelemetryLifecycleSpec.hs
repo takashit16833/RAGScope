@@ -46,14 +46,14 @@ spec =
       result <-
         withProviders
           (mkOperations events)
-          ( \report -> do
-              recordEvent events "publish"
-              modifyIORef' reports (report :)
+          (\report -> do
+            recordEvent events "report.publication.started"
+            modifyIORef' reports (report :)
           )
-          ( \_ _ _ -> do
-              recordEvent events "use"
-              modifyIORef' callbackCount (+ 1)
-              pure (42 :: Int)
+          (\_ _ _ -> do
+            recordEvent events "callback.started"
+            modifyIORef' callbackCount (+ 1)
+            pure (42 :: Int)
           )
 
       -- Preserve the callback's return value and invoke it exactly once.
@@ -62,14 +62,14 @@ spec =
 
       -- Acquire Trace, Logs, Metrics; release in reverse order before reporting.
       readIORef events
-        `shouldReturn` [ "acquire.trace"
-                       , "acquire.logs"
-                       , "acquire.metrics"
-                       , "use"
-                       , "release.metrics"
-                       , "release.logs"
-                       , "release.trace"
-                       , "publish"
+        `shouldReturn` [ "trace.acquired"
+                       , "logs.acquired"
+                       , "metrics.acquired"
+                       , "callback.started"
+                       , "metrics.release.attempted"
+                       , "logs.release.attempted"
+                       , "trace.release.attempted"
+                       , "report.publication.started"
                        ]
 
       savedReports <- readIORef reports
@@ -81,8 +81,7 @@ spec =
       map
         (map cleanupOutcomeName . lifecycleCleanupOutcomes)
         savedReports
-        `shouldBe` [
-                     [ "metrics.release"
+        `shouldBe` [ [ "metrics.release"
                      , "logs.release"
                      , "trace.release"
                      ]
@@ -108,7 +107,7 @@ spec =
       let operations =
             (mkOperations events)
               { acquireLogsProvider = \_ -> do
-                  recordEvent events "acquire.logs"
+                  recordEvent events "logs.acquisition.started"
                   throwIO TestException
               }
 
@@ -116,12 +115,12 @@ spec =
         try @TestException $
           withProviders
             operations
-            ( \report ->
-                modifyIORef' reports (report :)
+            (\report ->
+              modifyIORef' reports (report :)
             )
-            ( \_ _ _ -> do
-                modifyIORef' callbackCount (+ 1)
-                pure ()
+            (\_ _ _ -> do
+              modifyIORef' callbackCount (+ 1)
+              pure ()
             )
 
       -- Propagate the Logs acquisition exception without running the callback.
@@ -130,14 +129,14 @@ spec =
 
       -- Release the acquired Trace provider; Logs and Metrics were not acquired.
       readIORef events
-        `shouldReturn` [ "acquire.trace"
-                       , "acquire.logs"
-                       , "release.trace"
+        `shouldReturn` [ "trace.acquired"
+                       , "logs.acquisition.started"
+                       , "trace.release.attempted"
                        ]
 
       savedReports <- readIORef reports
 
-      -- Report only the release of the successfolly acquired Trace provider.
+      -- Report only the release of the successfully acquired Trace provider.
       map
         (map cleanupOutcomeName . lifecycleCleanupOutcomes)
         savedReports
@@ -156,7 +155,7 @@ spec =
       let operations =
             (mkOperations events)
               { acquireMetricsProvider = \_ -> do
-                  recordEvent events "acquire.metrics"
+                  recordEvent events "metrics.acquisition.started"
                   throwIO TestException
               }
 
@@ -165,9 +164,9 @@ spec =
           withProviders
             operations
             (\_ -> pure ())
-            ( \_ _ _ -> do
-                modifyIORef' callbackCount (+ 1)
-                pure ()
+            (\_ _ _ -> do
+              modifyIORef' callbackCount (+ 1)
+              pure ()
             )
 
       -- Propagate the Metrics acquisition exception without running the callback.
@@ -176,11 +175,11 @@ spec =
 
       -- Roll back Logs and Trace in reverse order; Metrics was not acquired.
       readIORef events
-        `shouldReturn` [ "acquire.trace"
-                       , "acquire.logs"
-                       , "acquire.metrics"
-                       , "release.logs"
-                       , "release.trace"
+        `shouldReturn` [ "trace.acquired"
+                       , "logs.acquired"
+                       , "metrics.acquisition.started"
+                       , "logs.release.attempted"
+                       , "trace.release.attempted"
                        ]
 
     it "continues releasing other providers after a release exception" $ do
@@ -190,15 +189,15 @@ spec =
       let operations =
             (mkOperations events)
               { releaseLogsProvider = \_ _ -> do
-                  recordEvent events "release.logs"
+                  recordEvent events "logs.release.attempted"
                   throwIO TestException
               }
 
       result <-
         withProviders
           operations
-          ( \report ->
-              modifyIORef' reports (report :)
+          (\report ->
+            modifyIORef' reports (report :)
           )
           (\_ _ _ -> pure (42 :: Int))
 
@@ -207,12 +206,12 @@ spec =
 
       -- Continue to release Trace even though releasing Logs threw an exception.
       readIORef events
-        `shouldReturn` [ "acquire.trace"
-                       , "acquire.logs"
-                       , "acquire.metrics"
-                       , "release.metrics"
-                       , "release.logs"
-                       , "release.trace"
+        `shouldReturn` [ "trace.acquired"
+                       , "logs.acquired"
+                       , "metrics.acquired"
+                       , "metrics.release.attempted"
+                       , "logs.release.attempted"
+                       , "trace.release.attempted"
                        ]
 
       savedReports <- readIORef reports
@@ -230,7 +229,7 @@ spec =
       let operations =
             (mkOperations events)
               { releaseMetricsProvider = \_ _ -> do
-                  recordEvent events "release.metrics"
+                  recordEvent events "metrics.release.attempted"
                   throwIO UserInterrupt
               }
 
@@ -238,11 +237,11 @@ spec =
         try @AsyncException $
           withProviders
             operations
-            ( \report ->
-                modifyIORef' reports (report :)
+            (\report ->
+              modifyIORef' reports (report :)
             )
-            ( \_ _ _ ->
-                throwIO TestException :: IO ()
+            (\_ _ _ ->
+              throwIO TestException :: IO ()
             )
 
       -- Prefer the cleanup interruption to the callback's synchronous exception.
@@ -250,12 +249,12 @@ spec =
 
       -- Still attempt Logs and Trace release after the Metrics interruption.
       readIORef events
-        `shouldReturn` [ "acquire.trace"
-                       , "acquire.logs"
-                       , "acquire.metrics"
-                       , "release.metrics"
-                       , "release.logs"
-                       , "release.trace"
+        `shouldReturn` [ "trace.acquired"
+                       , "logs.acquired"
+                       , "metrics.acquired"
+                       , "metrics.release.attempted"
+                       , "logs.release.attempted"
+                       , "trace.release.attempted"
                        ]
 
       savedReports <- readIORef reports
@@ -279,8 +278,8 @@ spec =
         withProviders
           (mkOperations events)
           (\_ -> pure ())
-          ( \_ _ _ ->
-              pure (Left "feature-failed" :: Either String ())
+          (\_ _ _ ->
+            pure (Left "feature-failed" :: Either String ())
           )
 
       -- A returned Left is an application value, not an exception to replace.
@@ -303,14 +302,14 @@ spec =
       let operations =
             (mkOperations events)
               { acquireMetricsProvider = \record -> do
-                  recordEvent events "acquire.metrics"
+                  recordEvent events "metrics.acquisition.started"
 
-                  -- Simulate rollback performed inside a failed acquisition.
-                  recordEvent events "rollback.metrics.exporter"
+                  -- Simulate a rollback attempt and its completed outcome during acquisition.
+                  recordEvent events "metrics.exporter.rollback.attempted"
 
                   record $
                     CleanupOutcome
-                      "metrics.rollback.exporter"
+                      "metrics.exporter.rollback"
                       (Right CleanupCompleted)
 
                   throwIO TestException
@@ -320,8 +319,8 @@ spec =
         try @TestException $
           withProviders
             operations
-            ( \report ->
-                modifyIORef' reports (report :)
+            (\report ->
+              modifyIORef' reports (report :)
             )
             (\_ _ _ -> pure ())
 
@@ -330,12 +329,12 @@ spec =
 
       -- Roll back the internal Metrics resource, then release Logs and Trace.
       readIORef events
-        `shouldReturn` [ "acquire.trace"
-                       , "acquire.logs"
-                       , "acquire.metrics"
-                       , "rollback.metrics.exporter"
-                       , "release.logs"
-                       , "release.trace"
+        `shouldReturn` [ "trace.acquired"
+                       , "logs.acquired"
+                       , "metrics.acquisition.started"
+                       , "metrics.exporter.rollback.attempted"
+                       , "logs.release.attempted"
+                       , "trace.release.attempted"
                        ]
 
       savedReports <- readIORef reports
@@ -344,36 +343,35 @@ spec =
       map
         (map cleanupOutcomeName . lifecycleCleanupOutcomes)
         savedReports
-        `shouldBe` [
-                     [ "metrics.rollback.exporter"
+        `shouldBe` [ [ "metrics.exporter.rollback"
                      , "logs.release"
                      , "trace.release"
                      ]
                    ]
 
--- | Record an event in execution order.
+-- | Record an in-memory test event in execution order; no telemetry is emitted.
 recordEvent :: IORef [String] -> String -> IO ()
 recordEvent events name =
   modifyIORef' events (<> [name])
 
 -- | Create three test-only provider operations.
 --
--- Each resource is (), so the test observes lifetime through event records.
+-- Each resource is (); the labels track execution, not OpenTelemetry events.
 mkOperations ::
   IORef [String] ->
   ProviderOperations () () ()
 mkOperations events =
   ProviderOperations
     { acquireTraceProvider = \_ ->
-        recordEvent events "acquire.trace"
+        recordEvent events "trace.acquired"
     , releaseTraceProvider = \_ _ ->
-        recordEvent events "release.trace"
+        recordEvent events "trace.release.attempted"
     , acquireLogsProvider = \_ ->
-        recordEvent events "acquire.logs"
+        recordEvent events "logs.acquired"
     , releaseLogsProvider = \_ _ ->
-        recordEvent events "release.logs"
+        recordEvent events "logs.release.attempted"
     , acquireMetricsProvider = \_ ->
-        recordEvent events "acquire.metrics"
+        recordEvent events "metrics.acquired"
     , releaseMetricsProvider = \_ _ ->
-        recordEvent events "release.metrics"
+        recordEvent events "metrics.release.attempted"
     }
