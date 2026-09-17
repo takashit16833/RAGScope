@@ -10,13 +10,11 @@ module RAGScope.Telemetry.OpenTelemetry.Construction (
   withProviders,
 ) where
 
-import Control.Exception (SomeException (SomeException), bracket, tryWithContext)
-import Control.Monad (void)
+import Control.Exception (SomeException, bracket, tryWithContext)
 
 import RAGScope.Telemetry.OpenTelemetry.Cleanup (
   CleanupOutcome (..),
   CleanupResult (..),
-  attemptCleanup,
  )
 import RAGScope.Telemetry.OpenTelemetry.Lifecycle (
   LifecycleReport (..),
