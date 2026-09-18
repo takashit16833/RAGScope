@@ -7,7 +7,7 @@ module RAGScope.Telemetry.OpenTelemetry.Cleanup (
   CleanupOp (..),
   CleanupAction (..),
   CleanupPlan,
-  SomeCleanupOutcome (..),
+  CleanupOutcome (..),
   cleanupPlan,
   runCleanupPlan,
 ) where
@@ -51,14 +51,14 @@ newtype CleanupPlan resource
 -- | 実行した操作とその結果を保持する。
 --
 -- SDKが返した失敗値はRightに保持し、例外による失敗と区別する。
-data SomeCleanupOutcome where
+data CleanupOutcome where
   SomeCleanupOutcome ::
     StepId ->
     CleanupOp result ->
     Either
       (ExceptionWithContext SomeException)
       result ->
-    SomeCleanupOutcome
+    CleanupOutcome
 
 cleanupPlan ::
   [CleanupAction resource] ->
@@ -73,7 +73,7 @@ cleanupPlan =
 runCleanupPlan ::
   resource ->
   CleanupPlan resource ->
-  IO [SomeCleanupOutcome]
+  IO [CleanupOutcome]
 runCleanupPlan resource (CleanupPlan actions) =
   mask_ $
     traverse (captureAction resource) actions
@@ -85,7 +85,7 @@ runCleanupPlan resource (CleanupPlan actions) =
 captureAction ::
   resource ->
   CleanupAction resource ->
-  IO SomeCleanupOutcome
+  IO CleanupOutcome
 captureAction
   resource
   (CleanupAction stepId operation action) = do

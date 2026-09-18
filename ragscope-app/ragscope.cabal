@@ -92,11 +92,12 @@ library opentelemetry-adapter
     RAGScope.Telemetry.OpenTelemetry
     RAGScope.Telemetry.OpenTelemetry.Logs
     RAGScope.Telemetry.OpenTelemetry.Trace
-    RAGScope.Telemetry.OpenTelemetry.Plan
 
   other-modules:
     RAGScope.Telemetry.OpenTelemetry.Cleanup
     RAGScope.Telemetry.OpenTelemetry.Exception
+    RAGScope.Telemetry.OpenTelemetry.LifecycleResult
+    RAGScope.Telemetry.OpenTelemetry.ResourcePlan
 
   build-depends:
     base ^>=4.21.2.0,
