@@ -2,7 +2,15 @@
 {-# LANGUAGE TypeApplications #-}
 
 -- | OpenTelemetry SDKの終了処理を実行し、各操作の結果を記録する。
-module RAGScope.Telemetry.OpenTelemetry.Cleanup () where
+module RAGScope.Telemetry.OpenTelemetry.Cleanup (
+  StepId (..),
+  CleanupOp (..),
+  CleanupAction (..),
+  CleanupPlan,
+  SomeCleanupOutcome (..),
+  cleanupPlan,
+  runCleanupPlan,
+) where
 
 import Control.Exception (
   ExceptionWithContext,

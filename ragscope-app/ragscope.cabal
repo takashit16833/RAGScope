@@ -94,6 +94,7 @@ library opentelemetry-adapter
     RAGScope.Telemetry.OpenTelemetry.Trace
 
   other-modules:
+    RAGScope.Telemetry.OpenTelemetry.Cleanup
     RAGScope.Telemetry.OpenTelemetry.Exception
 
   build-depends:
