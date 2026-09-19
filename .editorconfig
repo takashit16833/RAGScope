@@ -10,6 +10,7 @@ indent_size = 2
 
 [*.{hs,lhs}]
 indent_size = 2
+tab_width = 2
 
 [*.{py,pyi}]
 indent_size = 4
