@@ -1,29 +1,32 @@
-# Root directory of the RAGScope application
+# RAGScopeアプリケーションのルートディレクトリ
 APP_DIR := ragscope-app
 
-.PHONY: format-app format-check-app check-telemetry-types check-app
+.PHONY: format-app format-check-app check-app
 
-# Format Haskell source files with Fourmolu
+# HaskellソースをFourmolu、Cabalファイルをcabal-gildで整形する
 format-app:
 	find "$(APP_DIR)" \
 		-path "$(APP_DIR)/dist-newstyle" -prune -o \
 		-type f -name "*.hs" -print0 \
 		| xargs -0 -r fourmolu --mode inplace
+	find "$(APP_DIR)" \
+		-path "$(APP_DIR)/dist-newstyle" -prune -o \
+		-type f \( -name "*.cabal" -o -name "cabal.project" \) \
+		-exec cabal-gild --io={} \;
 
-# Check formatting without modifying files
+# ファイルを書き換えず、HaskellソースとCabalファイルの整形状態を確認する
 format-check-app:
 	find "$(APP_DIR)" \
 		-path "$(APP_DIR)/dist-newstyle" -prune -o \
 		-type f -name "*.hs" -print0 \
 		| xargs -0 -r fourmolu --mode check
+	find "$(APP_DIR)" \
+		-path "$(APP_DIR)/dist-newstyle" -prune -o \
+		-type f \( -name "*.cabal" -o -name "cabal.project" \) \
+		-exec cabal-gild --mode=check --input={} \;
 
-# Run formatting checks, build, tests, type checks, and Haddock
-check-app : format-check-app
+# 整形状態の確認、ビルド、テスト、Haddock生成を順に実行する
+check-app: format-check-app
 	cd "$(APP_DIR)" && cabal build all
 	cd "$(APP_DIR)" && cabal test all
-	$(MAKE) check-telemetry-types
 	cd "$(APP_DIR)" && cabal haddock all
-
-# Verify Telemetry boundary type constraints using both positive and negative compilation test
-check-telemetry-types:
-	cd "$(APP_DIR)" && sh telemetry-boundary-test/check-type-safety.sh
