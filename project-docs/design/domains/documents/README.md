@@ -7,30 +7,37 @@
 ## 機能構成
 
 ```mermaid
-flowchart TB
+flowchart LR
     Source["技術文書<br>Markdown / TXT"]
-    SplitCondition["分割条件"]
-    PrepareTarget["準備対象<br>全文検索 / dense検索"]
 
-    subgraph Functions["文書ドメインの機能"]
+    subgraph Documents["文書ドメイン"]
         Ingest["文書取り込み"]
         Manage["文書・文書バージョン管理"]
+        Collection["文書集合"]
+        Document["文書"]
+        Version["文書バージョン"]
+        Condition["分割条件"]
         Split["文書分割"]
+        Chunk["文書チャンク"]
         Prepare["検索用データ準備"]
+        SearchData["検索用データ"]
+
+        Ingest -->|"登録 / 更新"| Manage
+        Manage -.->|"管理"| Collection
+        Manage -.->|"管理"| Document
+        Document -->|"内容"| Version
+        Version --> Split
+        Condition --> Split
+        Split --> Chunk
+        Chunk --> Prepare
+        Prepare --> SearchData
     end
 
     Source --> Ingest
-    Ingest -->|"文書・文書バージョンの登録 / 更新"| Manage
-    Manage -->|"対象文書バージョン"| Split
-    SplitCondition --> Split
-    Split -->|"文書チャンク"| Prepare
-    PrepareTarget --> Prepare
-    Prepare -->|"準備済み検索用データ"| SearchData["検索用データ"]
-
-    Manage -.->|"文書集合の所属管理"| Collection["文書集合"]
+    SearchData --> Retrieval["検索・回答生成ドメイン"]
 ```
 
-実線は主な処理とデータの受け渡し、点線は文書集合の所属管理を示す。
+図の外側は文書ドメインの外を表す。技術文書は文書ドメインへの入力であり、準備した検索用データは「検索・回答生成」ドメインから利用される。点線は管理対象との関係、実線は主なデータの関係と処理の流れを示す。
 
 | 設計書 | 扱う内容 |
 |---|---|
