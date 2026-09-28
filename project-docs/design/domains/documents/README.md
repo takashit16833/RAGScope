@@ -4,6 +4,20 @@
 
 「文書」ドメイン自体の責務は[RAGScopeドメインモデル](../../RAGScopeドメインモデル.md)を正本とする。配下では、その責務を機能単位に一段具体化して設計する。
 
+## 機能オーバービュー
+
+```mermaid
+flowchart LR
+    TechnicalDocument["技術文書"]
+    Ingest["文書取り込み"]
+    Manage["文書・版管理"]
+    Split["文書分割"]
+    Prepare["検索用データ準備"]
+    SearchTarget["追跡可能な検索対象"]
+
+    TechnicalDocument --> Ingest --> Manage --> Split --> Prepare --> SearchTarget
+```
+
 | 文書 | 扱う内容 |
 |---|---|
 | [文書取り込み設計](./文書取り込み設計.md) | 技術文書をRAGScopeへ取り込む処理 |
