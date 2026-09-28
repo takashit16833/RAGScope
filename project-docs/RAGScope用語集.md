@@ -209,7 +209,7 @@ UseCaseまたは内部処理に適用されるretry、timeout、fallback、継�
 
 検索や実験の対象として、まとめて扱う文書の集まり。
 
-文書集合と文書の所属関係は[文書・版管理設計](<./design/domains/documents/文書・版管理設計.md>)で定義する。正確な保存形式は実装時のSchemaとmigrationを正本とする。
+文書集合と文書の所属関係や保存方法は、データモデル設計で定義する。
 
 ### 文書
 
@@ -257,7 +257,7 @@ flowchart LR
     Chunk -->|生成| Embedding["文書チャンクのEmbedding"]
 ```
 
-この図は概念間の基本関係を示す。文書集合と文書の多重度、文書と文書バージョンの更新規則は[文書・版管理設計](<./design/domains/documents/文書・版管理設計.md>)で定義する。各概念のIDとDB上の保存構造は実装時のSchemaとmigrationを正本とする。
+この図は概念間の関係を示す。文書集合と文書の多重度、各概念のID、DB上の保存構造はデータモデル設計で定義する。
 
 ## 3. 評価データ（`evaluation-data`）
 
