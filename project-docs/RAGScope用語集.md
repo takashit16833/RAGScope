@@ -83,6 +83,7 @@ RAGScopeが取り込み、検索対象として扱う文書と、その加工・
 | [分割条件](#分割条件) | 文書バージョンを文書チャンクへ分割するときの条件 |
 | [文書チャンク](#文書チャンク) | 文書バージョンを分割した、検索や回答生成などで使用する単位 |
 | [文書チャンクのEmbedding](#文書チャンクのembedding) | 文書チャンクから生成し、dense検索で使用するEmbedding |
+| [Embeddingプロファイル](#embeddingプロファイル) | 文書チャンクと質問のEmbedding生成条件を不変な識別子でまとめたもの |
 | [検索用データ](#検索用データ) | 文書チャンクを各検索方式で検索するための情報の総称 |
 
 **評価データ（`evaluation-data`）**
@@ -241,11 +242,17 @@ RAGScopeへ取り込む1件の技術文書を表す概念。
 
 dense検索で質問Embeddingと比較する。
 
+### Embeddingプロファイル
+
+文書チャンクのEmbeddingと質問Embeddingを互換に生成するため、モデル、revision、Tokenizer、pooling、最大入力長、切り詰め、vector正規化、出力次元、文書用・質問用prefixを不変な識別子へまとめた条件。
+
+同じプロファイルIDの内容は変更せず、条件を変更する場合は別のプロファイルIDを使用する。正確な項目とAI推論サービス契約は[Embedding生成設計](./design/Embedding生成設計.md)と[AI推論サービスOpenAPI](../contracts/ai-inference.openapi.yaml)を正本とする。
+
 ### 検索用データ
 
 文書チャンクを検索できるようにするため、文書チャンクから生成または保持する情報の総称。
 
-文書チャンクのEmbeddingは検索用データの1つである。全文検索用データとEmbeddingをどう生成・保持するかは[検索用データ準備設計](./design/domains/documents/検索用データ準備設計.md)で定義し、検索での利用方法は検索・回答生成ドメインの設計で定義する。正確な保存形式は実装時のSchemaとmigrationを正本とする。
+文書チャンクのEmbeddingは検索用データの1つである。全文検索用データとEmbeddingをどう生成・保持し、いつ検索へ利用可能とするかは[検索用データ準備設計](./design/domains/documents/検索用データ準備設計.md)で定義する。検索でどの準備済みデータを選ぶかは[検索対象設計](<./design/domains/retrieval-generation/検索対象設計.md>)で定義する。正確な保存形式は実装時のSchemaとmigrationを正本とする。
 
 ### 文書に関する基本的な関係
 
