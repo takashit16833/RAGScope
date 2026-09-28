@@ -7,33 +7,34 @@
 ## 機能構成
 
 ```mermaid
-flowchart LR
+flowchart TB
     Source["技術文書<br>Markdown / TXT"]
-    Ingest["文書取り込み"]
+    SplitCondition["分割条件"]
+    PrepareTarget["準備対象<br>全文検索 / dense検索"]
 
-    subgraph Management["文書・版管理"]
-        Collection["文書集合"] -->|"まとめて扱う"| Document["文書"]
-        Document -->|"内容の版"| Version["文書バージョン"]
+    subgraph Functions["文書ドメインの機能"]
+        Ingest["文書取り込み"]
+        Manage["文書・版管理"]
+        Split["文書分割"]
+        Prepare["検索用データ準備"]
     end
 
-    Condition["分割条件"]
-    Split["文書分割"]
-    Chunk["文書チャンク"]
-    Prepare["検索用データ準備"]
-    SearchData["検索用データ"]
-
     Source --> Ingest
-    Ingest -->|"新規登録 / 更新"| Document
-    Version --> Split
-    Condition --> Split
-    Split --> Chunk
-    Chunk --> Prepare
-    Prepare --> SearchData
+    Ingest -->|"文書・文書バージョンの登録 / 更新"| Manage
+    Manage -->|"対象文書バージョン"| Split
+    SplitCondition --> Split
+    Split -->|"文書チャンク"| Prepare
+    PrepareTarget --> Prepare
+    Prepare -->|"準備済み検索用データ"| SearchData["検索用データ"]
+
+    Manage -.->|"文書集合の所属管理"| Collection["文書集合"]
 ```
+
+実線は主な処理とデータの受け渡し、点線は文書集合の所属管理を示す。
 
 | 設計書 | 扱う内容 |
 |---|---|
-| [文書取り込み設計](./文書取り込み設計.md) | Markdown / TXTの技術文書を正規化し、文書と文書バージョンとして登録する |
-| [文書・版管理設計](<./文書・版管理設計.md>) | 文書集合、文書、文書バージョンを識別し、版を残したまま更新する |
+| [文書取り込み設計](./文書取り込み設計.md) | Markdown / TXTの技術文書を正規化し、文書と文書バージョンとして登録・更新する |
+| [文書・版管理設計](<./文書・版管理設計.md>) | 文書集合、文書、文書バージョンを識別し、競合する更新で現在版を巻き戻さない |
 | [文書分割設計](./文書分割設計.md) | 文書バージョンを分割条件に従って文書チャンクへ分割し、文書内位置を保持する |
-| [検索用データ準備設計](./検索用データ準備設計.md) | 文書チャンクから全文検索用データとEmbeddingを準備し、元チャンクへ追跡できる状態で保持する |
+| [検索用データ準備設計](./検索用データ準備設計.md) | 指定された検索方式に必要な検索用データを準備し、準備完了した単位だけを検索側へ渡す |
