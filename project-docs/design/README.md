@@ -10,7 +10,6 @@ RAGScopeの現在設計を、知りたい内容から参照するための索引
 | [RAGScope要求定義](../RAGScope要求定義.md) | RAGScopeは何をできなければならないか |
 | [ユースケース設計](./ユースケース設計.md) | 利用者のトップレベルな操作は何で、1回の実行はどこからどこまでか |
 | [システムアーキテクチャ](./システムアーキテクチャ.md) | どのコンポーネントが何を担当し、どうつながるか |
-| [Embedding生成設計](./Embedding生成設計.md) | 文書チャンクと質問のEmbeddingを互換に生成する条件とAI推論サービス契約 |
 | [RAGScopeアプリケーション失敗設計](./RAGScopeアプリケーション失敗設計.md) | UseCaseや内部処理の失敗をどの単位で表し、外部依存・CLI / API・実験・Telemetryとの境界をどう分けるか |
 | [Observability設計](./observability/README.md) | 実行・イベント・集約値をTrace・Logs・Metricsでどう観測し、OpenTelemetryとRAGScopeの責務をどう分けるか |
 | [機能設計](./features/README.md) | 個別機能はどの処理規則、入出力、失敗時の扱いで動くか |
