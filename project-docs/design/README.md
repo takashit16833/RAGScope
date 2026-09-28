@@ -12,7 +12,7 @@ RAGScopeの現在設計を、知りたい内容から参照するための索引
 | [システムアーキテクチャ](./システムアーキテクチャ.md) | どのコンポーネントが何を担当し、どうつながるか |
 | [RAGScopeアプリケーション失敗設計](./RAGScopeアプリケーション失敗設計.md) | UseCaseや内部処理の失敗をどの単位で表し、外部依存・CLI / API・実験・Telemetryとの境界をどう分けるか |
 | [Observability設計](./observability/README.md) | 実行・イベント・集約値をTrace・Logs・Metricsでどう観測し、OpenTelemetryとRAGScopeの責務をどう分けるか |
-| [機能設計](./features/README.md) | 個別機能はどの処理規則、入出力、失敗時の扱いで動くか |
+| [文書ドメインの機能設計](./domains/documents/README.md) | 文書の取り込み、文書チャンク化、検索用データ生成をどの規則と受け渡しで行うか |
 
 ## 全体の関係
 
@@ -35,7 +35,7 @@ flowchart TD
         Failure --> Observability
     end
 
-    subgraph Features["機能設計"]
+    subgraph Features["ドメイン別の機能設計"]
         FeatureDesigns["各機能設計<br>個別機能の処理規則・入出力・失敗時の扱い"]
     end
 
@@ -57,6 +57,6 @@ flowchart TD
 
 UseCaseや内部処理が返す具体的なfailure、外部library固有の失敗を変換する位置、UseCaseの最終failureとretry途中のfailureの違い、CLI / API・実験・Telemetryがfailureをどう利用するかは[RAGScopeアプリケーション失敗設計](./RAGScopeアプリケーション失敗設計.md)を確認する。
 
-1回の外部呼び出しをどのTrace・Spanで追跡し、LogsとMetricsをどう使い分けるかは[Observability設計](./observability/README.md)を確認する。個別機能の具体的なSpan、EventRecord、属性、失敗条件は、その機能を担当する[機能設計](./features/README.md)で具体化する。
+1回の外部呼び出しをどのTrace・Spanで追跡し、LogsとMetricsをどう使い分けるかは[Observability設計](./observability/README.md)を確認する。個別機能の処理規則、入出力、失敗条件は、その機能を担当するドメイン配下の機能設計で具体化する。文書ドメインについては[文書ドメインの機能設計](./domains/documents/README.md)を確認する。
 
 正確な項目名、型、必須条件、API Schema、DB制約、具体的なテストケースは、コード、JSON Schema、OpenAPI、migration、テストなどの機械可読な正本を参照する。

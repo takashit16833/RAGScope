@@ -22,7 +22,7 @@ Observabilityは[Observability設計](../../../../design/observability/README.md
 
 - [RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する](<../error-logging/RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する.md>)が完了している
 - `RS-0002`までに、固定Markdown文書から後続処理へ渡せる文書チャンクを生成できる見通しが立っている
-- [文書処理設計](../../../../design/features/文書処理設計.md)に、文書チャンクが保持する概念上の情報と不変条件が記載されている
+- [文書チャンク化設計](../../../../design/domains/documents/文書チャンク化設計.md)に、文書チャンクが保持する概念上の情報と不変条件が記載されている
 - [Observability設計](../../../../design/observability/README.md)と[実行追跡設計](../../../../design/observability/実行追跡設計.md)に、コンポーネント境界のTrace Context伝播と失敗のTelemetry反映規則が記載されている
 
 ## 完了条件
@@ -69,7 +69,7 @@ Observabilityは[Observability設計](../../../../design/observability/README.md
 
 - [ ] DBの正確なテーブル・カラム・制約はmigration、API schemaはOpenAPI、型はコードを正本とすることが明記されている
 - [ ] v0.0では導入しないモデル比較、Embedding条件のバージョン管理、Embeddingのcache、近似検索indexなどの境界が記載されている
-- [ ] 関連する要求定義、システムアーキテクチャ、Observability設計、文書処理設計に矛盾しないことを確認できる
+- [ ] 関連する要求定義、システムアーキテクチャ、Observability設計、文書チャンク化設計、検索用データ生成設計に矛盾しないことを確認できる
 - [ ] 所属Epicの`関連文書`から、作成した設計書を参照できる状態になっている
 
 ## 対象外
@@ -95,7 +95,8 @@ Observabilityは[Observability設計](../../../../design/observability/README.md
 - [システムアーキテクチャ「5. 通信と依存方向」](<../../../../design/システムアーキテクチャ.md#5. 通信と依存方向>)
 - [Observability設計](../../../../design/observability/README.md)
 - [実行追跡設計](../../../../design/observability/実行追跡設計.md)
-- [文書処理設計](../../../../design/features/文書処理設計.md)
+- [文書チャンク化設計](../../../../design/domains/documents/文書チャンク化設計.md)
+- [検索用データ生成設計](../../../../design/domains/documents/検索用データ生成設計.md)
 - [RS-0016 文書チャンクのEmbedding要求に必要なretryとtimeoutを設計する](<../embedding-request-reliability/RS-0016 文書チャンクのEmbedding要求に必要なretryとtimeoutを設計する.md>)
 
 ## 実装メモ
