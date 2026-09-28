@@ -369,7 +369,7 @@ Milestone・Epic・Ticketテンプレートの構成は、RAGScopeプロジェ�
 
 ```markdown
 [RAGScope概要](<../RAGScope概要.md>)
-[文書取り込み基本設計](<../design/domains/documents/文書取り込み基本設計.md>)
+[文書取り込み設計](<../design/domains/documents/文書取り込み設計.md>)
 [親子状態の整合](<./RAGScopeプロジェクト管理規約.md#6.1 親子状態の整合>)
 ```
 
