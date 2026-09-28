@@ -20,7 +20,7 @@ Observabilityについては[Observability設計](../../../../design/observabili
 
 ### 責務と処理フロー
 
-- [ ] `design/domains/documents/文書取り込み設計.md`と`design/domains/documents/文書チャンク化設計.md`が`note_type: design`の現在設計として保持されている
+- [ ] `design/domains/documents/文書取り込み基本設計.md`、`文書取り込み詳細設計.md`、`文書チャンク化基本設計.md`、`文書チャンク化詳細設計.md`が`note_type: design`の現在設計として保持されている
 - [ ] 固定Markdown文書の読み込み、チャンク化、後続のEmbedding生成への受け渡しについて、RAGScopeアプリケーションが担当する責務と対象外が記載されている
 - [ ] 固定パスのUTF-8 Markdownファイル1件を読み込み、本文を`Text`として扱う処理フローが記載されている
 - [ ] 読み込んだ本文に対して、正規化、Markdown記法の除去、Frontmatterや見出しの解析を行わない方針が記載されている
@@ -66,8 +66,10 @@ Observabilityについては[Observability設計](../../../../design/observabili
 - [システムアーキテクチャ「2.1 RAGScopeアプリケーション」](<../../../../design/システムアーキテクチャ.md#2.1 RAGScopeアプリケーション>)
 - [システムアーキテクチャ「4.1 文書を検索可能にする」](<../../../../design/システムアーキテクチャ.md#4.1 文書を検索可能にする>)
 - [文書ドメインの機能設計](../../../../design/domains/documents/README.md)
-- [文書取り込み設計](../../../../design/domains/documents/文書取り込み設計.md)
-- [文書チャンク化設計](../../../../design/domains/documents/文書チャンク化設計.md)
+- [文書取り込み基本設計](../../../../design/domains/documents/文書取り込み基本設計.md)
+- [文書取り込み詳細設計](../../../../design/domains/documents/文書取り込み詳細設計.md)
+- [文書チャンク化基本設計](../../../../design/domains/documents/文書チャンク化基本設計.md)
+- [文書チャンク化詳細設計](../../../../design/domains/documents/文書チャンク化詳細設計.md)
 - [Observability設計](../../../../design/observability/README.md)
 - [実行追跡設計](../../../../design/observability/実行追跡設計.md)
 - [ログ・イベント設計](../../../../design/observability/ログ・イベント設計.md)
