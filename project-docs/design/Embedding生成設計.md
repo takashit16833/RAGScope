@@ -108,7 +108,7 @@ RAGScopeアプリケーションは次を検証する。
 - HTTP通信に失敗した。
 - responseがOpenAPI契約または5章の検証を満たさない。
 
-HTTP statusとerror responseの正確な外部表現はOpenAPIを正本とする。RAGScopeアプリケーションが文書チャンクEmbedding要求へ適用するretryとtimeoutは、[検索用データ準備設計「3.2 処理規則」](<./domains/documents/検索用データ準備設計.md#3.2 処理規則>)の「文書チャンクのEmbedding要求に適用するretryとtimeout」を正本とする。
+HTTP statusとerror responseの正確な外部表現はOpenAPIを正本とする。RAGScopeアプリケーションが文書チャンクEmbedding要求へ適用するretryとtimeoutは[検索用データ準備設計「5. Embedding要求のretryとtimeout」](<./domains/documents/検索用データ準備設計.md#5. Embedding要求のretryとtimeout>)を正本とする。
 
 ## 関連文書
 
