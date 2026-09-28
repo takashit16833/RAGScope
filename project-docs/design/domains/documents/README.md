@@ -7,37 +7,48 @@
 ## 機能構成
 
 ```mermaid
-flowchart LR
-    Source["技術文書<br>Markdown / TXT"]
+flowchart TB
+    subgraph UseCases["文書に関するUseCase"]
+        RegisterUC["文書を登録する"]
+        CollectionUC["文書集合を管理する"]
+        SearchableUC["文書を検索可能にする"]
+    end
 
-    subgraph Documents["文書ドメイン"]
+    subgraph Functions["文書ドメインの機能"]
         Ingest["文書取り込み"]
         Manage["文書・文書バージョン管理"]
+        Split["文書分割"]
+        Prepare["検索用データ準備"]
+    end
+
+    subgraph Data["文書ドメインで扱うデータ"]
         Collection["文書集合"]
         Document["文書"]
         Version["文書バージョン"]
-        Condition["分割条件"]
-        Split["文書分割"]
         Chunk["文書チャンク"]
-        Prepare["検索用データ準備"]
         SearchData["検索用データ"]
-
-        Ingest -->|"登録 / 更新"| Manage
-        Manage -.->|"管理"| Collection
-        Manage -.->|"管理"| Document
-        Document -->|"内容"| Version
-        Version --> Split
-        Condition --> Split
-        Split --> Chunk
-        Chunk --> Prepare
-        Prepare --> SearchData
     end
 
-    Source --> Ingest
+    RegisterUC -->|"文書形式 / 文書内容<br>登録 / 更新の指定"| Ingest
+    Ingest --> Manage
+    Manage --> Document
+    Manage --> Version
+
+    CollectionUC -->|"文書集合の作成<br>文書の追加 / 除外"| Manage
+    Manage -->|"保存 / 取得"| Collection
+
+    Version --> Split
+    SearchableUC -->|"分割条件<br>チャンクサイズ / 重複範囲"| Split
+    Split --> Chunk
+
+    Chunk --> Prepare
+    SearchableUC -->|"準備対象<br>全文検索 / dense検索<br>+ 検索方式固有条件"| Prepare
+    Prepare --> SearchData
+
     SearchData --> Retrieval["検索・回答生成ドメイン"]
 ```
 
-図の外側は文書ドメインの外を表す。技術文書は文書ドメインへの入力であり、準備した検索用データは「検索・回答生成」ドメインから利用される。点線は管理対象との関係、実線は主なデータの関係と処理の流れを示す。
+図の上段は[ユースケース設計「2.1 文書」](../../ユースケース設計.md#21-文書)で定義するUseCase、中段はこのディレクトリで設計する機能、下段は文書ドメインで扱う主要なデータを示す。矢印のラベルは、UseCaseから各機能へ渡す主要な入力または機能が管理・生成するデータを示す。
 
 | 設計書 | 扱う内容 |
 |---|---|
