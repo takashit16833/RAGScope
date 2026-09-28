@@ -11,7 +11,7 @@ note_type: design
 | 情報 | 正本・観測手段 |
 |---|---|
 | 1件の評価データについて再評価・比較に必要な正確な値 | 評価データごとの実行結果 |
-| 1回のInvocation内部の処理時間と親子関係 | Trace / Span |
+| 1つのTrace内の処理時間と親子関係 | Trace / Span |
 | 複数回の実行をまたぐ時間・回数・分布の集約 | OpenTelemetry Metrics |
 
 Metricsは実験結果を置き換えない。個別の実行結果をMetricsから復元することを前提にしない。

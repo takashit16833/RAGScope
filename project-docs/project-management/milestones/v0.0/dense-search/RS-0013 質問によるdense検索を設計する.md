@@ -55,7 +55,7 @@ Observabilityは[Observability設計](../../../../design/observability/README.md
 
 ### Observability
 
-- [ ] CLIの1回の検索操作を1 Invocationとして追跡し、UseCaseを呼び出す場合はUseCase Spanを作る共通構造が[実行追跡設計](../../../../design/observability/実行追跡設計.md)と一致している
+- [ ] CLIの1回の検索操作ではCLI entry Spanから独立したTraceを開始し、UseCaseを呼び出す場合はUseCase Spanを作る共通構造が[実行追跡設計](../../../../design/observability/実行追跡設計.md)と一致している
 - [ ] RAGScopeアプリケーションからAI推論サービスへTrace Contextを伝播し、HTTP client / serverの標準Spanを利用する方針が記載されている
 - [ ] PostgreSQL処理は適用できるDB Semantic Conventionを優先し、同じ処理を表す独自Spanを重複して定義していない
 - [ ] typed failureだけを理由に共通EventRecordを定義せず、機能固有EventRecordが必要な場合は[ログ・イベント設計](../../../../design/observability/ログ・イベント設計.md)の基準で定義している

@@ -14,7 +14,7 @@ v0.0の最小のdense検索経路を利用者が実行できる状態にする�
 
 さらに、前のEpicで実装した固定Markdown文書の取り込みと文書チャンクのEmbedding保存を含め、文書取り込みから検索結果表示までをローカル環境で再実行できる手順を整え、v0.0の一連の動作を確認する。
 
-このCLI操作は1つの[Invocation](../../../../RAGScope用語集.md#invocation)として追跡し、dense検索UseCaseを呼び出す場合は[実行追跡設計](../../../../design/observability/実行追跡設計.md)に従ってentry Spanの子にUseCase Spanを作る。
+このCLI操作では、[実行追跡設計](../../../../design/observability/実行追跡設計.md)に従ってCLI entry Spanから独立したTraceを開始し、dense検索UseCaseを呼び出す場合はentry Spanの子にUseCase Spanを作る。
 
 ## 前提
 
@@ -45,7 +45,7 @@ v0.0の最小のdense検索経路を利用者が実行できる状態にする�
 ### Observability
 
 - [ ] 1回のCLI操作につき独立した1 Traceを開始し、CLI entry Spanが入力受け取りから出力変換までを含む
-- [ ] dense検索UseCaseを呼び出した場合だけentry Spanの子にUseCase Spanを作り、Invocation専用Spanやhandler Spanを追加していない
+- [ ] dense検索UseCaseを呼び出した場合だけentry Spanの子にUseCase Spanを作り、entry Spanと同じ範囲を包む追加Spanやhandler Spanを追加していない
 - [ ] RS-0008のHTTP client SpanとRS-0009のDB client SpanをUseCase配下で追跡できる
 - [ ] 子Spanが失敗してもUseCaseが最終成功した場合はUseCase SpanをErrorへせず、各Span自身の最終結果からStatusを決定している
 
@@ -88,7 +88,6 @@ v0.0の最小のdense検索経路を利用者が実行できる状態にする�
 - `README.md`
 - [RAGScope要求定義「1.3.1 検索」](<../../../../RAGScope要求定義.md#1.3.1 検索>)
 - [RAGScope要求定義「1.5 横断的な利用」](<../../../../RAGScope要求定義.md#1.5 横断的な利用>)
-- [RAGScope用語集「Invocation」](<../../../../RAGScope用語集.md#invocation>)
 - [システムアーキテクチャ「2.1 RAGScopeアプリケーション」](<../../../../design/システムアーキテクチャ.md#2.1 RAGScopeアプリケーション>)
 - [システムアーキテクチャ「4.2 検索して回答を生成する」](<../../../../design/システムアーキテクチャ.md#4.2 検索して回答を生成する>)
 - [システムアーキテクチャ「5. 通信と依存方向」](<../../../../design/システムアーキテクチャ.md#5. 通信と依存方向>)
@@ -116,7 +115,7 @@ v0.0の最小のdense検索経路を利用者が実行できる状態にする�
 > [!note] 完了時に記入
 > - 実装したCLI commandと入力形式
 > - 検索結果の表示形式
-> - Invocation / Span構造の確認結果
+> - Trace / Span構造の確認結果
 > - 実行したテストコマンドと結果
 > - AI推論サービス・PostgreSQLを使用した一連の動作確認結果
 > - 一連の動作確認で生成・保存した文書チャンク件数
