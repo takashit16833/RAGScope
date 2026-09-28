@@ -247,13 +247,13 @@ dense検索で質問Embeddingと比較する。
 
 文書チャンクのEmbeddingと質問Embeddingを互換に生成するため、モデル、revision、Tokenizer、pooling、最大入力長、切り詰め、vector正規化、出力次元、文書用・質問用prefixを不変な識別子へまとめた条件。
 
-同じプロファイルIDの内容は変更せず、条件を変更する場合は別のプロファイルIDを使用する。正確な項目とAI推論サービス契約は[Embedding生成設計](./design/Embedding生成設計.md)と[AI推論サービスOpenAPI](../contracts/ai-inference.openapi.yaml)を正本とする。
+同じEmbeddingプロファイルIDの内容は変更せず、条件を変更する場合は別のEmbeddingプロファイルIDを使用する。正確な項目とAI推論サービス契約は[Embedding生成設計](./design/Embedding生成設計.md)と[AI推論サービスOpenAPI](../contracts/ai-inference.openapi.yaml)を正本とする。
 
 ### 検索用データ
 
 文書チャンクを検索できるようにするため、文書チャンクから生成または保持する情報の総称。
 
-文書チャンクのEmbeddingは検索用データの1つである。全文検索で使用する検索用データと文書チャンクのEmbeddingをどう生成・保持し、いつ検索へ利用可能とするかは[検索用データ準備設計](./design/domains/documents/検索用データ準備設計.md)で定義する.検索でどの準備済みデータを選ぶかは[検索対象設計](<./design/domains/retrieval-generation/検索対象設計.md>)で定義する。正確な保存形式は実装時のSchemaとmigrationを正本とする。
+文書チャンクのEmbeddingは検索用データの1つである。全文検索で使用する検索用データと文書チャンクのEmbeddingをどう生成・保持し、いつ検索へ利用可能とするかは[検索用データ準備設計](./design/domains/documents/検索用データ準備設計.md)で定義する。検索でどの準備済みデータを選ぶかは[検索対象設計](<./design/domains/retrieval-generation/検索対象設計.md>)で定義する。正確な保存形式は実装時のSchemaとmigrationを正本とする。
 
 ### 検索用データ準備単位
 
