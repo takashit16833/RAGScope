@@ -1,9 +1,5 @@
 services:
   workspace:
-    environment:
-      # GitHubへのSSH認証では、MacからColima VMへforwardされたSSH agentを利用する。
-      SSH_AUTH_SOCK: /run/host-services/ssh-auth.sock
-
     build:
       context: .
       dockerfile: .devcontainer/Dockerfile
@@ -27,9 +23,6 @@ services:
       - ${HOME}/.gitconfig.local:/home/vscode/.gitconfig.local:ro
 
       - cabal-cache:/home/vscode/.cabal
-
-      # Colima VM上のSSH agent socketをコンテナへmountし、秘密鍵をコンテナへ置かずに認証する。
-      - /run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock
 
 volumes:
   cabal-cache:

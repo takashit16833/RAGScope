@@ -12,7 +12,7 @@ RAGScopeの現在設計を、知りたい内容から参照するための索引
 | [システムアーキテクチャ](./システムアーキテクチャ.md) | どのコンポーネントが何を担当し、どうつながるか |
 | [RAGScopeアプリケーション失敗設計](./RAGScopeアプリケーション失敗設計.md) | UseCaseや内部処理の失敗をどの単位で表し、外部依存・CLI / API・実験・Telemetryとの境界をどう分けるか |
 | [Observability設計](./observability/README.md) | 実行・イベント・集約値をTrace・Logs・Metricsでどう観測し、OpenTelemetryとRAGScopeの責務をどう分けるか |
-| [文書ドメインの機能設計](./domains/documents/README.md) | 文書の取り込み、文書チャンク化、検索用データ生成をどの規則と受け渡しで行うか |
+| [文書ドメインの機能設計](./domains/documents/README.md) | 文書チャンク化と検索用データ生成をどの規則と受け渡しで行うか |
 
 ## 全体の関係
 
