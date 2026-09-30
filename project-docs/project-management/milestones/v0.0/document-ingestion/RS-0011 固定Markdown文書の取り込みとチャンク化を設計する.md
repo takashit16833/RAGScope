@@ -14,7 +14,7 @@ v0.0の最初のEpicでは、固定Markdown文書の読み込みとチャンク�
 
 既存の初期設計に記載されている責務、処理フロー、固定チャンクルール、不変条件を再利用し、後続Ticketが迷わず実装へ着手できる見通しと判断基準を整える。一方、正確なHaskellの型名、関数名、モジュール構成など、コードを正本とする詳細までは固定しない。
 
-Observabilityについては[Observability設計](../../../../design/observability/README.md)の共通規則を前提とし、文書処理で独自SpanまたはEventRecordが必要か、必要な場合にどの処理・出来事を表すかだけを機能固有の判断として具体化する。開始・成功・失敗という理由だけで共通イベントを自動定義しない。
+Observabilityについては[Observability設計](../../../../design/Observability設計.md)の共通規則を前提とし、文書処理で独自SpanまたはEventRecordが必要か、必要な場合にどの処理・出来事を表すかだけを機能固有の判断として具体化する。開始・成功・失敗という理由だけで共通イベントを自動定義しない。
 
 ## 完了条件
 
@@ -37,7 +37,7 @@ Observabilityについては[Observability設計](../../../../design/observabili
 ### 失敗・Observability・再試行
 
 - [ ] 文書読み込み、本文検証、チャンク化で発生する失敗を、文書処理固有の具体的なerror typeとして区別する境界が記載されている
-- [ ] 文書読み込みとチャンク化について、時間を持つ処理をSpan、処理を説明する値をattributes、名前付きの時点イベントが本当に必要な場合だけEventRecordとする[Observability設計](../../../../design/observability/README.md)の判断基準を適用している
+- [ ] 文書読み込みとチャンク化について、時間を持つ処理をSpan、処理を説明する値をattributes、名前付きの時点イベントが本当に必要な場合だけEventRecordとする[Observability設計](../../../../design/Observability設計.md)の判断基準を適用している
 - [ ] typed failureの発生だけ、または処理の開始・成功・失敗だけを理由にEventRecordを自動定義していない
 - [ ] 文書読み込みとチャンク化では自動再試行を行わないことと、その理由が記載されている
 
@@ -67,7 +67,7 @@ Observabilityについては[Observability設計](../../../../design/observabili
 - [システムアーキテクチャ「4.1 文書処理」](<../../../../design/システムアーキテクチャ.md#4.1 文書処理>)
 - [ユースケース設計](../../../../design/ユースケース設計.md)
 - [文書](../../../../design/domains/documents/README.md)
-- [Observability設計](../../../../design/observability/README.md)
+- [Observability設計](../../../../design/Observability設計.md)
 
 ## 実装メモ
 

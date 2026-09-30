@@ -78,7 +78,7 @@ v0.0でRAGScopeアプリケーションがdense検索の処理全体を制御す
 - [システムアーキテクチャ「2.2 AI推論サービス」](<../../../../design/システムアーキテクチャ.md#2.2 AI推論サービス>)
 - [システムアーキテクチャ「4.2 検索・回答生成」](<../../../../design/システムアーキテクチャ.md#4.2 検索・回答生成>)
 - [システムアーキテクチャ「5. 通信と依存方向」](<../../../../design/システムアーキテクチャ.md#5. 通信と依存方向>)
-- [Observability設計](../../../../design/observability/README.md)
+- [Observability設計](../../../../design/Observability設計.md)
 - `design/Embedding生成設計.md`
 - `design/検索設計.md`
 

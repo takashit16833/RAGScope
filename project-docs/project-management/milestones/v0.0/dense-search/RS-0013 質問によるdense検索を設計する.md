@@ -12,7 +12,7 @@ v0.0の最後のEpicでは、質問Embeddingの生成、RAGScopeアプリケー�
 
 このTicketでは、RS-0007からRS-0010へ着手する前に、質問によるdense検索の初期設計を行い、現在設計の正本となる`design/検索設計.md`を作成する。あわせて、質問Embeddingに関する`design/Embedding生成設計.md`とOpenAPIなどの機械可読なAPI定義を更新する。
 
-Observabilityは[Observability設計](../../../../design/observability/README.md)を共通前提とし、HTTP、PostgreSQLなどSemantic Conventionが適用できる処理は標準Spanを優先する。機能固有のSpan、EventRecord、attributesが必要な場合だけ検索設計で具体化し、同じ事実を重複して記録しない。
+Observabilityは[Observability設計](../../../../design/Observability設計.md)を共通前提とし、HTTP、PostgreSQLなどSemantic Conventionが適用できる処理は標準Spanを優先する。機能固有のSpan、EventRecord、attributesが必要な場合だけ検索設計で具体化し、同じ事実を重複して記録しない。
 
 初期設計では、後続Ticketが実装へ着手できる判断基準とコンポーネント間の契約を整える。正確なSQL、Haskell・Pythonの型、CLIの引数解析の構成は、それぞれの機械可読な正本で実装時に確定する。
 
@@ -55,10 +55,10 @@ Observabilityは[Observability設計](../../../../design/observability/README.md
 
 ### Observability
 
-- [ ] CLIの1回の検索操作ではCLI entry Spanから独立したTraceを開始し、UseCaseを呼び出す場合はUseCase Spanを作る共通構造が[Observability設計](../../../../design/observability/README.md)と一致している
+- [ ] CLIの1回の検索操作ではCLI entry Spanから独立したTraceを開始し、UseCaseを呼び出す場合はUseCase Spanを作る共通構造が[Observability設計](../../../../design/Observability設計.md)と一致している
 - [ ] RAGScopeアプリケーションからAI推論サービスへTrace Contextを伝播し、HTTP client / serverの標準Spanを利用する方針が記載されている
 - [ ] PostgreSQL処理は適用できるDB Semantic Conventionを優先し、同じ処理を表す独自Spanを重複して定義していない
-- [ ] typed failureだけを理由に共通EventRecordを定義せず、機能固有EventRecordが必要な場合は[Observability設計](../../../../design/observability/README.md)の基準で定義している
+- [ ] typed failureだけを理由に共通EventRecordを定義せず、機能固有EventRecordが必要な場合は[Observability設計](../../../../design/Observability設計.md)の基準で定義している
 
 ### 正本と整合
 
@@ -86,7 +86,7 @@ Observabilityは[Observability設計](../../../../design/observability/README.md
 - [システムアーキテクチャ「2.2 AI推論サービス」](<../../../../design/システムアーキテクチャ.md#2.2 AI推論サービス>)
 - [システムアーキテクチャ「4.2 検索・回答生成」](<../../../../design/システムアーキテクチャ.md#4.2 検索・回答生成>)
 - [システムアーキテクチャ「5. 通信と依存方向」](<../../../../design/システムアーキテクチャ.md#5. 通信と依存方向>)
-- [Observability設計](../../../../design/observability/README.md)
+- [Observability設計](../../../../design/Observability設計.md)
 - `design/Embedding生成設計.md`
 - `design/データモデル設計.md`
 

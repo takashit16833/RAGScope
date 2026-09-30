@@ -65,7 +65,7 @@ v0.0で文書をチャンク化し、Embedding生成と検索へ渡すために�
 - [システムアーキテクチャ「4.1 文書処理」](<../../../../design/システムアーキテクチャ.md#4.1 文書処理>)
 - [ユースケース設計](../../../../design/ユースケース設計.md)
 - [文書](../../../../design/domains/documents/README.md)
-- [Observability設計](../../../../design/observability/README.md)
+- [Observability設計](../../../../design/Observability設計.md)
 
 ## 実装メモ
 

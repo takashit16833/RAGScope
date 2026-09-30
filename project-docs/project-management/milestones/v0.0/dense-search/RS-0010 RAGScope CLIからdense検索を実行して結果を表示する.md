@@ -14,7 +14,7 @@ v0.0の最小のdense検索経路を利用者が実行できる状態にする�
 
 さらに、前のEpicで実装した固定Markdown文書の取り込みと文書チャンクのEmbedding保存を含め、文書取り込みから検索結果表示までをローカル環境で再実行できる手順を整え、v0.0の一連の動作を確認する。
 
-このCLI操作では、[Observability設計](../../../../design/observability/README.md)に従ってCLI entry Spanから独立したTraceを開始し、dense検索UseCaseを呼び出す場合はentry Spanの子にUseCase Spanを作る。
+このCLI操作では、[Observability設計](../../../../design/Observability設計.md)に従ってCLI entry Spanから独立したTraceを開始し、dense検索UseCaseを呼び出す場合はentry Spanの子にUseCase Spanを作る。
 
 ## 前提
 
@@ -92,7 +92,7 @@ v0.0の最小のdense検索経路を利用者が実行できる状態にする�
 - [システムアーキテクチャ「4.2 検索・回答生成」](<../../../../design/システムアーキテクチャ.md#4.2 検索・回答生成>)
 - [システムアーキテクチャ「5. 通信と依存方向」](<../../../../design/システムアーキテクチャ.md#5. 通信と依存方向>)
 - [システムアーキテクチャ「6. 配置・実行環境の境界」](<../../../../design/システムアーキテクチャ.md#6. 配置・実行環境の境界>)
-- [Observability設計](../../../../design/observability/README.md)
+- [Observability設計](../../../../design/Observability設計.md)
 - `design/Embedding生成設計.md`
 - `design/データモデル設計.md`
 - `design/検索設計.md`
