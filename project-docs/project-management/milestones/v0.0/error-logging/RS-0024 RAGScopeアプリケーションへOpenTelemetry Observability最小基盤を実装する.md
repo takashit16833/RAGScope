@@ -8,7 +8,7 @@ epic: "[[v0.0 共通エラーと構造化ログによる実行追跡]]"
 
 ## 目的
 
-RAGScopeアプリケーションで、[Observability設計](../../../../design/observability/README.md)に従ってTrace、Logs、Metricsを利用できるOpenTelemetryの最小基盤を実装する。
+RAGScopeアプリケーションで、[Observability設計](../../../../design/Observability設計.md)に従ってTrace、Logs、Metricsを利用できるOpenTelemetryの最小基盤を実装する。
 
 UseCaseや内部処理をOpenTelemetry SDKへ直接依存させず、RAGScope側のTelemetry利用境界と、その外側でSDKへ接続するAdapterを設ける。SDK初期化、Context、Processor / Exporter、flush / shutdownなど、後続機能が共通して必要とする実装だけをこのTicketで整える。
 
@@ -16,7 +16,7 @@ UseCaseや内部処理をOpenTelemetry SDKへ直接依存させず、RAGScope側
 
 - [RS-0023](<./RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する.md>)が完了している
 - [ADR-0010](<../../../../adr/ADR-0010 RAGScopeアプリケーションの失敗を処理単位の具体型で扱う.md>)がacceptedである
-- [Observability設計](../../../../design/observability/README.md)と[システムアーキテクチャ](../../../../design/システムアーキテクチャ.md)に、Observabilityと失敗の基本方針が記載されている
+- [Observability設計](../../../../design/Observability設計.md)と[システムアーキテクチャ](../../../../design/システムアーキテクチャ.md)に、Observabilityと失敗の基本方針が記載されている
 
 ## 完了条件
 
@@ -66,7 +66,7 @@ UseCaseや内部処理をOpenTelemetry SDKへ直接依存させず、RAGScope側
 ## 関連文書
 
 - [システムアーキテクチャ](../../../../design/システムアーキテクチャ.md)
-- [Observability設計](../../../../design/observability/README.md)
+- [Observability設計](../../../../design/Observability設計.md)
 - [ADR-0010](<../../../../adr/ADR-0010 RAGScopeアプリケーションの失敗を処理単位の具体型で扱う.md>)
 - [RS-0023](<./RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する.md>)
 

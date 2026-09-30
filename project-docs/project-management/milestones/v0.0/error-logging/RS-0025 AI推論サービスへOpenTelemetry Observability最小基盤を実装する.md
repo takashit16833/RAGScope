@@ -8,7 +8,7 @@ epic: "[[v0.0 共通エラーと構造化ログによる実行追跡]]"
 
 ## 目的
 
-AI推論サービスで、[Observability設計](../../../../design/observability/README.md)に従ってTrace、Logs、Metricsを利用できるOpenTelemetryの最小基盤を実装する。
+AI推論サービスで、[Observability設計](../../../../design/Observability設計.md)に従ってTrace、Logs、Metricsを利用できるOpenTelemetryの最小基盤を実装する。
 
 AI推論サービスのproduction Python実装がまだ存在しないため、このTicketでOpenTelemetry基盤を自動テストできる最小のPythonプロジェクト構成とテスト入口も整える。モデル、Tokenizer、Webフレームワーク固有処理より先に、Telemetry利用境界、SDK Adapter、Context、Processor / Exporter、flush / shutdownを実装する。
 
@@ -60,7 +60,7 @@ AI推論サービスのproduction Python実装がまだ存在しないため、�
 
 ## 関連文書
 
-- [Observability設計](../../../../design/observability/README.md)
+- [Observability設計](../../../../design/Observability設計.md)
 - [RS-0018](<./RS-0018 AI推論サービスの共通エラー・構造化ログ基盤を実装する.md>)
 - [RS-0023](<./RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する.md>)
 
