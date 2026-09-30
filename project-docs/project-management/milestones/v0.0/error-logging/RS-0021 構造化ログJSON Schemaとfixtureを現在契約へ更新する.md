@@ -7,7 +7,7 @@ epic: "[[v0.0 共通エラーと構造化ログによる実行追跡]]"
 # RS-0021 構造化ログJSON Schemaとfixtureを現在契約へ更新する
 
 > [!note] 後続の設計
-> 本Ticketは完了時点の旧JSON Contract更新を記録する履歴である。ここで参照した`design/logging/`配下の設計と`contracts/logging/v1/`は、その後のRS-0023・ADR-0006で置き換えられ、現在の正本から削除されている。現在のObservability設計は[Observability設計](../../../../design/observability/README.md)と[ADR-0006](<../../../../adr/ADR-0006 OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける.md>)を参照する。
+> 本Ticketは完了時点の旧JSON Contract更新を記録する履歴である。ここで参照した`design/logging/`配下の設計と`contracts/logging/v1/`は、その後のRS-0023・ADR-0006で置き換えられ、現在の正本から削除されている。現在のObservability設計は[Observability設計](../../../../design/Observability設計.md)と[ADR-0006](<../../../../adr/ADR-0006 OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける.md>)を参照する。
 
 ## 目的
 
@@ -53,7 +53,7 @@ epic: "[[v0.0 共通エラーと構造化ログによる実行追跡]]"
 - `構造化ログJSON表現設計`（当時の設計書、現在は削除済み）
 - [構造化ログ論理契約のJSON・SQLite投影検証](../../../../experiments/構造化ログ論理契約のJSON・SQLite投影検証.md)
 - `contracts/logging/v1/log-event.schema.json`（当時のJSON Schema、現在は削除済み）
-- [Observability設計](../../../../design/observability/README.md)
+- [Observability設計](../../../../design/Observability設計.md)
 - [ADR-0006](<../../../../adr/ADR-0006 OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける.md>)
 
 ## 実装メモ

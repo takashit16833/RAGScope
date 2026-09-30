@@ -60,7 +60,7 @@ OpenTelemetryを単なる出力AdapterではなくTrace / Logs / Metricsの共�
 
 - [RAGScope要求定義「2.3 信頼性と保守性」](<../../../../RAGScope要求定義.md#2.3 信頼性と保守性>)
 - [システムアーキテクチャ](../../../../design/システムアーキテクチャ.md)
-- [Observability設計](../../../../design/observability/README.md)
+- [Observability設計](../../../../design/Observability設計.md)
 - [ADR-0006](<../../../../adr/ADR-0006 OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける.md>)
 - [RS-0022](<./RS-0022 RAGScopeアプリケーションの構造化ログ基盤を現在契約へ移行する.md>)
 - [RS-0024](<./RS-0024 RAGScopeアプリケーションへOpenTelemetry Observability最小基盤を実装する.md>)

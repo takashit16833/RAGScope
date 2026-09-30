@@ -7,7 +7,7 @@ epic: "[[v0.0 共通エラーと構造化ログによる実行追跡]]"
 # RS-0022 RAGScopeアプリケーションの構造化ログ基盤を現在契約へ移行する
 
 > [!note] 後続の設計
-> 本TicketはRS-0023へ移行する前の実装計画を記録する中止済みTicketである。ここで参照した`design/logging/`配下の設計と旧JSON Contractは、その後のRS-0023・ADR-0006で置き換えられ、現在の正本から削除されている。現在のObservability設計は[Observability設計](../../../../design/observability/README.md)と[ADR-0006](<../../../../adr/ADR-0006 OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける.md>)を参照する。
+> 本TicketはRS-0023へ移行する前の実装計画を記録する中止済みTicketである。ここで参照した`design/logging/`配下の設計と旧JSON Contractは、その後のRS-0023・ADR-0006で置き換えられ、現在の正本から削除されている。現在のObservability設計は[Observability設計](../../../../design/Observability設計.md)と[ADR-0006](<../../../../adr/ADR-0006 OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける.md>)を参照する。
 
 ## 目的
 
@@ -71,7 +71,7 @@ RS-0015で実装したRAGScopeアプリケーションの`ragscope-logging`は�
 - `実行追跡・構造化ログ契約設計`（当時の設計書、現在は削除済み）
 - `構造化ログ外部表現共通設計`（当時の設計書、現在は削除済み）
 - `構造化ログJSON表現設計`（当時の設計書、現在は削除済み）
-- [Observability設計](../../../../design/observability/README.md)
+- [Observability設計](../../../../design/Observability設計.md)
 - [ADR-0005 — 実行追跡をOpenTelemetryのtrace・spanで表現し、イベントを構造化ログとして記録する](<../../../../adr/ADR-0005 実行追跡をOpenTelemetryのtrace・spanで表現し、イベントを構造化ログとして記録する.md>)
 - [ADR-0006](<../../../../adr/ADR-0006 OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける.md>)
 
