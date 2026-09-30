@@ -487,7 +487,7 @@ MarkdownやCSVなどの出力形式そのものは、実験結果の保存デー
 
 `Embedding`のような一般技術用語でも、RAGScopeで対象を区別する必要がある場合は、`文書チャンクのEmbedding`、`質問Embedding`のように対象を含む正式用語を使用する。
 
-OpenTelemetryのTrace、Span、LogRecord、EventRecord、Metric、Semantic Conventionなどは一般技術用語として扱い、その定義をRAGScope用語集へ複製しない。Trace / Spanの利用方法は[実行追跡設計](./design/observability/実行追跡設計.md)で定める。
+OpenTelemetryのTrace、Span、LogRecord、EventRecord、Metric、Semantic Conventionなどは一般技術用語として扱い、その定義をRAGScope用語集へ複製しない。Trace / Spanの利用方法は[Observability設計](./design/observability/README.md)で定める。
 
 ## 関連文書
 
@@ -495,4 +495,4 @@ OpenTelemetryのTrace、Span、LogRecord、EventRecord、Metric、Semantic Conve
 - [RAGScope概要](./RAGScope概要.md)
 - [RAGScope要求定義](./RAGScope要求定義.md)
 - [システムアーキテクチャ](./design/システムアーキテクチャ.md)
-- [実行追跡設計](./design/observability/実行追跡設計.md)
+- [Observability設計](./design/observability/README.md)

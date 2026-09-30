@@ -68,7 +68,6 @@ RS-0012で選定・設計したEmbeddingモデルと固定生成条件に従い�
 
 - [システムアーキテクチャ](../../../../design/システムアーキテクチャ.md)
 - [Observability設計](../../../../design/observability/README.md)
-- [実行追跡設計](../../../../design/observability/実行追跡設計.md)
 - [RS-0025](<../error-logging/RS-0025 AI推論サービスへOpenTelemetry Observability最小基盤を実装する.md>)
 
 ## 実装メモ

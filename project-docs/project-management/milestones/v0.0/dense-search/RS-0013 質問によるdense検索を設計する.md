@@ -55,10 +55,10 @@ Observabilityは[Observability設計](../../../../design/observability/README.md
 
 ### Observability
 
-- [ ] CLIの1回の検索操作ではCLI entry Spanから独立したTraceを開始し、UseCaseを呼び出す場合はUseCase Spanを作る共通構造が[実行追跡設計](../../../../design/observability/実行追跡設計.md)と一致している
+- [ ] CLIの1回の検索操作ではCLI entry Spanから独立したTraceを開始し、UseCaseを呼び出す場合はUseCase Spanを作る共通構造が[Observability設計](../../../../design/observability/README.md)と一致している
 - [ ] RAGScopeアプリケーションからAI推論サービスへTrace Contextを伝播し、HTTP client / serverの標準Spanを利用する方針が記載されている
 - [ ] PostgreSQL処理は適用できるDB Semantic Conventionを優先し、同じ処理を表す独自Spanを重複して定義していない
-- [ ] typed failureだけを理由に共通EventRecordを定義せず、機能固有EventRecordが必要な場合は[ログ・イベント設計](../../../../design/observability/ログ・イベント設計.md)の基準で定義している
+- [ ] typed failureだけを理由に共通EventRecordを定義せず、機能固有EventRecordが必要な場合は[Observability設計](../../../../design/observability/README.md)の基準で定義している
 
 ### 正本と整合
 
@@ -87,8 +87,6 @@ Observabilityは[Observability設計](../../../../design/observability/README.md
 - [システムアーキテクチャ「4.2 検索して回答を生成する」](<../../../../design/システムアーキテクチャ.md#4.2 検索して回答を生成する>)
 - [システムアーキテクチャ「5. 通信と依存方向」](<../../../../design/システムアーキテクチャ.md#5. 通信と依存方向>)
 - [Observability設計](../../../../design/observability/README.md)
-- [実行追跡設計](../../../../design/observability/実行追跡設計.md)
-- [ログ・イベント設計](../../../../design/observability/ログ・イベント設計.md)
 - `design/Embedding生成設計.md`
 - `design/データモデル設計.md`
 

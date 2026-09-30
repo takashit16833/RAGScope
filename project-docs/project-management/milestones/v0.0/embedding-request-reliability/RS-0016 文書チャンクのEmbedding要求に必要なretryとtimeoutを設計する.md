@@ -12,7 +12,7 @@ RAGScopeアプリケーションの再試行は、一時的失敗かつ再試行
 
 このTicketでは、RAGScopeアプリケーションからAI推論サービスへ文書チャンクのEmbeddingを要求する処理を最初の対象として、必要な再試行・タイムアウトの現在設計を`design/リトライ・タイムアウト設計.md`に定義する。RS-0012で設計したAPI契約と主要な失敗を基に、どの失敗を何の根拠で再試行するか、再実行しても安全な条件は何か、どの時間範囲を制限するかを明確にし、RS-0017とRS-0004が実装へ着手できる判断基準を整える。
 
-再試行・タイムアウトはTelemetryとは別の実行制御として設計する。Observabilityについては[実行追跡設計](../../../../design/observability/実行追跡設計.md)と[ログ・イベント設計](../../../../design/observability/ログ・イベント設計.md)を適用し、retry状態ごとに必ずログイベントを作ることは前提にしない。
+再試行・タイムアウトはTelemetryとは別の実行制御として設計する。Observabilityについては[Observability設計](../../../../design/observability/README.md)を適用し、retry状態ごとに必ずログイベントを作ることは前提にしない。
 
 ## 前提
 
@@ -44,9 +44,9 @@ RAGScopeアプリケーションの再試行は、一時的失敗かつ再試行
 
 ### Observability
 
-- [ ] retryを含む論理処理と各attemptのSpan境界が[実行追跡設計](../../../../design/observability/実行追跡設計.md)およびRS-0004のHTTP client計装と重複しない形で定義されている
+- [ ] retryを含む論理処理と各attemptのSpan境界が[Observability設計](../../../../design/observability/README.md)およびRS-0004のHTTP client計装と重複しない形で定義されている
 - [ ] retry途中の失敗だけを理由にEventRecordを定義せず、状態遷移そのものを名前付きで後から識別する必要があり、Spanでは表せない場合だけEventRecordを定義する方針が記載されている
-- [ ] EventRecordを定義する場合はEventName、記録条件、timestamp、Severity、attributesを[ログ・イベント設計](../../../../design/observability/ログ・イベント設計.md)に従って定義する
+- [ ] EventRecordを定義する場合はEventName、記録条件、timestamp、Severity、attributesを[Observability設計](../../../../design/observability/README.md)に従って定義する
 - [ ] retry途中で失敗して最終成功した論理処理のSpanを、途中失敗だけを理由にErrorへしない方針が記載されている
 
 ### 実装境界・テスト・整合
@@ -77,8 +77,6 @@ RAGScopeアプリケーションの再試行は、一時的失敗かつ再試行
 - [システムアーキテクチャ「2.1 RAGScopeアプリケーション」](<../../../../design/システムアーキテクチャ.md#2.1 RAGScopeアプリケーション>)
 - [システムアーキテクチャ「5. 通信と依存方向」](<../../../../design/システムアーキテクチャ.md#5. 通信と依存方向>)
 - [Observability設計](../../../../design/observability/README.md)
-- [実行追跡設計](../../../../design/observability/実行追跡設計.md)
-- [ログ・イベント設計](../../../../design/observability/ログ・イベント設計.md)
 - `design/Embedding生成設計.md`
 - [RS-0012 文書チャンクのEmbedding生成と保存を設計する](<../embedding-storage/RS-0012 文書チャンクのEmbedding生成と保存を設計する.md>)
 - [RS-0004 RAGScopeアプリケーションで文書チャンクのEmbeddingを取得する](<../embedding-storage/RS-0004 RAGScopeアプリケーションで文書チャンクのEmbeddingを取得する.md>)

@@ -60,10 +60,7 @@ AI推論サービスのproduction Python実装がまだ存在しないため、�
 
 ## 関連文書
 
-- [Observability設計](../../../../design/observability/Observability設計.md)
-- [実行追跡設計](../../../../design/observability/実行追跡設計.md)
-- [ログ・イベント設計](../../../../design/observability/ログ・イベント設計.md)
-- [Metrics設計](../../../../design/observability/Metrics設計.md)
+- [Observability設計](../../../../design/observability/README.md)
 - [RS-0018](<./RS-0018 AI推論サービスの共通エラー・構造化ログ基盤を実装する.md>)
 - [RS-0023](<./RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する.md>)
 

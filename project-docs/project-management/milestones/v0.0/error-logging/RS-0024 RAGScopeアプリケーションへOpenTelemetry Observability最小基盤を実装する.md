@@ -16,7 +16,7 @@ UseCaseや内部処理をOpenTelemetry SDKへ直接依存させず、RAGScope側
 
 - [RS-0023](<./RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する.md>)が完了している
 - [ADR-0010](<../../../../adr/ADR-0010 RAGScopeアプリケーションの失敗を処理単位の具体型で扱う.md>)がacceptedである
-- [Observability設計](../../../../design/observability/README.md)と[RAGScopeアプリケーション失敗設計](../../../../design/RAGScopeアプリケーション失敗設計.md)が現在設計として確定している
+- [Observability設計](../../../../design/observability/README.md)と[システムアーキテクチャ](../../../../design/システムアーキテクチャ.md)に、Observabilityと失敗の基本方針が記載されている
 
 ## 完了条件
 
@@ -65,11 +65,8 @@ UseCaseや内部処理をOpenTelemetry SDKへ直接依存させず、RAGScope側
 
 ## 関連文書
 
-- [RAGScopeアプリケーション失敗設計](../../../../design/RAGScopeアプリケーション失敗設計.md)
-- [Observability設計](../../../../design/observability/Observability設計.md)
-- [実行追跡設計](../../../../design/observability/実行追跡設計.md)
-- [ログ・イベント設計](../../../../design/observability/ログ・イベント設計.md)
-- [Metrics設計](../../../../design/observability/Metrics設計.md)
+- [システムアーキテクチャ](../../../../design/システムアーキテクチャ.md)
+- [Observability設計](../../../../design/observability/README.md)
 - [ADR-0010](<../../../../adr/ADR-0010 RAGScopeアプリケーションの失敗を処理単位の具体型で扱う.md>)
 - [RS-0023](<./RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する.md>)
 

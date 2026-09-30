@@ -32,7 +32,7 @@ epic: "[[v0.0 共通エラーと構造化ログによる実行追跡]]"
 
 - [ ] RAGScope APIのHTTPリクエストまたはCLIのコマンド実行から開始したTraceを、RAGScopeアプリケーションからAI推論サービスの処理まで同じTraceIdで確認できる
 - [ ] RAGScopeアプリケーションとAI推論サービスで記録したLogsを対応するTrace / Spanへ関連付けて確認できる
-- [ ] retryや失敗を含む代表的な実行で、Spanの親子関係と各処理自身の最終Statusが[実行追跡設計](../../../../design/observability/実行追跡設計.md)と一致する
+- [ ] retryや失敗を含む代表的な実行で、Spanの親子関係と各処理自身の最終Statusが[Observability設計](../../../../design/observability/README.md)と一致する
 
 ### MetricsとGrafana
 
@@ -56,10 +56,7 @@ epic: "[[v0.0 共通エラーと構造化ログによる実行追跡]]"
 ## 関連文書
 
 - [システムアーキテクチャ](../../../../design/システムアーキテクチャ.md)
-- [Observability設計](../../../../design/observability/Observability設計.md)
-- [実行追跡設計](../../../../design/observability/実行追跡設計.md)
-- [ログ・イベント設計](../../../../design/observability/ログ・イベント設計.md)
-- [Metrics設計](../../../../design/observability/Metrics設計.md)
+- [Observability設計](../../../../design/observability/README.md)
 
 ## 結果
 

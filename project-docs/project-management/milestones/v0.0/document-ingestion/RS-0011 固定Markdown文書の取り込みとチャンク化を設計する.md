@@ -68,8 +68,6 @@ Observabilityについては[Observability設計](../../../../design/observabili
 - [ユースケース設計](../../../../design/ユースケース設計.md)
 - [文書](../../../../design/domains/documents/README.md)
 - [Observability設計](../../../../design/observability/README.md)
-- [実行追跡設計](../../../../design/observability/実行追跡設計.md)
-- [ログ・イベント設計](../../../../design/observability/ログ・イベント設計.md)
 
 ## 実装メモ
 
