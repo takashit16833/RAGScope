@@ -26,7 +26,7 @@ flowchart LR
 | RAGScopeをどの問題領域に分けるか | [RAGScopeドメインモデル](./RAGScopeドメインモデル.md) |
 | 利用者が依頼するトップレベルな操作 | [ユースケース設計](./ユースケース設計.md) |
 | コンポーネント構成、責務、依存、主要なデータフロー | [システムアーキテクチャ](./システムアーキテクチャ.md) |
-| Trace、Logs、Metricsの使い分け | [Observability設計](./observability/README.md) |
+| Trace、Logs、Metricsの使い分け | [Observability設計](./Observability設計.md) |
 
 RAGScopeが満たすべき内容は[RAGScope要求定義](../RAGScope要求定義.md)、正式用語は[RAGScope用語集](../RAGScope用語集.md)を参照する。
 

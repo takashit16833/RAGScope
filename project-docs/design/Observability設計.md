@@ -89,7 +89,7 @@ Severityは`Debug`、`Info`、`Warn`、`Error`の4段階とする。
 
 `error.type`にはIDやメッセージなど実行ごとに変わる値を含めず、同じ種類の失敗を同じ値で表す。Telemetry用の表現は元の失敗を置き換えない。
 
-機能上の失敗の扱いは[システムアーキテクチャ](../システムアーキテクチャ.md)を正本とする。
+機能上の失敗の扱いは[システムアーキテクチャ](./システムアーキテクチャ.md)を正本とする。
 
 ## 6. ローカル環境とTBD
 
@@ -104,8 +104,8 @@ Collectorを配置するか、どのprotocolで送信するか、productionで�
 
 ## 関連文書
 
-- [システムアーキテクチャ](../システムアーキテクチャ.md)
-- [RAGScope要求定義](../../RAGScope要求定義.md)
-- [ADR-0006 — OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける](<../../adr/ADR-0006 OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける.md>)
-- [ADR-0009 — RAGScopeのLogs SeverityをDebug・Info・Warn・Errorに限定する](<../../adr/ADR-0009 RAGScopeのLogs SeverityをDebug・Info・Warn・Errorに限定する.md>)
-- [ADR-0010 — RAGScopeアプリケーションの失敗を処理単位の具体型で扱う](<../../adr/ADR-0010 RAGScopeアプリケーションの失敗を処理単位の具体型で扱う.md>)
+- [システムアーキテクチャ](./システムアーキテクチャ.md)
+- [RAGScope要求定義](../RAGScope要求定義.md)
+- [ADR-0006 — OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける](<../adr/ADR-0006 OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける.md>)
+- [ADR-0009 — RAGScopeのLogs SeverityをDebug・Info・Warn・Errorに限定する](<../adr/ADR-0009 RAGScopeのLogs SeverityをDebug・Info・Warn・Errorに限定する.md>)
+- [ADR-0010 — RAGScopeアプリケーションの失敗を処理単位の具体型で扱う](<../adr/ADR-0010 RAGScopeアプリケーションの失敗を処理単位の具体型で扱う.md>)

@@ -50,7 +50,7 @@ flowchart LR
 |---|---|
 | RAGScope API / CLI | システムアーキテクチャ、各インターフェースの契約 |
 | 失敗、retry、timeout | システムアーキテクチャ、対象機能の設計 |
-| Trace、Logs、Metrics | [Observability設計](./observability/README.md) |
+| Trace、Logs、Metrics | [Observability設計](./Observability設計.md) |
 | ローカル / AWSへの配置 | システムアーキテクチャ、配置を具体化する設計 |
 
 ## 関連文書
