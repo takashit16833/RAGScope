@@ -40,14 +40,14 @@ OpenTelemetryを単なる出力AdapterではなくTrace / Logs / Metricsの共�
 - [x] 型付き`Logger`、独自`LogRecord`、Logging Runtime、Sink、独自JSON / SQLite投影をOpenTelemetry Logsと並行する共通基盤として維持しないことを決定している
 - [x] RAGScope独自の固定5段階severity契約を廃止し、OpenTelemetry SeverityNumberを使用することを決定している
 - [x] `execution_id`をTraceと並行する共通追跡IDとして維持せず、TraceId / SpanIdで実行追跡することを決定している
-- [x] 変更の影響先としてADR-0005、設計書、RS-0018、RS-0003、RS-0004、後続実装Ticketを特定して反映している
+- [x] 変更の影響先としてADR-0005、設計書、関連するコンポーネント実装とHTTP Trace Context伝播を特定して反映している
 
 ### 正本と後続作業
 
 - [x] ADR-0006をacceptedとし、ADR-0005を`superseded`へ変更している
 - [x] `design/observability/`、システムアーキテクチャ、ユースケース設計、RAGScope用語集を現在設計として整合させている
 - [x] このwork branchには現在利用する構造化ログContract / Schemaが存在しないため、旧独自JSON契約を新Observability共通契約として再作成していない
-- [x] RS-0024、RS-0025、RS-0026へコンポーネント最小基盤とローカル確認環境を分解し、RS-0003 / RS-0004へ実際のHTTP Trace Context伝播を割り当てている
+- [x] 後続実装をRAGScopeアプリケーション、AI推論サービス、ローカル確認環境の単位へ分解している
 - [x] RS-0022の未merge branchを現在仕様の正本として使用せず、採用した判断を現在branchの正本へ反映している
 
 ## 対象外
@@ -64,8 +64,6 @@ OpenTelemetryを単なる出力AdapterではなくTrace / Logs / Metricsの共�
 - [ADR-0006](<../../../../adr/ADR-0006 OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける.md>)
 - [RS-0022](<./RS-0022 RAGScopeアプリケーションの構造化ログ基盤を現在契約へ移行する.md>)
 - [RS-0024](<./RS-0024 RAGScopeアプリケーションへOpenTelemetry Observability最小基盤を実装する.md>)
-- [RS-0025](<./RS-0025 AI推論サービスへOpenTelemetry Observability最小基盤を実装する.md>)
-- [RS-0026](<./RS-0026 ローカルObservability環境でTrace・Logs・Metricsを確認する.md>)
 
 ## 結果
 
@@ -77,6 +75,6 @@ RAGScope独自の名前付きイベントはOpenTelemetry LogsのEventRecordと�
 
 性能情報は、評価データごとの正確な値を実験結果、1回の処理内訳をTrace / Span、複数回の集約をMetricsとして扱う。RS-0023ではRAGScope独自Metricを追加せず、適用できるHTTP、DB、GenAIの標準Metricを利用する。
 
-ローカルbackendはTempo、Loki、Prometheus、Grafanaとする。Collectorの有無と具体的な送信経路はRS-0026で現在のSDK・backend制約に基づいて構成として確定する。
+ローカルbackendはTempo、Loki、Prometheus、Grafanaとする。Collectorの有無と具体的な送信経路は、ローカルObservability環境を実装する時点でSDK・backend制約に基づいて確定する。
 
-後続は、RAGScopeアプリケーションの最小基盤をRS-0024、AI推論サービスの最小基盤をRS-0025、ローカル横断確認環境をRS-0026が担当する。実際のRAGScopeアプリケーション→AI推論サービスHTTP通信でのTrace Context inject / extractはRS-0004 / RS-0003へ反映した。
+RAGScopeアプリケーションの最小基盤はRS-0024が担当する。AI推論サービスとローカル横断確認環境の未着手計画は再構築時に整理した。実際のRAGScopeアプリケーション→AI推論サービスHTTP通信でのTrace Context inject / extractは、その通信を実装する機能Ticketで扱う。

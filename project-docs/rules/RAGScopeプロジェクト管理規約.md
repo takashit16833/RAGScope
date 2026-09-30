@@ -275,10 +275,10 @@ templates/
 
 - Ticket IDは`RS-0001`形式の一意な連番とする。
 - 作成前に既存の最大IDを確認する。
-- 一度作成したTicketノートは原則として削除しない。
-- 不要になったTicketは、理由を記録して`cancelled`にする。
-- 完了、中止、移動後もIDを変更しない。
-- 過去に使用したIDを再利用しない。
+- `planned`で一度も着手しておらず、結果や設計判断を残していないTicketは、不要になった時点で削除してよい。
+- `in_progress`、`done`、`cancelled`のTicketは作業履歴として削除しない。
+- 不要になった`in_progress` Ticketは、理由を記録して`cancelled`にする。
+- 完了、中止、削除、移動後もIDを変更せず、過去に使用したIDを再利用しない。
 
 ### 4.4 Ticketの移動
 
