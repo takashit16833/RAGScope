@@ -62,6 +62,6 @@ OpenTelemetry Logsのデータモデルに合わせて、RAGScopeの境界でも
 
 - [ADR-0006 — OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける](<./ADR-0006 OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける.md>)
 - [ADR-0010 — RAGScopeアプリケーションの失敗を処理単位の具体型で扱う](<./ADR-0010 RAGScopeアプリケーションの失敗を処理単位の具体型で扱う.md>)
-- [ログ・イベント設計](../design/observability/ログ・イベント設計.md)
+- [Observability設計](../design/observability/README.md)
 - [RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する](<../project-management/milestones/v0.0/error-logging/RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する.md>)
 - [RS-0024 RAGScopeアプリケーションへOpenTelemetry Observability最小基盤を実装する](<../project-management/milestones/v0.0/error-logging/RS-0024 RAGScopeアプリケーションへOpenTelemetry Observability最小基盤を実装する.md>)

@@ -54,7 +54,7 @@ UseCaseや内部処理は呼び出し側が必要とする具体的な処理失�
 
 - [RAGScope用語集](../RAGScope用語集.md)
 - [RAGScope要求定義](../RAGScope要求定義.md)
-- [RAGScopeアプリケーション失敗設計](../design/RAGScopeアプリケーション失敗設計.md)
+- [システムアーキテクチャ](../design/システムアーキテクチャ.md)
 - [ユースケース設計](../design/ユースケース設計.md)
 - [Observability設計](../design/observability/README.md)
 - [ADR-0008 — RAGScopeアプリケーションの機能実装をprivate libraryへ分け、main libraryをFacadeとする](<./ADR-0008 RAGScopeアプリケーションの機能実装をprivate libraryへ分け、main libraryをFacadeとする.md>)
