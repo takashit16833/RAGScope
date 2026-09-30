@@ -56,7 +56,7 @@ OpenTelemetry Logsのデータモデルに合わせて、RAGScopeの境界でも
 - RAGScopeアプリケーションとAI推論サービスのOpenTelemetry Adapterは、4段階Severityを対応するOpenTelemetry `SeverityNumber`へ変換する。
 - severity未指定、`Trace`、`Fatal`、またはより細かなseverityが必要になった場合は、具体的な利用要求を根拠に共通境界を拡張する。
 - ADR-0006は`superseded`とし、本ADRがSeverityに関する判断を置き換える。ADR-0006のSeverity以外の決定は維持する。
-- 現在のSeverityの使い分けは[ログ・イベント設計](../design/observability/ログ・イベント設計.md)を正本とする。正確な型とOpenTelemetryへの変換は各コンポーネントのコードとテストを正本とする。
+- 現在のSeverityの使い分けは[Observability設計](../design/observability/README.md)を正本とする。正確な型とOpenTelemetryへの変換は各コンポーネントのコードとテストを正本とする。
 
 ## 関連文書
 

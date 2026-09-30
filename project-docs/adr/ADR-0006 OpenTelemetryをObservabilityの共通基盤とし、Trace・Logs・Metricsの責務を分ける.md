@@ -44,7 +44,7 @@ OpenTelemetryが提供するContextと各SignalのSDKを共通して利用しつ
 
 ## 結果と影響
 
-- 現在のObservability設計は[Observability設計](../design/observability/Observability設計.md)、[実行追跡設計](../design/observability/実行追跡設計.md)、[ログ・イベント設計](../design/observability/ログ・イベント設計.md)、[Metrics設計](../design/observability/Metrics設計.md)を正本とする。
+- 現在のObservability設計は[Observability設計](../design/observability/README.md)を正本とする。
 - RAGScopeアプリケーションの既存Logging基盤は、OpenTelemetry SDKと責務が重なる部分を新しい最小基盤へ置き換える。AI推論サービスは旧共通ログ契約を実装せず、最初から新しいObservability設計へ従う。
 - RAGScopeアプリケーションとAI推論サービスの具体的なTelemetry利用境界、Adapter、SDK初期化、設定は、それぞれの後続実装Ticketでコード・設定・テストを正本として具体化する。
 - コンポーネント間の具体的なTrace Contextの通信表現は、各通信方式を実装するTicketと機械可読な契約へ置く。
@@ -55,9 +55,6 @@ OpenTelemetryが提供するContextと各SignalのSDKを共通して利用しつ
 
 - [RAGScope要求定義](../RAGScope要求定義.md)
 - [システムアーキテクチャ](../design/システムアーキテクチャ.md)
-- [Observability設計](../design/observability/Observability設計.md)
-- [実行追跡設計](../design/observability/実行追跡設計.md)
-- [ログ・イベント設計](../design/observability/ログ・イベント設計.md)
-- [Metrics設計](../design/observability/Metrics設計.md)
+- [Observability設計](../design/observability/README.md)
 - [ADR-0005 — 実行追跡をOpenTelemetryのtrace・spanで表現し、イベントを構造化ログとして記録する](<./ADR-0005 実行追跡をOpenTelemetryのtrace・spanで表現し、イベントを構造化ログとして記録する.md>)
 - [RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する](<../project-management/milestones/v0.0/error-logging/RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する.md>)

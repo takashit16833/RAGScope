@@ -42,7 +42,7 @@ UseCaseや内部処理は呼び出し側が必要とする具体的な処理失�
 
 ## 結果と影響
 
-- 現在の失敗の扱いは[RAGScopeアプリケーション失敗設計](../design/RAGScopeアプリケーション失敗設計.md)を正本とする。
+- 現在の失敗の扱いは[システムアーキテクチャ](../design/システムアーキテクチャ.md)を正本とする。
 - Observability設計から、CLI / APIと実験結果をTelemetryと同列の失敗変換先として扱う記述を外す。
 - 個別featureの設計・実装では、必要な具体的な失敗型と、外部依存からその処理失敗へ変換するAdapter境界を定める。
 - 実験・評価の設計では、評価データごとの実行結果として保存する失敗と、成功率・タイムアウト率へ含める最終結果を具体化する。これらをObservability設計や本ADRで先取りしない。
@@ -56,6 +56,6 @@ UseCaseや内部処理は呼び出し側が必要とする具体的な処理失�
 - [RAGScope要求定義](../RAGScope要求定義.md)
 - [RAGScopeアプリケーション失敗設計](../design/RAGScopeアプリケーション失敗設計.md)
 - [ユースケース設計](../design/ユースケース設計.md)
-- [Observability設計](../design/observability/Observability設計.md)
+- [Observability設計](../design/observability/README.md)
 - [ADR-0008 — RAGScopeアプリケーションの機能実装をprivate libraryへ分け、main libraryをFacadeとする](<./ADR-0008 RAGScopeアプリケーションの機能実装をprivate libraryへ分け、main libraryをFacadeとする.md>)
 - [ADR-0009 — RAGScopeのLogs SeverityをDebug・Info・Warn・Errorに限定する](<./ADR-0009 RAGScopeのLogs SeverityをDebug・Info・Warn・Errorに限定する.md>)
