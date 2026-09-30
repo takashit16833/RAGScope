@@ -14,7 +14,7 @@ epic: "[[v0.0 文書チャンクのEmbedding生成と保存]]"
 
 RAGScopeアプリケーションからAI推論サービスへ文書チャンクのEmbeddingを要求する処理の具体的な再試行・タイムアウト方針と実行機構は、RS-0016とRS-0017で別に設計・実装する。このTicketでは、後続の再試行・タイムアウト設計が判断できるよう、処理の境界、副作用、主要な失敗、HTTP契約を定義するが、具体的な試行回数や待機方式は固定しない。
 
-Observabilityは[Observability設計](../../../../design/observability/README.md)を前提とし、コンポーネント間の追跡にはOpenTelemetry Trace Contextを使用する。APIの業務データへRAGScope独自の`execution_id`を追加しない。
+Observabilityは[Observability設計](../../../../design/Observability設計.md)を前提とし、コンポーネント間の追跡にはOpenTelemetry Trace Contextを使用する。APIの業務データへRAGScope独自の`execution_id`を追加しない。
 
 初期設計では、後続Ticketが実装へ着手できる判断基準とコンポーネント間の契約を整える。正確なHaskell・Pythonの型、SQL、マイグレーションの定義は、それぞれの機械可読な正本で実装時に確定する。
 
@@ -22,7 +22,7 @@ Observabilityは[Observability設計](../../../../design/observability/README.md
 
 - [RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する](<../error-logging/RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する.md>)が完了している
 - `RS-0002`までに、固定Markdown文書から後続処理へ渡せる文書チャンクを生成できる見通しが立っている
-- [Observability設計](../../../../design/observability/README.md)に、コンポーネント境界のTrace Context伝播と失敗のTelemetry反映規則が記載されている
+- [Observability設計](../../../../design/Observability設計.md)に、コンポーネント境界のTrace Context伝播と失敗のTelemetry反映規則が記載されている
 
 ## 完了条件
 
@@ -92,7 +92,7 @@ Observabilityは[Observability設計](../../../../design/observability/README.md
 - [システムアーキテクチャ「2.2 AI推論サービス」](<../../../../design/システムアーキテクチャ.md#2.2 AI推論サービス>)
 - [システムアーキテクチャ「4.1 文書処理」](<../../../../design/システムアーキテクチャ.md#4.1 文書処理>)
 - [システムアーキテクチャ「5. 通信と依存方向」](<../../../../design/システムアーキテクチャ.md#5. 通信と依存方向>)
-- [Observability設計](../../../../design/observability/README.md)
+- [Observability設計](../../../../design/Observability設計.md)
 - [文書](../../../../design/domains/documents/README.md)
 - [RS-0016 文書チャンクのEmbedding要求に必要なretryとtimeoutを設計する](<../embedding-request-reliability/RS-0016 文書チャンクのEmbedding要求に必要なretryとtimeoutを設計する.md>)
 

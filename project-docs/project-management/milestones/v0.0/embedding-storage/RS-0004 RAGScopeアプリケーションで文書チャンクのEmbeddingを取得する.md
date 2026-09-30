@@ -72,7 +72,7 @@ RS-0002で生成した文書チャンクをRAGScopeアプリケーションか�
 ## 関連文書
 
 - [システムアーキテクチャ](../../../../design/システムアーキテクチャ.md)
-- [Observability設計](../../../../design/observability/README.md)
+- [Observability設計](../../../../design/Observability設計.md)
 - [RS-0017](<../embedding-request-reliability/RS-0017 文書チャンクのEmbedding要求に必要なretry executorとtimeout制御を実装する.md>)
 - [RS-0024](<../error-logging/RS-0024 RAGScopeアプリケーションへOpenTelemetry Observability最小基盤を実装する.md>)
 
