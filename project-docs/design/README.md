@@ -12,7 +12,7 @@ RAGScopeの現在設計を、知りたい内容から参照するための索引
 | [システムアーキテクチャ](./システムアーキテクチャ.md) | どのコンポーネントが何を担当し、どうつながるか |
 | [RAGScopeアプリケーション失敗設計](./RAGScopeアプリケーション失敗設計.md) | UseCaseや内部処理の失敗をどの単位で表し、外部依存・CLI / API・実験・Telemetryとの境界をどう分けるか |
 | [Observability設計](./observability/README.md) | 実行・イベント・集約値をTrace・Logs・Metricsでどう観測し、OpenTelemetryとRAGScopeの責務をどう分けるか |
-| [文書ドメインの機能設計](./domains/documents/README.md) | 文書チャンク化と検索用データ生成をどの規則と受け渡しで行うか |
+| [文書](./domains/documents/README.md) | 文書ドメインの設計を確認する入口 |
 
 ## 全体の関係
 
@@ -57,6 +57,6 @@ flowchart TD
 
 UseCaseや内部処理が返す具体的なfailure、外部library固有の失敗を変換する位置、UseCaseの最終failureとretry途中のfailureの違い、CLI / API・実験・Telemetryがfailureをどう利用するかは[RAGScopeアプリケーション失敗設計](./RAGScopeアプリケーション失敗設計.md)を確認する。
 
-1回の外部呼び出しをどのTrace・Spanで追跡し、LogsとMetricsをどう使い分けるかは[Observability設計](./observability/README.md)を確認する。個別機能の処理規則、入出力、失敗条件は、その機能を担当するドメイン配下の機能設計で具体化する。文書ドメインについては[文書ドメインの機能設計](./domains/documents/README.md)を確認する。
+1回の外部呼び出しをどのTrace・Spanで追跡し、LogsとMetricsをどう使い分けるかは[Observability設計](./observability/README.md)を確認する。文書ドメインについては[文書](./domains/documents/README.md)を入口として、要求、用語、ドメインモデル、ユースケースを確認する。
 
 正確な項目名、型、必須条件、API Schema、DB制約、具体的なテストケースは、コード、JSON Schema、OpenAPI、migration、テストなどの機械可読な正本を参照する。

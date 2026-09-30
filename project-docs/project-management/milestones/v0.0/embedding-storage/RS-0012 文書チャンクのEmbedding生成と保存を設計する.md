@@ -22,8 +22,6 @@ Observabilityは[Observability設計](../../../../design/observability/README.md
 
 - [RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する](<../error-logging/RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する.md>)が完了している
 - `RS-0002`までに、固定Markdown文書から後続処理へ渡せる文書チャンクを生成できる見通しが立っている
-- [文書チャンク化基本設計](../../../../design/domains/documents/文書チャンク化基本設計.md)に、文書チャンクが保持する概念上の情報が記載されている
-- [文書チャンク化詳細設計](../../../../design/domains/documents/文書チャンク化詳細設計.md)に、文書チャンクが守る不変条件が記載されている
 - [Observability設計](../../../../design/observability/README.md)と[実行追跡設計](../../../../design/observability/実行追跡設計.md)に、コンポーネント境界のTrace Context伝播と失敗のTelemetry反映規則が記載されている
 
 ## 完了条件
@@ -96,10 +94,7 @@ Observabilityは[Observability設計](../../../../design/observability/README.md
 - [システムアーキテクチャ「5. 通信と依存方向」](<../../../../design/システムアーキテクチャ.md#5. 通信と依存方向>)
 - [Observability設計](../../../../design/observability/README.md)
 - [実行追跡設計](../../../../design/observability/実行追跡設計.md)
-- [文書チャンク化基本設計](../../../../design/domains/documents/文書チャンク化基本設計.md)
-- [文書チャンク化詳細設計](../../../../design/domains/documents/文書チャンク化詳細設計.md)
-- [検索用データ生成基本設計](../../../../design/domains/documents/検索用データ生成基本設計.md)
-- [検索用データ生成詳細設計](../../../../design/domains/documents/検索用データ生成詳細設計.md)
+- [文書](../../../../design/domains/documents/README.md)
 - [RS-0016 文書チャンクのEmbedding要求に必要なretryとtimeoutを設計する](<../embedding-request-reliability/RS-0016 文書チャンクのEmbedding要求に必要なretryとtimeoutを設計する.md>)
 
 ## 実装メモ
