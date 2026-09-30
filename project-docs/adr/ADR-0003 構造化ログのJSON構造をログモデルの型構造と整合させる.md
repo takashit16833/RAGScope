@@ -13,7 +13,7 @@ status: superseded
 
 RAGScopeアプリケーションの構造化ログでは、Haskell内部で`LogEvent`、`EventContext`、`EventSpec`、`Payload`、`LogError`として意味ごとに構造を分けている。一方、現在のJSON契約では`EventSpec`に属する`operation`、`event`、`level`、`payload`、`error`をルートへ展開しており、内部モデルとJSON契約の構造差を`AesonStderr`の手書き変換で吸収している。
 
-RS-0015でSchema適合テストを追加する前に、JSON契約も意味上の構造を保つ形へ整理し、Haskell側でAesonのGeneric導出を自然に利用できるようにする。
+Schema適合テストを追加する前に、JSON契約も意味上の構造を保つ形へ整理し、Haskell側でAesonのGeneric導出を自然に利用できるようにする。
 
 ## 決定
 
@@ -38,7 +38,7 @@ RS-0015でSchema適合テストを追加する前に、JSON契約も意味上の
 - `log-event.schema.json`とvalid / invalid fixtureを新しいJSON構造へ更新する。
 - RAGScopeアプリケーションのJSON変換を、Generic導出と必要最小限の型別変換を中心とした実装へ整理する。
 - 当時の現在設計を`構造化ログ設計`、`RAGScopeアプリケーション構造化ログ設計`、`構造化ログJSON表現設計`の責務へ分けて管理する。
-- RS-0015のSchema適合テストは、更新後のSchemaとfixtureを対象に実装する。
+- RAGScopeアプリケーションのSchema適合テストは、更新後のSchemaとfixtureを対象に実装する。
 
 ## 関連文書
 
@@ -48,4 +48,3 @@ RS-0015でSchema適合テストを追加する前に、JSON契約も意味上の
 - `構造化ログJSON表現設計`（当時の設計書、現在は削除済み）
 - [Observability設計](../design/Observability設計.md)
 - [ADR-0006](<./ADR-0006 OpenTelemetryをObservabilityの共通基盤とし、Trace・Logs・Metricsの責務を分ける.md>)
-- [RS-0015 RAGScopeアプリケーションの共通エラー・構造化ログ基盤を実装する](<../project-management/milestones/v0.0/error-logging/RS-0015 RAGScopeアプリケーションの共通エラー・構造化ログ基盤を実装する.md>)
