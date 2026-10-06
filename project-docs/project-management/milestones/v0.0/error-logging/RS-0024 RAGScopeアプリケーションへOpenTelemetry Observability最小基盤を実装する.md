@@ -2,7 +2,7 @@
 note_type: ticket
 status: in_progress
 milestone: "[[v0.0]]"
-epic: "[[v0.0 共通エラーと構造化ログによる実行追跡]]"
+epic: "[[v0.0 OpenTelemetry Observability基盤を整備する]]"
 ---
 # RS-0024 RAGScopeアプリケーションへOpenTelemetry Observability最小基盤を実装する
 
