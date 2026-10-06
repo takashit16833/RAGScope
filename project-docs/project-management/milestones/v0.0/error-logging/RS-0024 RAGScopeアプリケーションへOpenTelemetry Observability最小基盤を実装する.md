@@ -14,7 +14,6 @@ UseCaseや内部処理をOpenTelemetry SDKへ直接依存させず、RAGScope側
 
 ## 前提
 
-- [RS-0023](<./RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する.md>)が完了している
 - [ADR-0010](<../../../../adr/ADR-0010 RAGScopeアプリケーションの失敗を処理単位の具体型で扱う.md>)がacceptedである
 - [Observability設計](../../../../design/Observability設計.md)と[システムアーキテクチャ](../../../../design/システムアーキテクチャ.md)に、Observabilityと失敗の基本方針が記載されている
 
@@ -38,7 +37,7 @@ UseCaseや内部処理をOpenTelemetry SDKへ直接依存させず、RAGScope側
 - [ ] RAGScope独自Spanを開始・終了し、その処理自身の最終結果に応じてStatusと`error.type`を設定できる
 - [ ] OpenTelemetry LogsのEventRecordと通常LogRecordを現在のTrace Contextに関連付けて記録できる
 - [ ] OpenTelemetry Metricsを利用できるSDK構成を持ち、標準計装が提供するMetricを後続機能から利用できる
-- [ ] RS-0023で定義していないRAGScope独自Metricを共通基盤として追加していない
+- [ ] RAGScope独自Metricを共通基盤として追加していない
 
 ### 失敗と例外
 
@@ -68,7 +67,6 @@ UseCaseや内部処理をOpenTelemetry SDKへ直接依存させず、RAGScope側
 - [システムアーキテクチャ](../../../../design/システムアーキテクチャ.md)
 - [Observability設計](../../../../design/Observability設計.md)
 - [ADR-0010](<../../../../adr/ADR-0010 RAGScopeアプリケーションの失敗を処理単位の具体型で扱う.md>)
-- [RS-0023](<./RS-0023 OpenTelemetry Logsを前提に実行追跡・構造化ログアーキテクチャを再設計する.md>)
 
 ## 結果
 

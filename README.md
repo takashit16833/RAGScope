@@ -45,7 +45,6 @@ OBSIDIAN_SHARED_CONFIG_DIR=/path/to/obsidian bash Scripts/setup-project-vault.sh
 ## リポジトリ構成
 
 - [`ragscope-app/`](ragscope-app/README.md): RAGScopeアプリケーションを実装するHaskellコンポーネント
-- [`contracts/`](contracts/): コンポーネント間で共有する機械可読な契約
 - [`project-docs/`](project-docs/): 要求、設計、ADR、プロジェクト管理、開発規約。Obsidian Vaultとしても利用する
 - [`Vendor/obsidian-config-layer/`](Vendor/obsidian-config-layer/): `project-docs/` Vaultで利用するConfig Layerのsubmodule
 
